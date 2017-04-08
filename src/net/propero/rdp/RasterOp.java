@@ -80,6 +80,10 @@ public class RasterOp {
 			biDst.getGraphics()
 					.copyArea(srcx, srcy, cx, cy, x - srcx, y - srcy);
 		} else {
+			if (src.length != cx * cy) {
+				logger.warn("Unusual dimensions for array "
+					+ cx + "," + cy + "; I don't know how to make " + src.length);
+			}
 			biDst.setRGB(x, y, cx, cy, src, 0, cx);
 		}
 	}

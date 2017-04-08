@@ -969,26 +969,57 @@ public class Orders {
 	 */
 	private void processMemBlt(RdpPacket_Localised data, MemBltOrder memblt,
 			int present, boolean delta) {
-		if ((present & 0x01) != 0) {
+		if (logger.isDebugEnabled())
+			logger.debug("memblt delta " + delta + " from " + memblt.getX() + "," + memblt.getY());
+		String info = "";
+		if ((present & 0x0001) != 0) {
 			memblt.setCacheID(data.get8());
 			memblt.setColorTable(data.get8());
+			if (logger.isDebugEnabled())
+				info += "id " + memblt.getCacheID() + " coltab " + memblt.getColorTable() + " ";
 		}
-		if ((present & 0x02) != 0)
+		if ((present & 0x0002) != 0) {
 			memblt.setX(setCoordinate(data, memblt.getX(), delta));
-		if ((present & 0x04) != 0)
+			if (logger.isDebugEnabled())
+				info += "x " + memblt.getX() + " ";
+		}
+		if ((present & 0x0004) != 0) {
 			memblt.setY(setCoordinate(data, memblt.getY(), delta));
-		if ((present & 0x08) != 0)
+			if (logger.isDebugEnabled())
+				info += "y " + memblt.getY() + " ";
+		}
+		if ((present & 0x0008) != 0) {
 			memblt.setCX(setCoordinate(data, memblt.getCX(), delta));
-		if ((present & 0x10) != 0)
+			if (logger.isDebugEnabled())
+				info += "cx " + memblt.getCX() + " ";
+		}
+		if ((present & 0x0010) != 0) {
 			memblt.setCY(setCoordinate(data, memblt.getCY(), delta));
-		if ((present & 0x20) != 0)
+			if (logger.isDebugEnabled())
+				info += "cy " + memblt.getCY() + " ";
+		}
+		if ((present & 0x0020) != 0) {
 			memblt.setOpcode(ROP2_S(data.get8()));
-		if ((present & 0x40) != 0)
+			if (logger.isDebugEnabled())
+				info += "op " + memblt.getOpcode() + " ";
+		}
+		if ((present & 0x0040) != 0) {
 			memblt.setSrcX(setCoordinate(data, memblt.getSrcX(), delta));
-		if ((present & 0x80) != 0)
+			if (logger.isDebugEnabled())
+				info += "srcx " + memblt.getSrcX() + " ";
+		}
+		if ((present & 0x0080) != 0) {
 			memblt.setSrcY(setCoordinate(data, memblt.getSrcY(), delta));
-		if ((present & 0x0100) != 0)
+			if (logger.isDebugEnabled())
+				info += "srcy " + memblt.getSrcY() + " ";
+		}
+		if ((present & 0x0100) != 0) {
 			memblt.setCacheIDX(data.getLittleEndian16());
+			if (logger.isDebugEnabled())
+				info += "idx " + memblt.getCacheIDX();
+		}
+		if (logger.isDebugEnabled())
+			logger.debug(info);
 
 		// if(logger.isInfoEnabled()) logger.info("Memblt
 		// opcode="+memblt.getOpcode());

@@ -344,6 +344,7 @@ public abstract class RdesktopCanvas extends Canvas {
 		g.setClip(bounds.x, bounds.y, bounds.width, bounds.height);
 		this.top = 0;
 		this.left = 0;
+		// XXX are these widths correct?
 		this.right = this.width - 1; // changed
 		this.bottom = this.height - 1; // changed
 	}
@@ -356,6 +357,7 @@ public abstract class RdesktopCanvas extends Canvas {
 	 */
 	public void setClip(BoundsOrder bounds) {
 		Graphics g = this.getGraphics();
+		// XXX are these widths correct?
 		g.setClip(bounds.getLeft(), bounds.getTop(), bounds.getRight()
 				- bounds.getLeft(), bounds.getBottom() - bounds.getTop());
 		this.top = bounds.getTop();
@@ -714,35 +716,81 @@ public abstract class RdesktopCanvas extends Canvas {
 		int srcy = memblt.getSrcY();
 
 		// Perform standard clipping checks, x-axis
+		boolean clippedX = false;
 		int clipright = x + cx - 1;
-		if (clipright > this.right)
+		if (clipright > this.right) {
 			clipright = this.right;
-		if (x < this.left)
+			clippedX = true;
+		}
+		if (x < this.left) {
 			x = this.left;
+			clippedX = true;
+		}
 		cx = clipright - x + 1;
 
 		// Perform standard clipping checks, y-axis
+		boolean clippedY = false;
 		int clipbottom = y + cy - 1;
-		if (clipbottom > this.bottom)
+		if (clipbottom > this.bottom) {
 			clipbottom = this.bottom;
-		if (y < this.top)
+			clippedY = true;
+		}
+		if (y < this.top) {
 			y = this.top;
+			clippedY = true;
+		}
 		cy = clipbottom - y + 1;
 
 		srcx += x - memblt.getX();
 		srcy += y - memblt.getY();
 
-		if (logger.isInfoEnabled())
-			logger.info("MEMBLT x=" + x + " y=" + y + " cx=" + cx + " cy=" + cy
-					+ " srcx=" + srcx + " srcy=" + srcy + " opcode="
-					+ memblt.getOpcode());
+		if (logger.isDebugEnabled())
+			logger.debug("MEMBLT x=" + x + " y=" + y + " cx=" + cx + "("
+					+ memblt.getCX() + ") cy=" + cy + "(" + memblt.getCY()
+					+ ") srcx=" + srcx + " srcy=" + srcy + " opcode="
+					+ memblt.getOpcode() + " id=" + memblt.getCacheID()
+					+ " idx=" + memblt.getCacheIDX());
 		try {
 			Bitmap bitmap = cache.getBitmap(memblt.getCacheID(), memblt
 					.getCacheIDX());
+			int bitmapWidth = bitmap.getWidth();
+			int bitmapHeight = bitmap.getHeight();
+			String info = "";
+			if (logger.isDebugEnabled())
+				info = "self=" + this.width + "x" + this.height
+						+ " bmp=" + bitmap.getWidth() + "x" + bitmapHeight;
+			if (cx < bitmapWidth) {
+				int xoffset = bitmapWidth - cx;
+				int nx = x - xoffset;
+				int ncx = bitmapWidth;
+				if (logger.isDebugEnabled())
+					info += " xoffset=" + xoffset + " x->" + nx + " cx->" + ncx;
+				if (!clippedX) {
+					x = nx;
+					cx = ncx;
+				} else if (logger.isDebugEnabled()) {
+					info += " but not really, as clipped";
+				}
+			}
+			if (cy < bitmapHeight) {
+				int yoffset = bitmapWidth - cx;
+				int ny = y - yoffset;
+				int ncy = bitmapHeight;
+				if (logger.isDebugEnabled())
+					info += " yoffset=" + yoffset + " y->" + ny + " cy->" + ncy;
+				if (!clippedY) {
+					y = ny;
+					cy = ncy;
+				} else if (logger.isDebugEnabled()) {
+					info += " but not really, as clipped";
+				}
+			}
+			if (logger.isDebugEnabled())
+				logger.debug(info);
 			// IndexColorModel cm = cache.get_colourmap(memblt.getColorTable());
 			// should use the colormap, but requires high color backstore...
 			rop.do_array(memblt.getOpcode(), backstore, this.width, x, y, cx,
-					cy, bitmap.getBitmapData(), bitmap.getWidth(), srcx, srcy);
+					cy, bitmap.getBitmapData(), bitmapWidth, srcx, srcy);
 
 			this.repaint(x, y, cx, cy);
 		} catch (RdesktopException e) {
