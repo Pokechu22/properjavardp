@@ -308,7 +308,7 @@ public class Rdp {
 	 * @param data
 	 *            Packet containing capability set data at current read position
 	 */
-	static void processGeneralCaps(RdpPacket_Localised data) {
+	private void processGeneralCaps(RdpPacket_Localised data) throws RdesktopException {
 		int pad2octetsB; /* rdp5 flags? */
 
 		data.incrementPosition(10); // in_uint8s(s, 10);
@@ -324,7 +324,7 @@ public class Rdp {
 	 * @param data
 	 *            Packet containing capability set data at current read position
 	 */
-	static void processBitmapCaps(RdpPacket_Localised data) {
+	private void processBitmapCaps(RdpPacket_Localised data) throws RdesktopException {
 		int width, height, bpp;
 
 		bpp = data.getLittleEndian16(); // in_uint16_le(s, bpp);
@@ -346,10 +346,12 @@ public class Rdp {
 			Options.server_bpp = bpp;
 		}
 		if (Options.width != width || Options.height != height) {
-			logger.warn("screen size changed from " + Options.width + "x"
-					+ Options.height + " to " + width + "x" + height);
+			String msg = "screen size changed from " + Options.width + "x"
+					+ Options.height + " to " + width + "x" + height;
+			logger.warn(msg);
 			Options.width = width;
 			Options.height = height;
+			throw new RdesktopException("Unimplemented size change: " + msg);
 			// ui_resize_window(); TODO: implement resize thingy
 		}
 	}
@@ -360,7 +362,7 @@ public class Rdp {
 	 * @param data
 	 *            Packet containing capability set data at current read position
 	 */
-	void processServerCaps(RdpPacket_Localised data, int length) {
+	private void processServerCaps(RdpPacket_Localised data, int length) throws RdesktopException {
 		int n;
 		int next, start;
 		int ncapsets, capset_type, capset_length;
@@ -388,6 +390,10 @@ public class Rdp {
 
 			case RDP_CAPSET_BITMAP:
 				processBitmapCaps(data);
+				break;
+
+			default:
+				logger.warn("Unhandled capset " + capset_type + " (len " + capset_length + ")");
 				break;
 			}
 
@@ -893,8 +899,19 @@ public class Rdp {
 			throws RdesktopException, IOException, CryptoException,
 			OrderException {
 		int type[] = new int[1];
+		int len_src_descriptor, len_combined_caps;
 
-		this.rdp_shareid = data.getLittleEndian32();
+		/* at this point we need to ensure that we have ui created */
+		//rd_create_ui();
+
+		this.rdp_shareid = data.getLittleEndian32(); //in_uint32_le(s, g_rdp_shareid);
+		len_src_descriptor = data.getLittleEndian16(); // in_uint16_le(s, len_src_descriptor);
+		len_combined_caps = data.getLittleEndian16(); // in_uint16_le(s, len_combined_caps);
+		len_src_descriptor = data.get8(); // Overwriting??? // in_uint8s(s, len_src_descriptor);
+		data.incrementPosition(3); // changed - why is this needed?
+		if (logger.isDebugEnabled())
+			logger.debug("process_demand_active(), shareid=0x" + Integer.toHexString(rdp_shareid));
+		processServerCaps(data, len_combined_caps);
 
 		this.sendConfirmActive();
 
