@@ -46,10 +46,8 @@ import net.propero.rdp.rdp5.VChannels;
 import net.propero.rdp.rdp5.cliprdr.ClipChannel;
 import net.propero.rdp.tools.SendEvent;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Rdesktop {
 
@@ -61,7 +59,7 @@ public class Rdesktop {
 	 *            Integer disconnect code received from server
 	 * @return Text description of the reason for disconnection
 	 */
-	static String textDisconnectReason(int reason) {
+	public static String textDisconnectReason(int reason) {
 		String text;
 
 		switch (reason) {
@@ -196,23 +194,23 @@ public class Rdesktop {
 
 	public static final int exDiscReasonLicenseNoRemoteConnections = 0x010a;
 
-	static Logger logger = Logger.getLogger("net.propero.rdp");
+	static Logger logger = LogManager.getLogger("net.propero.rdp");
 
-	static boolean keep_running;
+	public static boolean keep_running;
 
-	static boolean loggedon;
+	public static boolean loggedon;
 
-	static boolean readytosend;
+	public static boolean readytosend;
 
-	static boolean showTools;
+	public static boolean showTools;
 
-	static final String keyMapPath = "keymaps/";
+	public static final String keyMapPath = "keymaps/";
 
-	static String mapFile = "en-gb";
+	public static String mapFile = "en-gb";
 
-	static String keyMapLocation = "";
+	public static String keyMapLocation = "";
 
-	static SendEvent toolFrame = null;
+	public static SendEvent toolFrame = null;
 
 	/**
 	 * Outputs version and usage information via System.err
@@ -281,9 +279,6 @@ public class Rdesktop {
 		keyMapLocation = "";
 		toolFrame = null;
 
-		BasicConfigurator.configure();
-		logger.setLevel(Level.INFO);
-
 		// Attempt to run a native RDP Client
 
 		RDPClientChooser Chooser = new RDPClientChooser();
@@ -342,10 +337,7 @@ public class Rdesktop {
 				case 2:
 					break;
 				case 3:
-					arg = g.getOptarg();
-					PropertyConfigurator.configure(arg);
-					logger.info("Log4j using config file " + arg);
-					break;
+					throw new UnsupportedOperationException("Use -Dlog4j.configurationFile instead of setting log config");
 				case 4:
 					showTools = true;
 					break;
@@ -439,34 +431,7 @@ public class Rdesktop {
 				}
 				break;
 			case 'l':
-				arg = g.getOptarg();
-				switch (arg.charAt(0)) {
-				case 'd':
-				case 'D':
-					logger.setLevel(Level.DEBUG);
-					break;
-				case 'i':
-				case 'I':
-					logger.setLevel(Level.INFO);
-					break;
-				case 'w':
-				case 'W':
-					logger.setLevel(Level.WARN);
-					break;
-				case 'e':
-				case 'E':
-					logger.setLevel(Level.ERROR);
-					break;
-				case 'f':
-				case 'F':
-					logger.setLevel(Level.FATAL);
-					break;
-				default:
-					System.err.println(progname + ": Invalid debug level: "
-							+ arg.charAt(0));
-					usage();
-				}
-				break;
+				throw new UnsupportedOperationException("Use a custom log4j configuration file");
 			case 'n':
 				Options.hostname = g.getOptarg();
 				break;

@@ -15,10 +15,24 @@ sourceSets {
         }
         resources {
             srcDir "keymaps"
+            srcDir "resources"
         }
     }
 }
 
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        name = "mojang"
+        url = "https://libraries.minecraft.net/" // I'm using mojang's older version of logj4
+    }
+}
+
 dependencies {
-    compile files('lib/java-getopt-1.0.13.jar', 'lib/log4j-java1.1.jar') // woo, old java
+    compile files('lib/java-getopt-1.0.13.jar') // woo, old java
+    // old MC version
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.0-beta9'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.0-beta9'
+
 }

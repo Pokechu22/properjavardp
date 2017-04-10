@@ -44,12 +44,13 @@ import net.propero.rdp.crypto.RC4;
 import net.propero.rdp.crypto.SHA1;
 import net.propero.rdp.rdp5.VChannels;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Secure {
 	boolean readCert = false;
 
-	static Logger logger = Logger.getLogger(Secure.class);
+	static Logger logger = LogManager.getLogger(Secure.class);
 
 	private Licence licence = new Licence(this);
 

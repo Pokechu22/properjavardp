@@ -35,11 +35,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public abstract class LicenceStore {
 
-	static Logger logger = Logger.getLogger(Licence.class);
+	static Logger logger = LogManager.getLogger(Licence.class);
 
 	/**
 	 * Load a licence from a file

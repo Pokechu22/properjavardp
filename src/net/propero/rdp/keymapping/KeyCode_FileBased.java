@@ -46,7 +46,8 @@ import java.util.Vector;
 import net.propero.rdp.Input;
 import net.propero.rdp.Options;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public abstract class KeyCode_FileBased {
 
@@ -56,7 +57,7 @@ public abstract class KeyCode_FileBased {
 
 	private boolean lastEventMatched = false;
 
-	protected static Logger logger = Logger.getLogger(Input.class);
+	protected static Logger logger = LogManager.getLogger(Input.class);
 
 	public static final int SCANCODE_EXTENDED = 0x80;
 

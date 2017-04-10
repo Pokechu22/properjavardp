@@ -53,12 +53,13 @@ import net.propero.rdp.orders.RectangleOrder;
 import net.propero.rdp.orders.ScreenBltOrder;
 import net.propero.rdp.orders.TriBltOrder;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 // import org.apache.log4j.NDC;
 
 public abstract class RdesktopCanvas extends Canvas {
-	static Logger logger = Logger.getLogger(RdesktopCanvas.class);
+	static Logger logger = LogManager.getLogger(RdesktopCanvas.class);
 
 	private RasterOp rop = null;
 

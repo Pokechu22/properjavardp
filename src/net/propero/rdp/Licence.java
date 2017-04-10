@@ -36,7 +36,8 @@ import java.io.UnsupportedEncodingException;
 import net.propero.rdp.crypto.CryptoException;
 import net.propero.rdp.crypto.RC4;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Licence {
 	private Secure secure = null;
@@ -53,7 +54,7 @@ public class Licence {
 
 	private byte[] in_token = null, in_sig = null;
 
-	static Logger logger = Logger.getLogger(Licence.class);
+	static Logger logger = LogManager.getLogger(Licence.class);
 
 	/* constants for the licence negotiation */
 	private static final int LICENCE_TOKEN_SIZE = 10;

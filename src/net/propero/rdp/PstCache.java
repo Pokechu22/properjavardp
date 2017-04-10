@@ -35,11 +35,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class PstCache {
 
-	protected static Logger logger = Logger.getLogger(Rdp.class);
+	protected static Logger logger = LogManager.getLogger(Rdp.class);
 
 	public static final int MAX_CELL_SIZE = 0x1000; /* pixels */
 

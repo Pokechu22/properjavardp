@@ -52,7 +52,8 @@ import net.propero.rdp.crypto.CryptoException;
 import net.propero.rdp.rdp5.VChannel;
 import net.propero.rdp.rdp5.VChannels;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ClipChannel extends VChannel implements ClipInterface,
 		ClipboardOwner, FocusListener {
@@ -62,7 +63,7 @@ public class ClipChannel extends VChannel implements ClipInterface,
 			"CF_PALETTE", "CF_PENDATA", "CF_RIFF", "CF_WAVE", "CF_UNICODETEXT",
 			"CF_ENHMETAFILE", "CF_HDROP", "CF_LOCALE", "CF_MAX" };
 
-	protected static Logger logger = Logger.getLogger(Input.class);
+	protected static Logger logger = LogManager.getLogger(Input.class);
 
 	// Message types
 	public static final int CLIPRDR_CONNECT = 1;

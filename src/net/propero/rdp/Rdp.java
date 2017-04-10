@@ -43,8 +43,9 @@ import java.net.UnknownHostException;
 import net.propero.rdp.crypto.CryptoException;
 import net.propero.rdp.rdp5.VChannels;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.NDC;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 
 public class Rdp {
 
@@ -65,7 +66,7 @@ public class Rdp {
 														 * blinking
 														 */
 
-	protected static Logger logger = Logger.getLogger(Rdp.class);
+	protected static Logger logger = LogManager.getLogger(Rdp.class);
 
 	/* constants for RDP Layer */
 	public static final int RDP_LOGON_NORMAL = 0x33;
@@ -642,14 +643,14 @@ public class Rdp {
 				logger.debug("Rdp.RDP_PDU_DEMAND_ACTIVE");
 				// get this after licence negotiation, just before the 1st
 				// order...
-				NDC.push("processDemandActive");
+				ThreadContext.push("processDemandActive");
 				this.processDemandActive(data);
 				// can use this to trigger things that have to be done before
 				// 1st order
 				logger.debug("ready to send (got past licence negotiation)");
 				Rdesktop.readytosend = true;
 				frame.triggerReadyToSend();
-				NDC.pop();
+				ThreadContext.pop();
 				deactivated[0] = false;
 				break;
 
@@ -662,10 +663,10 @@ public class Rdp {
 			case (Rdp.RDP_PDU_DATA):
 				logger.debug("Rdp.RDP_PDU_DATA");
 				// all the others should be this
-				NDC.push("processData");
+				ThreadContext.push("processData");
 
 				disc = this.processData(data, ext_disc_reason);
-				NDC.pop();
+				ThreadContext.pop();
 				break;
 
 			case 0:

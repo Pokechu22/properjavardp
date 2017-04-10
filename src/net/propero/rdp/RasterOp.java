@@ -30,10 +30,11 @@
 // Created on 01-Jul-2003
 package net.propero.rdp;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class RasterOp {
-	static Logger logger = Logger.getLogger(RdesktopCanvas.class);
+	static Logger logger = LogManager.getLogger(RdesktopCanvas.class);
 
 	private void ropInvert(WrappedImage biDst, int[] dest, int width, int x,
 			int y, int cx, int cy, int Bpp) {

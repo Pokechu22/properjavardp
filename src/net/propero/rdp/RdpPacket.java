@@ -32,10 +32,11 @@
 // Created on 03-Sep-2003
 package net.propero.rdp;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public abstract class RdpPacket {
-	static Logger logger = Logger.getLogger(RdpPacket.class);
+	static Logger logger = LogManager.getLogger(RdpPacket.class);
 
 	/* constants for Packet */
 	public static final int MCS_HEADER = 1;

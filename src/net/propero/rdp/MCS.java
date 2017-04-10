@@ -36,10 +36,11 @@ import java.net.InetAddress;
 import net.propero.rdp.crypto.CryptoException;
 import net.propero.rdp.rdp5.VChannels;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class MCS {
-	static Logger logger = Logger.getLogger(MCS.class);
+	static Logger logger = LogManager.getLogger(MCS.class);
 
 	private ISO IsoLayer = null;
 

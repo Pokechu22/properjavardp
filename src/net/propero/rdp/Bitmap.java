@@ -35,7 +35,8 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Bitmap {
 
@@ -51,7 +52,7 @@ public class Bitmap {
 
 	private int y = 0;
 
-	protected static Logger logger = Logger.getLogger(Rdp.class);
+	protected static Logger logger = LogManager.getLogger(Rdp.class);
 
 	public static int convertTo24(int colour) {
 		if (Options.server_bpp == 15)

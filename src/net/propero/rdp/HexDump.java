@@ -30,17 +30,18 @@
  */
 package net.propero.rdp;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class HexDump {
-	static Logger logger = Logger.getLogger(HexDump.class);
+	static Logger logger = LogManager.getLogger(HexDump.class);
 
 	/**
 	 * Construct a HexDump object, sets logging level to Debug
 	 */
 	public HexDump() {
-		logger.setLevel(Level.DEBUG);
+		//logger.setLevel(Level.DEBUG);
 	}
 
 	/**

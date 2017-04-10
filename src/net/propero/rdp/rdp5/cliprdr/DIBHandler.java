@@ -42,11 +42,12 @@ import net.propero.rdp.Input;
 import net.propero.rdp.RdpPacket;
 import net.propero.rdp.Utilities_Localised;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class DIBHandler extends TypeHandler implements ImageObserver {
 
-	protected static Logger logger = Logger.getLogger(Input.class);
+	protected static Logger logger = LogManager.getLogger(Input.class);
 
 	public boolean formatValid(int format) {
 		return (format == CF_DIB);

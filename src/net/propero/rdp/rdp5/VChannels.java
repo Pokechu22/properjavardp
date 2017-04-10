@@ -39,11 +39,12 @@ import net.propero.rdp.RdesktopException;
 import net.propero.rdp.RdpPacket_Localised;
 import net.propero.rdp.crypto.CryptoException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class VChannels {
 
-	protected static Logger logger = Logger.getLogger(Input.class);
+	protected static Logger logger = LogManager.getLogger(Input.class);
 
 	/* Sound format constants */
 	public static final int WAVE_FORMAT_PCM = 1;

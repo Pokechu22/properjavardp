@@ -46,10 +46,11 @@ import net.propero.rdp.orders.ScreenBltOrder;
 import net.propero.rdp.orders.Text2Order;
 import net.propero.rdp.orders.TriBltOrder;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Orders {
-	static Logger logger = Logger.getLogger(Orders.class);
+	static Logger logger = LogManager.getLogger(Orders.class);
 
 	private OrderState os = null;
 

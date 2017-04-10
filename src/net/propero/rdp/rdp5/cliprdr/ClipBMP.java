@@ -41,13 +41,14 @@ import java.io.OutputStream;
 
 import net.propero.rdp.Input;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ClipBMP extends Component {
 
 	private static final long serialVersionUID = -756738379924520867L;
 
-	protected static Logger logger = Logger.getLogger(Input.class);
+	protected static Logger logger = LogManager.getLogger(Input.class);
 
 	// --- Private constants
 	private final static int BITMAPFILEHEADER_SIZE = 14;

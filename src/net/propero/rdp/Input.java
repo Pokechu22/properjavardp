@@ -42,12 +42,13 @@ import net.propero.rdp.keymapping.KeyCode;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
 import net.propero.rdp.keymapping.KeyMapException;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public abstract class Input {
 
-	protected static Logger logger = Logger.getLogger(Input.class);
+	protected static Logger logger = LogManager.getLogger(Input.class);
 
 	KeyCode_FileBased newKeyMapper = null;
 
@@ -139,8 +140,8 @@ public abstract class Input {
 		newKeyMapper = k;
 		canvas = c;
 		rdp = r;
-		if (Options.debug_keyboard)
-			logger.setLevel(Level.DEBUG);
+		//if (Options.debug_keyboard)
+		//	logger.setLevel(Level.DEBUG);
 		addInputListeners();
 		pressedKeys = new Vector();
 	}
@@ -166,8 +167,8 @@ public abstract class Input {
 
 		canvas = c;
 		rdp = r;
-		if (Options.debug_keyboard)
-			logger.setLevel(Level.DEBUG);
+		//if (Options.debug_keyboard)
+		//	logger.setLevel(Level.DEBUG);
 		addInputListeners();
 		pressedKeys = new Vector();
 	}

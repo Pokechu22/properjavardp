@@ -39,10 +39,11 @@ import java.net.Socket;
 
 import net.propero.rdp.crypto.CryptoException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public abstract class ISO {
-	static Logger logger = Logger.getLogger(ISO.class);
+	static Logger logger = LogManager.getLogger(ISO.class);
 
 	private HexDump dump = null;
 

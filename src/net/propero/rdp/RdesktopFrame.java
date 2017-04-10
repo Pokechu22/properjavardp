@@ -53,13 +53,14 @@ import net.propero.rdp.keymapping.KeyCode_FileBased;
 import net.propero.rdp.menu.RdpMenu;
 import net.propero.rdp.rdp5.cliprdr.ClipChannel;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 // import javax.swing.Box;
 
 public abstract class RdesktopFrame extends Frame {
 
-	static Logger logger = Logger.getLogger(RdesktopFrame.class);
+	static Logger logger = LogManager.getLogger(RdesktopFrame.class);
 
 	public RdesktopCanvas canvas = null;
 

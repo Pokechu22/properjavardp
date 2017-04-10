@@ -41,11 +41,12 @@ import net.propero.rdp.RdpPacket_Localised;
 import net.propero.rdp.Secure;
 import net.propero.rdp.crypto.CryptoException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public abstract class VChannel {
 
-	protected static Logger logger = Logger.getLogger(Input.class);
+	protected static Logger logger = LogManager.getLogger(Input.class);
 
 	private int mcs_id = 0;
 
