@@ -1,0 +1,22 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+version = "1.1-tweaked-0.1"
+group = "unoficial.net.propero"
+archivesBaseName = "properjavardp"
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+            srcDir 'src1.4'
+        }
+        resources {
+            srcDir "keymaps"
+        }
+    }
+}
+
+dependencies {
+    compile files('lib/java-getopt-1.0.13.jar', 'lib/log4j-java1.1.jar') // woo, old java
+}
