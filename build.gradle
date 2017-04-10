@@ -14,7 +14,6 @@ sourceSets {
             srcDir 'src1.4'
         }
         resources {
-            srcDir "keymaps"
             srcDir "resources"
         }
     }
