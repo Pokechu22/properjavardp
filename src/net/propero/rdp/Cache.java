@@ -55,11 +55,14 @@ public class Cache {
 
 	private IndexColorModel[] colourcache = new IndexColorModel[RDPCACHE_COLOURMAPSIZE];
 
-	public Cache() {
+	public Cache(Options options) {
+		this.pstCache = new PstCache(options);
 	}
 
+	final PstCache pstCache;
+
 	void TOUCH(int id, int idx) {
-		bitmapcache[id][idx].usage = ++PstCache.g_stamp;
+		bitmapcache[id][idx].usage = ++pstCache.stamp;
 	}
 
 	/**
@@ -250,9 +253,9 @@ public class Cache {
 		int id, idx;
 
 		for (id = 0; id < bitmapcache.length; id++)
-			if (PstCache.IS_PERSISTENT(id))
+			if (pstCache.IS_PERSISTENT(id))
 				for (idx = 0; idx < bitmapcache[id].length; idx++)
-					PstCache.touchBitmap(id, idx, bitmapcache[id][idx].usage);
+					pstCache.touchBitmap(id, idx, bitmapcache[id][idx].usage);
 	}
 
 	/**

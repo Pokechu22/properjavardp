@@ -644,7 +644,7 @@ public class Orders {
 			cache.putBitmap(cache_id, cache_idx, bitmap, 0);
 			// cache_put_bitmap(cache_id, cache_idx, bitmap, 0);
 			if ((flags & PERSIST) != 0)
-				PstCache.pstcache_put_bitmap(cache_id, cache_idx, bitmap_id,
+				cache.pstCache.pstcache_put_bitmap(cache_id, cache_idx, bitmap_id,
 						width, height, width * height * Bpp, bmpdata);
 		} else {
 			logger.debug("process_bmpcache2: ui_create_bitmap failed");

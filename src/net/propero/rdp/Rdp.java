@@ -431,7 +431,7 @@ public class Rdp {
 		this.SecureLayer = new Secure(channels, options);
 		Common.secure = SecureLayer;
 		this.orders = new Orders(options);
-		this.cache = new Cache();
+		this.cache = new Cache(options);
 		orders.registerCache(cache);
 	}
 
@@ -1236,7 +1236,7 @@ public class Rdp {
 		// (BMPCACHE2_NUM_PSTCELLS | BMPCACHE2_FLAG_PERSIST) :
 		// BMPCACHE2_C2_CELLS);
 
-		if (PstCache.pstcache_init(2)) {
+		if (cache.pstCache.pstcache_init(2)) { // XXX this WILL cause corruption, possibly
 			logger.info("Persistent cache initialized");
 			data.setLittleEndian32(BMPCACHE2_NUM_PSTCELLS
 					| BMPCACHE2_FLAG_PERSIST);

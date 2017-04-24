@@ -38,40 +38,39 @@ import java.io.IOException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class PstCache {
+class PstCache {
 
 	protected static Logger logger = LogManager.getLogger(Rdp.class);
 
 	public static final int MAX_CELL_SIZE = 0x1000; /* pixels */
 
-	@Deprecated
-	protected static boolean IS_PERSISTENT(int id) {
-		return (id < 8 && g_pstcache_fd[id] != null);
+	private final Options options;
+	public PstCache(Options options) {
+		this.options = options;
 	}
 
-	@Deprecated
-	static int g_stamp;
+	public boolean IS_PERSISTENT(int id) {
+		return (id < 8 && pstcache_fd[id] != null);
+	}
 
-	@Deprecated
-	static File[] g_pstcache_fd = new File[8];
+	public int stamp;
 
-	@Deprecated
-	static int g_pstcache_Bpp;
+	private File[] pstcache_fd = new File[8];
 
-	@Deprecated
-	static boolean g_pstcache_enumerated = false;
+	private int pstcache_Bpp;
+
+	private boolean pstcache_enumerated = false;
 
 	/* Update usage info for a bitmap */
-	@Deprecated
-	protected static void touchBitmap(int cache_id, int cache_idx, int stamp) {
+	protected void touchBitmap(int cache_id, int cache_idx, int stamp) {
 		logger.info("PstCache.touchBitmap");
 
 		if (!IS_PERSISTENT(cache_id) || cache_idx >= Rdp.BMPCACHE2_NUM_PSTCELLS)
 			return;
 
-		try (FileOutputStream fd = new FileOutputStream(g_pstcache_fd[cache_id])) {
+		try (FileOutputStream fd = new FileOutputStream(pstcache_fd[cache_id])) {
 			fd.write(toBigEndian32(stamp), 12 + cache_idx
-					* (g_pstcache_Bpp * MAX_CELL_SIZE + CELLHEADER.size()), 4);
+					* (pstcache_Bpp * MAX_CELL_SIZE + CELLHEADER.size()), 4);
 			// rd_lseek_file(fd, 12 + cache_idx * (g_pstcache_Bpp *
 			// MAX_CELL_SIZE + sizeof(CELLHEADER))); // this seems to do nothing
 			// (return 0) in rdesktop
@@ -94,7 +93,7 @@ public class PstCache {
 	}
 
 	/* Load a bitmap from the persistent cache */
-	static boolean pstcache_load_bitmap(int cache_id, int cache_idx)
+	public boolean pstcache_load_bitmap(int cache_id, int cache_idx)
 			throws IOException, RdesktopException {
 		logger.info("PstCache.pstcache_load_bitmap");
 		byte[] celldata = null;
@@ -109,9 +108,9 @@ public class PstCache {
 			return false;
 
 		CELLHEADER c;
-		try (FileInputStream fd = new FileInputStream(g_pstcache_fd[cache_id])) {
+		try (FileInputStream fd = new FileInputStream(pstcache_fd[cache_id])) {
 			int offset = cache_idx
-					* (g_pstcache_Bpp * MAX_CELL_SIZE + CELLHEADER.size());
+					* (pstcache_Bpp * MAX_CELL_SIZE + CELLHEADER.size());
 			fd.read(cellHead, offset, CELLHEADER.size());
 			c = new CELLHEADER(cellHead);
 			// rd_lseek_file(fd, cache_idx * (g_pstcache_Bpp * MAX_CELL_SIZE +
@@ -125,7 +124,7 @@ public class PstCache {
 					+ ")\n");
 		}
 
-		bitmap = new Bitmap(celldata, c.width, c.height, 0, 0, options.Bpp);
+		bitmap = new Bitmap(options, celldata, c.width, c.height, 0, 0, options.Bpp);
 		// bitmap = ui_create_bitmap(cellhdr.width, cellhdr.height, celldata);
 		Orders.cache.putBitmap(cache_id, cache_idx, bitmap, c.stamp);
 
@@ -134,7 +133,7 @@ public class PstCache {
 	}
 
 	/* Store a bitmap in the persistent cache */
-	static boolean pstcache_put_bitmap(int cache_id, int cache_idx,
+	public boolean pstcache_put_bitmap(int cache_id, int cache_idx,
 			byte[] bitmap_id, int width, int height, int length, byte[] data)
 			throws IOException {
 		logger.info("PstCache.pstcache_put_bitmap");
@@ -151,7 +150,7 @@ public class PstCache {
 		cellhdr.length = length;
 		cellhdr.stamp = 0;
 
-		try (FileOutputStream fd = new FileOutputStream(g_pstcache_fd[cache_id])) {
+		try (FileOutputStream fd = new FileOutputStream(pstcache_fd[cache_id])) {
 			int offset = cache_idx
 					* (options.Bpp * MAX_CELL_SIZE + CELLHEADER.size());
 			fd.write(cellhdr.toBytes(), offset, CELLHEADER.size());
@@ -165,7 +164,7 @@ public class PstCache {
 	}
 
 	/* list the bitmaps from the persistent cache file */
-	static int pstcache_enumerate(int cache_id, int[] idlist)
+	public int pstcache_enumerate(int cache_id, int[] idlist)
 			throws IOException, RdesktopException {
 		logger.info("PstCache.pstcache_enumerate");
 		int n, c = 0;
@@ -178,15 +177,15 @@ public class PstCache {
 		 * The server disconnects if the bitmap cache content is sent more than
 		 * once
 		 */
-		if (g_pstcache_enumerated)
+		if (pstcache_enumerated)
 			return 0;
 
 		logger.debug("pstcache enumeration... ");
 		for (n = 0; n < Rdp.BMPCACHE2_NUM_PSTCELLS; n++) {
 			byte[] cellhead_data = new byte[CELLHEADER.size()];
-			try (FileInputStream fd = new FileInputStream(g_pstcache_fd[cache_id])) {
+			try (FileInputStream fd = new FileInputStream(pstcache_fd[cache_id])) {
 				if (fd.read(cellhead_data, n
-						* (g_pstcache_Bpp * MAX_CELL_SIZE + CELLHEADER.size()),
+						* (pstcache_Bpp * MAX_CELL_SIZE + CELLHEADER.size()),
 						CELLHEADER.size()) <= 0) {
 					break;
 				}
@@ -214,7 +213,7 @@ public class PstCache {
 							c++;
 					}
 
-					g_stamp = Math.max(g_stamp, cellhdr.stamp);
+					stamp = Math.max(stamp, cellhdr.stamp);
 				}
 			} else {
 				break;
@@ -223,25 +222,25 @@ public class PstCache {
 
 		logger.info(n + " bitmaps in persistent cache, " + c
 				+ " bitmaps loaded in memory\n");
-		g_pstcache_enumerated = true;
+		pstcache_enumerated = true;
 		return n;
 	}
 
 	/* initialise the persistent bitmap cache */
-	static boolean pstcache_init(int cache_id) {
+	public boolean pstcache_init(int cache_id) {
 		// int fd;
 		String filename;
 
-		if (g_pstcache_enumerated)
+		if (pstcache_enumerated)
 			return true;
 
-		g_pstcache_fd[cache_id] = null;
+		pstcache_fd[cache_id] = null;
 
 		if (!(options.bitmap_caching && options.persistent_bitmap_caching))
 			return false;
 
-		g_pstcache_Bpp = options.Bpp;
-		filename = "./cache/pstcache_" + cache_id + "_" + g_pstcache_Bpp;
+		pstcache_Bpp = options.Bpp;
+		filename = "./cache/pstcache_" + cache_id + "_" + pstcache_Bpp;
 		logger.debug("persistent bitmap cache file: " + filename);
 
 		File cacheDir = new File("./cache/");
@@ -268,7 +267,7 @@ public class PstCache {
 		 * return false; }
 		 */
 
-		g_pstcache_fd[cache_id] = f;
+		pstcache_fd[cache_id] = f;
 		return true;
 	}
 
