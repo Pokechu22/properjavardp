@@ -558,27 +558,27 @@ public class Rdp {
 		// Handle an unresolvable hostname
 		catch (UnknownHostException e) {
 			throw new ConnectionException("Could not resolve host name: "
-					+ server);
+					+ server, e);
 		}
 		// Handle a refused connection
 		catch (ConnectException e) {
 			throw new ConnectionException(
 					"Connection refused when trying to connect to " + server
-							+ " on port " + Options.port);
+							+ " on port " + Options.port, e);
 		}
 		// Handle a timeout on connecting
 		catch (NoRouteToHostException e) {
 			throw new ConnectionException(
 					"Connection timed out when attempting to connect to "
-							+ server);
+							+ server, e);
 		} catch (IOException e) {
-			throw new ConnectionException("Connection Failed");
+			throw new ConnectionException("Connection Failed", e);
 		} catch (RdesktopException e) {
-			throw new ConnectionException(e.getMessage());
+			throw new ConnectionException(e.getMessage(), e);
 		} catch (OrderException e) {
-			throw new ConnectionException(e.getMessage());
+			throw new ConnectionException(e.getMessage(), e);
 		} catch (CryptoException e) {
-			throw new ConnectionException(e.getMessage());
+			throw new ConnectionException(e.getMessage(), e);
 		}
 
 	}

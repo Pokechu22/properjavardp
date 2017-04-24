@@ -50,4 +50,8 @@ public class KeyMapException extends Exception {
 		super(s);
 	}
 
+	public KeyMapException(String s, Throwable cause) {
+		super(s, cause);
+	}
+
 }

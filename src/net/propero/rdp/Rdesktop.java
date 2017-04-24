@@ -656,6 +656,7 @@ public class Rdesktop {
 
 				} catch (ConnectionException e) {
 					String msg[] = { "Connection Exception", e.getMessage() };
+					e.printStackTrace();
 					window.showErrorDialog(msg);
 					Rdesktop.exit(0, RdpLayer, window, true);
 				} catch (UnknownHostException e) {

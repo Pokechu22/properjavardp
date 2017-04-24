@@ -40,4 +40,8 @@ public class RdesktopException extends Exception {
 	public RdesktopException(String s) {
 		super(s);
 	}
+
+	public RdesktopException(String s, Throwable cause) {
+		super(s, cause);
+	}
 }

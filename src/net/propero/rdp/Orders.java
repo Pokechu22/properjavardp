@@ -378,7 +378,7 @@ public class Orders {
 			try {
 				this.process_bmpcache2(data, flags, false);
 			} catch (IOException e) {
-				throw new RdesktopException(e.getMessage());
+				throw new RdesktopException(e.getMessage(), e);
 			} /* uncompressed */
 			break;
 
@@ -386,7 +386,7 @@ public class Orders {
 			try {
 				this.process_bmpcache2(data, flags, true);
 			} catch (IOException e) {
-				throw new RdesktopException(e.getMessage());
+				throw new RdesktopException(e.getMessage(), e);
 			} /* compressed */
 			break;
 

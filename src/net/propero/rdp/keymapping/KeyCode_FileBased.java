@@ -103,7 +103,7 @@ public abstract class KeyCode_FileBased {
 			fstream = new FileInputStream(keyMapFile);
 			readMapFile(fstream);
 		} catch (FileNotFoundException e) {
-			throw new KeyMapException("KeyMap file not found: " + keyMapFile);
+			throw new KeyMapException("KeyMap file not found: " + keyMapFile, e);
 		}
 	}
 
@@ -179,21 +179,21 @@ public abstract class KeyCode_FileBased {
 
 			in.close();
 		} catch (IOException e) {
-			throw new KeyMapException("File input error: " + e.getMessage());
+			throw new KeyMapException("File input error: " + e.getMessage(), e);
 		} catch (NumberFormatException nfEx) {
 			throw new KeyMapException("" + nfEx.getMessage()
-					+ " is not numeric at line " + lineNum);
+					+ " is not numeric at line " + lineNum, nfEx);
 		} catch (NoSuchElementException nseEx) {
 			throw new KeyMapException(
-					"Not enough parameters in definition at line " + lineNum);
+					"Not enough parameters in definition at line " + lineNum, nseEx);
 		} catch (KeyMapException kmEx) {
 			throw new KeyMapException("Error parsing keymap file: "
-					+ kmEx.getMessage() + " at line " + lineNum);
+					+ kmEx.getMessage() + " at line " + lineNum, kmEx);
 		} catch (Exception e) {
 			logger.error(e.getClass().getName() + ": " + e.getMessage());
 			e.printStackTrace();
 			throw new KeyMapException(e.getClass().getName() + ": "
-					+ e.getMessage());
+					+ e.getMessage(), e);
 		}
 
 		if (!mapCodeSet)

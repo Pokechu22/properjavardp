@@ -378,7 +378,7 @@ public class Cache {
 			}
 			return data;
 		}
-		throw new RdesktopException("Could not get Bitmap");
+		throw new RdesktopException("Could not get Desktop");
 	}
 
 }

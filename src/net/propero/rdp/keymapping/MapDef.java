@@ -304,9 +304,9 @@ public class MapDef {
 
 		} catch (NumberFormatException nfEx) {
 			throw new KeyMapException("" + nfEx.getMessage()
-					+ " is not numeric");
+					+ " is not numeric", nfEx);
 		} catch (NoSuchElementException nseEx) {
-			throw new KeyMapException("Not enough parameters in definition");
+			throw new KeyMapException("Not enough parameters in definition", nseEx);
 		}
 
 	}
