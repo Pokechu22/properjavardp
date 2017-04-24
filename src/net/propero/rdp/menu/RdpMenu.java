@@ -42,7 +42,7 @@ public class RdpMenu extends MenuBar {
 
 	private static final long serialVersionUID = 4400808258398800489L;
 
-	RdesktopFrame parent;
+	private RdesktopFrame parent;
 
 	/**
 	 * Initialise the properJavaRDP menu bar and attach to an RdesktopFrame
@@ -50,7 +50,7 @@ public class RdpMenu extends MenuBar {
 	 * @param parent
 	 *            Menu is attached to this frame
 	 */
-	public RdpMenu(RdesktopFrame parent) {
+	public RdpMenu(Options options, RdesktopFrame parent) {
 		this.parent = parent;
 
 		Menu m = new Menu("File");
@@ -68,7 +68,7 @@ public class RdpMenu extends MenuBar {
 		m = new Menu("Display");
 		MenuItem mi = null;
 
-		if (!Options.fullscreen) {
+		if (!options.fullscreen) {
 			mi = new MenuItem("Fullscreen Mode");
 			mi.disable();
 		} else

@@ -177,7 +177,7 @@ public class Cache {
 				&& (cache_idx < bitmapcache[0].length)) {
 			bitmapcache[cache_id][cache_idx] = bitmap;
 			/*
-			 * if (Options.use_rdp5) { if (++num_bitmaps_in_memory[cache_id] >
+			 * if (options.use_rdp5) { if (++num_bitmaps_in_memory[cache_id] >
 			 * Rdp.BMPCACHE2_C2_CELLS) removeLRUBitmap(cache_id); }
 			 * 
 			 * bitmapcache[cache_id][cache_idx] = bitmap;

@@ -89,9 +89,9 @@ public class MCS {
 	 * @param channels
 	 *            Set of available MCS channels
 	 */
-	public MCS(VChannels channels) {
+	public MCS(Options options, VChannels channels) {
 		this.channels = channels;
-		IsoLayer = new ISO_Localised();
+		IsoLayer = new ISO_Localised(options);
 	}
 
 	/**

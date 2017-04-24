@@ -1,4 +1,4 @@
-/* Options.java
+/* options.java
  * Component: ProperJavaRDP
  * 
  * Revision: $Revision$
@@ -7,7 +7,7 @@
  *
  * Copyright (c) 2005 Propero Limited
  *
- * Purpose: Global static storage of user-definable options
+ * Purpose: <del>Global static</del> storage of user-definable options
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,6 @@ package net.propero.rdp;
 
 import java.awt.image.DirectColorModel;
 
-@Deprecated
 public class Options {
 
 	public static final int DIRECT_BITMAP_DECOMPRESSION = 0;
@@ -40,103 +39,72 @@ public class Options {
 
 	public static final int INTEGER_BITMAP_DECOMPRESSION = 2;
 
-	@Deprecated
-	public static int bitmap_decompression_store = INTEGER_BITMAP_DECOMPRESSION;
+	public int bitmap_decompression_store = INTEGER_BITMAP_DECOMPRESSION;
 
 	// disables bandwidth saving tcp packets
-	@Deprecated
-	public static boolean low_latency = true;
+	public boolean low_latency = true;
 
-	@Deprecated
-	public static int keylayout = 0x809; // UK by default
+	public int keylayout = 0x809; // UK by default
 
-	@Deprecated
-	public static String username = "Administrator"; // -u username
+	public String username = "Administrator"; // -u username
 
-	@Deprecated
-	public static String domain = ""; // -d domain
+	public String domain = ""; // -d domain
 
-	@Deprecated
-	public static String password = ""; // -p password
+	public String password = ""; // -p password
 
-	@Deprecated
-	public static String hostname = ""; // -n hostname
+	public String hostname = ""; // -n hostname
 
-	@Deprecated
-	public static String command = ""; // -s command
+	public String command = ""; // -s command
 
-	@Deprecated
-	public static String directory = ""; // -d directory
+	public String directory = ""; // -d directory
 
-	@Deprecated
-	public static String windowTitle = "properJavaRDP"; // -T windowTitle
+	public String windowTitle = "properJavaRDP"; // -T windowTitle
 
-	@Deprecated
-	public static int width = 800; // -g widthxheight
+	public int width = 800; // -g widthxheight
 
-	@Deprecated
-	public static int height = 600; // -g widthxheight
+	public int height = 600; // -g widthxheight
 
-	@Deprecated
-	public static int port = 3389; // -t port
+	public int port = 3389; // -t port
 
-	@Deprecated
-	public static boolean fullscreen = false;
+	public boolean fullscreen = false;
 
-	@Deprecated
-	public static boolean built_in_licence = false;
+	public boolean built_in_licence = false;
 
-	@Deprecated
-	public static boolean load_licence = false;
+	public boolean load_licence = false;
 
-	@Deprecated
-	public static boolean save_licence = false;
+	public boolean save_licence = false;
 
-	@Deprecated
-	public static String licence_path = "./";
+	public String licence_path = "./";
 
-	@Deprecated
-	public static boolean debug_keyboard = false;
+	public boolean debug_keyboard = false;
 
-	@Deprecated
-	public static boolean debug_hexdump = false;
+	public boolean debug_hexdump = false;
 
-	@Deprecated
-	public static boolean enable_menu = false;
+	public boolean enable_menu = false;
 
 	// public static boolean paste_hack = true;
 
-	@Deprecated
-	public static boolean altkey_quiet = false;
+	public boolean altkey_quiet = false;
 
-	@Deprecated
-	public static boolean caps_sends_up_and_down = true;
+	public boolean caps_sends_up_and_down = true;
 
-	@Deprecated
-	public static boolean remap_hash = true;
+	public boolean remap_hash = true;
 
-	@Deprecated
-	public static boolean useLockingKeyState = true;
+	public boolean useLockingKeyState = true;
 
-	@Deprecated
-	public static boolean use_rdp5 = true;
+	public boolean use_rdp5 = true;
 
-	@Deprecated
-	public static int server_bpp = 24; // Bits per pixel
+	public int server_bpp = 24; // Bits per pixel
 
-	@Deprecated
-	public static int Bpp = (server_bpp + 7) / 8; // Bytes per pixel
+	public int Bpp = (server_bpp + 7) / 8; // Bytes per pixel
 
 	// Correction value to ensure only the relevant number of bytes are used for
 	// a pixel
-	@Deprecated
-	public static int bpp_mask = 0xFFFFFF >> 8 * (3 - Bpp);
+	public int bpp_mask = 0xFFFFFF >> 8 * (3 - Bpp);
 
-	@Deprecated
-	public static int imgCount = 0;
+	public int imgCount = 0;
 
-	@Deprecated
-	public static DirectColorModel colour_model = new DirectColorModel(24,
+	public DirectColorModel colour_model = new DirectColorModel(24,
 			0xFF0000, 0x00FF00, 0x0000FF);
 
 	/**
@@ -145,10 +113,9 @@ public class Options {
 	 * @param server_bpp
 	 *            New bpp value
 	 */
-	@Deprecated
-	public static void set_bpp(int server_bpp) {
-		Options.server_bpp = server_bpp;
-		Options.Bpp = (server_bpp + 7) / 8;
+	public void set_bpp(int server_bpp) {
+		this.server_bpp = server_bpp;
+		this.Bpp = (server_bpp + 7) / 8;
 		if (server_bpp == 8)
 			bpp_mask = 0xFF;
 		else
@@ -157,67 +124,47 @@ public class Options {
 		colour_model = new DirectColorModel(24, 0xFF0000, 0x00FF00, 0x0000FF);
 	}
 
-	@Deprecated
-	public static int server_rdp_version;
+	public int server_rdp_version;
 
-	@Deprecated
-	public static int win_button_size = 0; /* If zero, disable single app mode */
+	public int win_button_size = 0; /* If zero, disable single app mode */
 
-	@Deprecated
-	public static boolean bitmap_compression = true;
+	public boolean bitmap_compression = true;
 
-	@Deprecated
-	public static boolean persistent_bitmap_caching = false;
+	public boolean persistent_bitmap_caching = false;
 
-	@Deprecated
-	public static boolean bitmap_caching = false;
+	public boolean bitmap_caching = false;
 
-	@Deprecated
-	public static boolean precache_bitmaps = false;
+	public boolean precache_bitmaps = false;
 
-	@Deprecated
-	public static boolean polygon_ellipse_orders = false;
+	public boolean polygon_ellipse_orders = false;
 
-	@Deprecated
-	public static boolean sendmotion = true;
+	public boolean sendmotion = true;
 
-	@Deprecated
-	public static boolean orders = true;
+	public boolean orders = true;
 
-	@Deprecated
-	public static boolean encryption = true;
+	public boolean encryption = true;
 
-	@Deprecated
-	public static boolean packet_encryption = true;
+	public boolean packet_encryption = true;
 
-	@Deprecated
-	public static boolean desktop_save = true;
+	public boolean desktop_save = true;
 
-	@Deprecated
-	public static boolean grab_keyboard = true;
+	public boolean grab_keyboard = true;
 
-	@Deprecated
-	public static boolean hide_decorations = false;
+	public boolean hide_decorations = false;
 
-	@Deprecated
-	public static boolean console_session = false;
+	public boolean console_session = false;
 
-	@Deprecated
-	public static boolean owncolmap;
+	public boolean owncolmap;
 
-	@Deprecated
-	public static boolean use_ssl = false;
+	public boolean use_ssl = false;
 
-	@Deprecated
-	public static boolean map_clipboard = true;
+	public boolean map_clipboard = true;
 
-	@Deprecated
-	public static int rdp5_performanceflags = Rdp.RDP5_NO_CURSOR_SHADOW
+	public int rdp5_performanceflags = Rdp.RDP5_NO_CURSOR_SHADOW
 			| Rdp.RDP5_NO_CURSORSETTINGS | Rdp.RDP5_NO_FULLWINDOWDRAG
 			| Rdp.RDP5_NO_MENUANIMATIONS | Rdp.RDP5_NO_THEMING
 			| Rdp.RDP5_NO_WALLPAPER;
 
-	@Deprecated
-	public static boolean save_graphics = false;
+	public boolean save_graphics = false;
 
 }

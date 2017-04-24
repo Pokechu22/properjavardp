@@ -92,7 +92,11 @@ public class ClipChannel extends VChannel implements ClipInterface,
 
 	byte[] localClipData = null;
 
-	public ClipChannel() {
+	private final Options options;
+
+	public ClipChannel(Options options) {
+		super(options);
+
 		this.clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
 		// initialise all clipboard format handlers
@@ -101,6 +105,7 @@ public class ClipChannel extends VChannel implements ClipInterface,
 		allHandlers.add(new TextHandler());
 		allHandlers.add(new DIBHandler());
 		// allHandlers.add(new MetafilepictHandler());
+		this.options = options;
 	}
 
 	/*
@@ -327,7 +332,7 @@ public class ClipChannel extends VChannel implements ClipInterface,
 	public void focusGained(FocusEvent arg0) {
 		// synchronise the clipboard types here, so the server knows what's
 		// available
-		if (Options.use_rdp5) {
+		if (options.use_rdp5) {
 			try {
 				send_format_announce();
 			} catch (Exception e) {

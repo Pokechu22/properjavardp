@@ -30,6 +30,7 @@
 
 package net.propero.rdp.rdp5;
 
+import net.propero.rdp.Options;
 import net.propero.rdp.OrderException;
 import net.propero.rdp.RdesktopException;
 import net.propero.rdp.Rdp;
@@ -46,8 +47,8 @@ public class Rdp5 extends Rdp {
 	 * @param channels
 	 *            Virtual channels for RDP layer
 	 */
-	public Rdp5(VChannels channels) {
-		super(channels);
+	public Rdp5(Options options, VChannels channels) {
+		super(options, channels);
 		this.channels = channels;
 	}
 

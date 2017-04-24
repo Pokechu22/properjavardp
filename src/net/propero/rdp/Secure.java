@@ -52,7 +52,7 @@ public class Secure {
 
 	static Logger logger = LogManager.getLogger(Secure.class);
 
-	private Licence licence = new Licence(this);
+	private Licence licence;
 
 	/* constants for the secure layer */
 	public static final int SEC_ENCRYPT = 0x0008;
@@ -150,15 +150,21 @@ public class Secure {
 
 	private VChannels channels;
 
+	private final Options options;
+
 	/**
 	 * Initialise Secure layer of communications
 	 * 
 	 * @param channels
 	 *            Virtual channels for this connection
+	 * @param options
+	 *            The options instance
 	 */
-	public Secure(VChannels channels) {
+	public Secure(VChannels channels, Options options) {
 		this.channels = channels;
-		McsLayer = new MCS(channels);
+		this.options = options;
+		this.licence = new Licence(options, this);
+		McsLayer = new MCS(options, channels);
 		Common.mcs = McsLayer;
 		rc4_dec = new RC4();
 		rc4_enc = new RC4();
@@ -193,12 +199,12 @@ public class Secure {
 	public void connect(InetAddress host, int port)
 			throws UnknownHostException, IOException, RdesktopException,
 			SocketException, CryptoException, OrderException {
-		if (Options.hostname == "") {
+		if (options.hostname == "") {
 			InetAddress localhost = InetAddress.getLocalHost();
 			String name = localhost.getHostName();
 			StringTokenizer tok = new StringTokenizer(name, ".");
-			Options.hostname = tok.nextToken();
-			Options.hostname.trim();
+			options.hostname = tok.nextToken();
+			options.hostname.trim();
 		}
 
 		RdpPacket_Localised mcs_data = this.sendMcsData();
@@ -223,7 +229,7 @@ public class Secure {
 	 */
 	public void connect(InetAddress host) throws IOException,
 			RdesktopException, OrderException, CryptoException {
-		this.connect(host, Options.port);
+		this.connect(host, options.port);
 	}
 
 	/**
@@ -243,7 +249,7 @@ public class Secure {
 
 		RdpPacket_Localised buffer = new RdpPacket_Localised(512);
 
-		int hostlen = 2 * (Options.hostname == null ? 0 : Options.hostname
+		int hostlen = 2 * (options.hostname == null ? 0 : options.hostname
 				.length());
 
 		if (hostlen > 30) {
@@ -251,10 +257,10 @@ public class Secure {
 		}
 
 		int length = 158;
-		if (Options.use_rdp5)
+		if (options.use_rdp5)
 			length += 76 + 12 + 4;
 
-		if (Options.use_rdp5 && (channels.num_channels() > 0))
+		if (options.use_rdp5 && (channels.num_channels() > 0))
 			length += channels.num_channels() * 12 + 8;
 
 		buffer.setBigEndian16(5); /* unknown */
@@ -275,15 +281,15 @@ public class Secure {
 
 		// Client information
 		buffer.setLittleEndian16(SEC_TAG_CLI_INFO);
-		buffer.setLittleEndian16(Options.use_rdp5 ? 212 : 136); // length
-		buffer.setLittleEndian16(Options.use_rdp5 ? 4 : 1);
+		buffer.setLittleEndian16(options.use_rdp5 ? 212 : 136); // length
+		buffer.setLittleEndian16(options.use_rdp5 ? 4 : 1);
 		buffer.setLittleEndian16(8);
-		buffer.setLittleEndian16(Options.width);
-		buffer.setLittleEndian16(Options.height);
+		buffer.setLittleEndian16(options.width);
+		buffer.setLittleEndian16(options.height);
 		buffer.setLittleEndian16(0xca01);
 		buffer.setLittleEndian16(0xaa03);
-		buffer.setLittleEndian32(Options.keylayout);
-		buffer.setLittleEndian32(Options.use_rdp5 ? 2600 : 419); // or 0ece
+		buffer.setLittleEndian32(options.keylayout);
+		buffer.setLittleEndian32(options.use_rdp5 ? 2600 : 419); // or 0ece
 		// // client
 		// build? we
 		// are 2600
@@ -291,7 +297,7 @@ public class Secure {
 		// :-)
 
 		/* Unicode name of client, padded to 32 bytes */
-		buffer.outUnicodeString(Options.hostname.toUpperCase(), hostlen);
+		buffer.outUnicodeString(options.hostname.toUpperCase(), hostlen);
 		buffer.incrementPosition(30 - hostlen);
 
 		buffer.setLittleEndian32(4);
@@ -300,11 +306,11 @@ public class Secure {
 		buffer.incrementPosition(64); /* reserved? 4 + 12 doublewords */
 
 		buffer.setLittleEndian16(0xca01); // out_uint16_le(s, 0xca01);
-		buffer.setLittleEndian16(Options.use_rdp5 ? 1 : 0);
+		buffer.setLittleEndian16(options.use_rdp5 ? 1 : 0);
 
-		if (Options.use_rdp5) {
+		if (options.use_rdp5) {
 			buffer.setLittleEndian32(0); // out_uint32(s, 0);
-			buffer.set8(Options.server_bpp); // out_uint8(s, g_server_bpp);
+			buffer.set8(options.server_bpp); // out_uint8(s, g_server_bpp);
 			buffer.setLittleEndian16(0x0700); // out_uint16_le(s, 0x0700);
 			buffer.set8(0); // out_uint8(s, 0);
 			buffer.setLittleEndian32(1); // out_uint32_le(s, 1);
@@ -314,7 +320,7 @@ public class Secure {
 			buffer.setLittleEndian16(SEC_TAG_CLI_4); // out_uint16_le(s,
 			// SEC_TAG_CLI_4);
 			buffer.setLittleEndian16(12); // out_uint16_le(s, 12);
-			buffer.setLittleEndian32(Options.console_session ? 0xb : 0xd); // out_uint32_le(s,
+			buffer.setLittleEndian32(options.console_session ? 0xb : 0xd); // out_uint32_le(s,
 			// g_console_session
 			// ?
 			// 0xb
@@ -325,20 +331,20 @@ public class Secure {
 
 		// Client encryption settings //
 		buffer.setLittleEndian16(SEC_TAG_CLI_CRYPT);
-		buffer.setLittleEndian16(Options.use_rdp5 ? 12 : 8); // length
+		buffer.setLittleEndian16(options.use_rdp5 ? 12 : 8); // length
 
-		// if(Options.use_rdp5) buffer.setLittleEndian32(Options.encryption ?
+		// if(options.use_rdp5) buffer.setLittleEndian32(options.encryption ?
 		// 0x1b : 0); // 128-bit encryption supported
 		// else
 		buffer
-				.setLittleEndian32(Options.encryption ? (Options.console_session ? 0xb
+				.setLittleEndian32(options.encryption ? (options.console_session ? 0xb
 						: 0x3)
 						: 0);
 
-		if (Options.use_rdp5)
+		if (options.use_rdp5)
 			buffer.setLittleEndian32(0); // unknown
 
-		if (Options.use_rdp5 && (channels.num_channels() > 0)) {
+		if (options.use_rdp5 && (channels.num_channels() > 0)) {
 			logger.debug(("num_channels is " + channels.num_channels()));
 			buffer.setLittleEndian16(SEC_TAG_CLI_CHANNELS); // out_uint16_le(s,
 			// SEC_TAG_CLI_CHANNELS);
@@ -426,11 +432,11 @@ public class Secure {
 	 *            Packet to read
 	 */
 	private void processSrvInfo(RdpPacket_Localised mcs_data) {
-		Options.server_rdp_version = mcs_data.getLittleEndian16(); // in_uint16_le(s,
+		options.server_rdp_version = mcs_data.getLittleEndian16(); // in_uint16_le(s,
 		// g_server_rdp_version);
-		logger.debug(("Server RDP version is " + Options.server_rdp_version));
-		if (1 == Options.server_rdp_version)
-			Options.use_rdp5 = false;
+		logger.debug(("Server RDP version is " + options.server_rdp_version));
+		if (1 == options.server_rdp_version)
+			options.use_rdp5 = false;
 	}
 
 	public void establishKey() throws RdesktopException, IOException,

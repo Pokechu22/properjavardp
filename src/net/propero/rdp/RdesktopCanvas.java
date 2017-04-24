@@ -119,6 +119,7 @@ public abstract class RdesktopCanvas extends Canvas {
 
 	private int bottom = 0;
 
+	protected final Options options;
 	/**
 	 * Initialise this canvas to specified width and height, also initialise
 	 * backstore
@@ -128,9 +129,10 @@ public abstract class RdesktopCanvas extends Canvas {
 	 * @param height
 	 *            Desired height of canvas
 	 */
-	public RdesktopCanvas(int width, int height) {
+	public RdesktopCanvas(Options options, int width, int height) {
 		super();
-		rop = new RasterOp();
+		this.options = options;
+		rop = new RasterOp(options);
 		this.width = width;
 		this.height = height;
 		this.right = width - 1; // changed
@@ -170,7 +172,7 @@ public abstract class RdesktopCanvas extends Canvas {
 	public void registerCommLayer(Rdp rdp) {
 		this.rdp = rdp;
 		if (fbKeys != null)
-			input = new Input_Localised(this, rdp, fbKeys);
+			input = new Input_Localised(options, this, rdp, fbKeys);
 
 	}
 
@@ -184,7 +186,7 @@ public abstract class RdesktopCanvas extends Canvas {
 		this.fbKeys = keys;
 		if (rdp != null) {
 			// rdp and keys have been registered...
-			input = new Input_Localised(this, rdp, keys);
+			input = new Input_Localised(options, this, rdp, keys);
 		}
 	}
 
@@ -225,7 +227,7 @@ public abstract class RdesktopCanvas extends Canvas {
 	public void displayCompressed(int x, int y, int width, int height,
 			int size, RdpPacket_Localised data, int Bpp, IndexColorModel cm)
 			throws RdesktopException {
-		backstore = Bitmap.decompressImgDirect(width, height, size, data, Bpp,
+		backstore = Bitmap.decompressImgDirect(options, width, height, size, data, Bpp,
 				cm, x, y, backstore);
 	}
 
@@ -398,10 +400,10 @@ public abstract class RdesktopCanvas extends Canvas {
 		if (x > this.right || y > this.bottom)
 			return; // off screen
 
-		int Bpp = Options.Bpp;
+		int Bpp = options.Bpp;
 
 		// convert to 24-bit colour
-		color = Bitmap.convertTo24(color);
+		color = Bitmap.convertTo24(options, color);
 
 		// correction for 24-bit colour
 		if (Bpp == 3)
@@ -456,7 +458,7 @@ public abstract class RdesktopCanvas extends Canvas {
 	 */
 	public void drawLine(int x1, int y1, int x2, int y2, int color, int opcode) {
 		// convert to 24-bit colour
-		color = Bitmap.convertTo24(color);
+		color = Bitmap.convertTo24(options, color);
 
 		if (x1 == x2 || y1 == y2) {
 			drawLineVerticalHorizontal(x1, y1, x2, y2, color, opcode);
@@ -823,8 +825,8 @@ public abstract class RdesktopCanvas extends Canvas {
 			int fgcolor, int bgcolor, Brush brush) {
 
 		// convert to 24-bit colour
-		fgcolor = Bitmap.convertTo24(fgcolor);
-		bgcolor = Bitmap.convertTo24(bgcolor);
+		fgcolor = Bitmap.convertTo24(options, fgcolor);
+		bgcolor = Bitmap.convertTo24(options, bgcolor);
 
 		// Perform standard clipping checks, x-axis
 		int clipright = x + cx - 1;
@@ -938,8 +940,8 @@ public abstract class RdesktopCanvas extends Canvas {
 		Brush brush = triblt.getBrush();
 
 		// convert to 24-bit colour
-		fgcolor = Bitmap.convertTo24(fgcolor);
-		bgcolor = Bitmap.convertTo24(bgcolor);
+		fgcolor = Bitmap.convertTo24(options, fgcolor);
+		bgcolor = Bitmap.convertTo24(options, bgcolor);
 
 		// Perform standard clipping checks, x-axis
 		int clipright = x + cx - 1;
@@ -1027,7 +1029,7 @@ public abstract class RdesktopCanvas extends Canvas {
 		int lines = polyline.getLines();
 
 		// convert to 24-bit colour
-		fgcolor = Bitmap.convertTo24(fgcolor);
+		fgcolor = Bitmap.convertTo24(options, fgcolor);
 
 		// hack - data as single element byte array so can pass by ref to
 		// parse_delta
@@ -1088,7 +1090,7 @@ public abstract class RdesktopCanvas extends Canvas {
 	 *            Colour value to be used in operation
 	 */
 	public void setPixel(int opcode, int x, int y, int color) {
-		int Bpp = Options.Bpp;
+		int Bpp = options.Bpp;
 
 		// correction for 24-bit colour
 		if (Bpp == 3)
@@ -1132,11 +1134,11 @@ public abstract class RdesktopCanvas extends Canvas {
 		int bytes_per_row = (cx - 1) / 8 + 1;
 		int newx, newy, newcx, newcy;
 
-		int Bpp = Options.Bpp;
+		int Bpp = options.Bpp;
 
 		// convert to 24-bit colour
-		fgcolor = Bitmap.convertTo24(fgcolor);
-		bgcolor = Bitmap.convertTo24(bgcolor);
+		fgcolor = Bitmap.convertTo24(options, fgcolor);
+		bgcolor = Bitmap.convertTo24(options, bgcolor);
 
 		// correction for 24-bit colour
 		if (Bpp == 3) {

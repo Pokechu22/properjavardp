@@ -44,8 +44,8 @@ import net.propero.rdp.keymapping.KeyCode;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
 
 public class Input_Localised extends Input {
-	public Input_Localised(RdesktopCanvas c, Rdp r, KeyCode_FileBased k) {
-		super(c, r, k);
+	public Input_Localised(Options options, RdesktopCanvas c, Rdp r, KeyCode_FileBased k) {
+		super(options, c, r, k);
 		KeyboardFocusManager.getCurrentKeyboardFocusManager()
 				.setDefaultFocusTraversalKeys(
 						KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
@@ -56,8 +56,8 @@ public class Input_Localised extends Input {
 						Collections.emptySet());
 	}
 
-	public Input_Localised(RdesktopCanvas c, Rdp r, String k) {
-		super(c, r, k);
+	public Input_Localised(Options options, RdesktopCanvas c, Rdp r, String k) {
+		super(options, c, r, k);
 		KeyboardFocusManager.getCurrentKeyboardFocusManager()
 				.setDefaultFocusTraversalKeys(
 						KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
@@ -88,7 +88,7 @@ public class Input_Localised extends Input {
 		// does work on the same version on Windows.
 		if (!Rdesktop.readytosend)
 			return;
-		if (!Options.useLockingKeyState)
+		if (!options.useLockingKeyState)
 			return;
 		if (Constants.OS == Constants.LINUX)
 			return; // broken for linux
@@ -119,7 +119,7 @@ public class Input_Localised extends Input {
 				sendScancode(getTime(), RDP_KEYRELEASE, 0x46);
 			}
 		} catch (Exception e) {
-			Options.useLockingKeyState = false;
+			options.useLockingKeyState = false;
 			e.printStackTrace();
 		}
 	}

@@ -104,11 +104,13 @@ public class VChannels {
 		return MCS.MCS_GLOBAL_CHANNEL + 1 + c;
 	}
 
+	private final Options options;
 	/**
 	 * Initialise the maximum number of Virtual Channels
 	 */
-	public VChannels() {
+	public VChannels(Options options) {
 		channels = new VChannel[MAX_CHANNELS];
+		this.options = options;
 	}
 
 	/**
@@ -159,7 +161,7 @@ public class VChannels {
 	 * @throws RdesktopException
 	 */
 	public boolean register(VChannel v) throws RdesktopException {
-		if (!Options.use_rdp5) {
+		if (!options.use_rdp5) {
 			return false;
 		}
 

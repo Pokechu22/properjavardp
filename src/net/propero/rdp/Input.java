@@ -139,7 +139,8 @@ public abstract class Input {
 
 	protected Rdp rdp = null;
 
-	KeyCode keys = null;
+	private KeyCode keys = null;
+	protected final Options options;
 
 	/**
 	 * Create a new Input object with a given keymap object
@@ -151,14 +152,15 @@ public abstract class Input {
 	 * @param k
 	 *            Key map to use in handling keyboard events
 	 */
-	public Input(RdesktopCanvas c, Rdp r, KeyCode_FileBased k) {
+	public Input(Options options, RdesktopCanvas c, Rdp r, KeyCode_FileBased k) {
 		newKeyMapper = k;
 		canvas = c;
 		rdp = r;
-		//if (Options.debug_keyboard)
+		//if (options.debug_keyboard)
 		//	logger.setLevel(Level.DEBUG);
 		addInputListeners();
 		pressedKeys = new HashSet<>();
+		this.options = options;
 	}
 
 	/**
@@ -171,9 +173,9 @@ public abstract class Input {
 	 * @param keymapFile
 	 *            Path to file containing keymap data
 	 */
-	public Input(RdesktopCanvas c, Rdp r, String keymapFile) {
+	public Input(Options options, RdesktopCanvas c, Rdp r, String keymapFile) {
 		try {
-			newKeyMapper = new KeyCode_FileBased_Localised(keymapFile);
+			newKeyMapper = new KeyCode_FileBased_Localised(options, keymapFile);
 		} catch (KeyMapException kmEx) {
 			System.err.println(kmEx.getMessage());
 			kmEx.printStackTrace();
@@ -183,10 +185,11 @@ public abstract class Input {
 
 		canvas = c;
 		rdp = r;
-		//if (Options.debug_keyboard)
+		//if (options.debug_keyboard)
 		//	logger.setLevel(Level.DEBUG);
 		addInputListeners();
 		pressedKeys = new HashSet<>();
+		this.options = options;
 	}
 
 	/**
@@ -618,9 +621,9 @@ public abstract class Input {
 			altDown = pressed;
 			return false;
 		case KeyEvent.VK_CAPS_LOCK:
-			if (pressed && Options.caps_sends_up_and_down)
+			if (pressed && options.caps_sends_up_and_down)
 				capsLockOn = !capsLockOn;
-			if (!Options.caps_sends_up_and_down) {
+			if (!options.caps_sends_up_and_down) {
 				if (pressed)
 					capsLockOn = true;
 				else
@@ -701,7 +704,7 @@ public abstract class Input {
 	 */
 	protected void middleButtonPressed(MouseEvent e) {
 		/*
-		 * if (Options.paste_hack && ctrlDown){ try{ canvas.setBusyCursor();
+		 * if (options.paste_hack && ctrlDown){ try{ canvas.setBusyCursor();
 		 * }catch (RdesktopException ex){ logger.warn(ex.getMessage()); } if
 		 * (capsLockOn){ logger.debug("Turning caps lock off for paste"); //
 		 * turn caps lock off sendScancode(getTime(), RDP_KEYPRESS, 0x3a); //
@@ -725,7 +728,7 @@ public abstract class Input {
 	 *            was released
 	 */
 	protected void middleButtonReleased(MouseEvent e) {
-		/* if (!Options.paste_hack || !ctrlDown) */
+		/* if (!options.paste_hack || !ctrlDown) */
 		rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_BUTTON3, e.getX(), e
 				.getY());
 	}

@@ -38,8 +38,8 @@ public class RdesktopFrame_Localised extends RdesktopFrame {
 
 	private static final long serialVersionUID = 8966796397221900303L;
 
-	public RdesktopFrame_Localised() {
-		super();
+	public RdesktopFrame_Localised(Options options) {
+		super(options);
 	}
 
 	protected void fullscreen() {
@@ -48,7 +48,7 @@ public class RdesktopFrame_Localised extends RdesktopFrame {
 	}
 
 	public void goFullScreen() {
-		if (!Options.fullscreen)
+		if (!options.fullscreen)
 			return;
 
 		inFullscreen = true;
@@ -70,7 +70,7 @@ public class RdesktopFrame_Localised extends RdesktopFrame {
 	}
 
 	public void leaveFullScreen() {
-		if (!Options.fullscreen)
+		if (!options.fullscreen)
 			return;
 
 		inFullscreen = false;

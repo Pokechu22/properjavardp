@@ -303,6 +303,12 @@ public class Rdp {
 			(byte) 0x80, 0x00, (byte) 0xFE, 0x00, 0x00, 0x01, 0x40, 0x00, 0x00,
 			0x08, 0x00, 0x01, 0x00, 0x01, 0x02, 0x00, 0x00, 0x00 };
 
+	protected final Options options;
+
+	public Rdp(Options options) {
+		this.options = options;
+	}
+
 	/**
 	 * Process a general capability set
 	 * 
@@ -316,7 +322,7 @@ public class Rdp {
 		pad2octetsB = data.getLittleEndian16(); // in_uint16_le(s, pad2octetsB);
 
 		if (pad2octetsB != 0)
-			Options.use_rdp5 = false;
+			options.use_rdp5 = false;
 	}
 
 	/**
@@ -341,17 +347,17 @@ public class Rdp {
 		 * The server may limit bpp and change the size of the desktop (for
 		 * example when shadowing another session).
 		 */
-		if (Options.server_bpp != bpp) {
-			logger.warn("colour depth changed from " + Options.server_bpp
+		if (options.server_bpp != bpp) {
+			logger.warn("colour depth changed from " + options.server_bpp
 					+ " to " + bpp);
-			Options.server_bpp = bpp;
+			options.server_bpp = bpp;
 		}
-		if (Options.width != width || Options.height != height) {
-			String msg = "screen size changed from " + Options.width + "x"
-					+ Options.height + " to " + width + "x" + height;
+		if (options.width != width || options.height != height) {
+			String msg = "screen size changed from " + options.width + "x"
+					+ options.height + " to " + width + "x" + height;
 			logger.warn(msg);
-			Options.width = width;
-			Options.height = height;
+			options.width = width;
+			options.height = height;
 			throw new RdesktopException("Unimplemented size change: " + msg);
 			// ui_resize_window(); TODO: implement resize thingy
 		}
@@ -420,10 +426,11 @@ public class Rdp {
 	 * @param channels
 	 *            Virtual channels to be used in connection
 	 */
-	public Rdp(VChannels channels) {
-		this.SecureLayer = new Secure(channels);
+	public Rdp(Options options, VChannels channels) {
+		this.options = options;
+		this.SecureLayer = new Secure(channels, options);
 		Common.secure = SecureLayer;
-		this.orders = new Orders();
+		this.orders = new Orders(options);
 		this.cache = new Cache();
 		orders.registerCache(cache);
 	}
@@ -564,7 +571,7 @@ public class Rdp {
 		catch (ConnectException e) {
 			throw new ConnectionException(
 					"Connection refused when trying to connect to " + server
-							+ " on port " + Options.port, e);
+							+ " on port " + options.port, e);
 		}
 		// Handle a timeout on connecting
 		catch (NoRouteToHostException e) {
@@ -721,7 +728,7 @@ public class Rdp {
 
 		RdpPacket_Localised data;
 
-		if (!Options.use_rdp5 || 1 == Options.server_rdp_version) {
+		if (!options.use_rdp5 || 1 == options.server_rdp_version) {
 			logger.debug("Sending RDP4-style Logon packet");
 
 			data = SecureLayer.init(sec_flags, 18 + domainlen + userlen
@@ -875,7 +882,7 @@ public class Rdp {
 			data.setLittleEndian32(0); // out_uint32(s, 0);
 			data.setLittleEndian32(0xffffffc4); // out_uint32_le(s, 0xffffffc4);
 			data.setLittleEndian32(0xfffffffe); // out_uint32_le(s, 0xfffffffe);
-			data.setLittleEndian32(Options.rdp5_performanceflags); // out_uint32_le(s,
+			data.setLittleEndian32(options.rdp5_performanceflags); // out_uint32_le(s,
 			// 0x0f);
 			data.setLittleEndian32(0); // out_uint32(s, 0);
 		}
@@ -1039,7 +1046,7 @@ public class Rdp {
 		// Purpose
 		// unknown
 
-		int sec_flags = Options.encryption ? (RDP5_FLAG | Secure.SEC_ENCRYPT)
+		int sec_flags = options.encryption ? (RDP5_FLAG | Secure.SEC_ENCRYPT)
 				: RDP5_FLAG;
 
 		RdpPacket_Localised data = SecureLayer.init(sec_flags, 6 + 14 + caplen
@@ -1068,7 +1075,7 @@ public class Rdp {
 		this.sendBitmapCaps(data);
 		this.sendOrderCaps(data);
 
-		if (Options.use_rdp5 && Options.persistent_bitmap_caching) {
+		if (options.use_rdp5 && options.persistent_bitmap_caching) {
 			logger.info("Persistent caching enabled");
 			this.sendBitmapcache2Caps(data);
 		} else
@@ -1110,8 +1117,8 @@ public class Rdp {
 		data.setLittleEndian16(1); /* OS major type */
 		data.setLittleEndian16(3); /* OS minor type */
 		data.setLittleEndian16(0x200); /* Protocol version */
-		data.setLittleEndian16(Options.use_rdp5 ? 0x40d : 0);
-		// data.setLittleEndian16(Options.use_rdp5 ? 0x1d04 : 0); // this seems
+		data.setLittleEndian16(options.use_rdp5 ? 0x40d : 0);
+		// data.setLittleEndian16(options.use_rdp5 ? 0x1d04 : 0); // this seems
 		/*
 		 * Pad, according to T.128. 0x40d seems to trigger the server to start
 		 * sending RDP5 packets. However, the value is 0x1d04 with W2KTSK and
@@ -1131,15 +1138,15 @@ public class Rdp {
 		data.setLittleEndian16(RDP_CAPSET_BITMAP);
 		data.setLittleEndian16(RDP_CAPLEN_BITMAP);
 
-		data.setLittleEndian16(Options.server_bpp); /* Preferred BPP */
+		data.setLittleEndian16(options.server_bpp); /* Preferred BPP */
 		data.setLittleEndian16(1); /* Receive 1 BPP */
 		data.setLittleEndian16(1); /* Receive 4 BPP */
 		data.setLittleEndian16(1); /* Receive 8 BPP */
-		data.setLittleEndian16(Options.width); /* Desktop width */
-		data.setLittleEndian16(Options.height); /* Desktop height */
+		data.setLittleEndian16(options.width); /* Desktop width */
+		data.setLittleEndian16(options.height); /* Desktop height */
 		data.setLittleEndian16(0); /* Pad */
 		data.setLittleEndian16(1); /* Allow resize */
-		data.setLittleEndian16(Options.bitmap_compression ? 1 : 0); /*
+		data.setLittleEndian16(options.bitmap_compression ? 1 : 0); /*
 																	 * Support
 																	 * compression
 																	 */
@@ -1154,7 +1161,7 @@ public class Rdp {
 		order_caps[0] = 1; /* dest blt */
 		order_caps[1] = 1; /* pat blt */// nb no rectangle orders if this is 0
 		order_caps[2] = 1; /* screen blt */
-		order_caps[3] = (byte) (Options.bitmap_caching ? 1 : 0); /* memblt */
+		order_caps[3] = (byte) (options.bitmap_caching ? 1 : 0); /* memblt */
 		order_caps[4] = 0; /* triblt */
 		order_caps[8] = 1; /* line */
 		order_caps[9] = 1; /* line */
@@ -1162,11 +1169,11 @@ public class Rdp {
 		order_caps[11] = (Constants.desktop_save ? 1 : 0); /* desksave */
 		order_caps[13] = 1; /* memblt */
 		order_caps[14] = 1; /* triblt */
-		order_caps[20] = (byte) (Options.polygon_ellipse_orders ? 1 : 0); /* polygon */
-		order_caps[21] = (byte) (Options.polygon_ellipse_orders ? 1 : 0); /* polygon2 */
+		order_caps[20] = (byte) (options.polygon_ellipse_orders ? 1 : 0); /* polygon */
+		order_caps[21] = (byte) (options.polygon_ellipse_orders ? 1 : 0); /* polygon2 */
 		order_caps[22] = 1; /* polyline */
-		order_caps[25] = (byte) (Options.polygon_ellipse_orders ? 1 : 0); /* ellipse */
-		order_caps[26] = (byte) (Options.polygon_ellipse_orders ? 1 : 0); /* ellipse2 */
+		order_caps[25] = (byte) (options.polygon_ellipse_orders ? 1 : 0); /* ellipse */
+		order_caps[26] = (byte) (options.polygon_ellipse_orders ? 1 : 0); /* ellipse2 */
 		order_caps[27] = 1; /* text2 */
 		data.setLittleEndian16(RDP_CAPSET_ORDER);
 		data.setLittleEndian16(RDP_CAPLEN_ORDER);
@@ -1215,7 +1222,7 @@ public class Rdp {
 		data.setLittleEndian16(RDP_CAPLEN_BMPCACHE2); // out_uint16_le(s,
 		// RDP_CAPLEN_BMPCACHE2);
 
-		data.setLittleEndian16(Options.persistent_bitmap_caching ? 2 : 0); /* version */
+		data.setLittleEndian16(options.persistent_bitmap_caching ? 2 : 0); /* version */
 
 		data.setBigEndian16(3); /* number of caches in this set */
 
@@ -1480,10 +1487,10 @@ public class Rdp {
 				maxY = bottom;
 
 			/* Server may limit bpp - this is how we find out */
-			if (Options.server_bpp != bitsperpixel) {
+			if (options.server_bpp != bitsperpixel) {
 				logger.warn("Server limited colour depth to " + bitsperpixel
 						+ " bits");
-				Options.set_bpp(bitsperpixel);
+				options.set_bpp(bitsperpixel);
 			}
 
 			if (compression == 0) {
@@ -1496,7 +1503,7 @@ public class Rdp {
 					data.incrementPosition(width * Bpp);
 				}
 
-				surface.displayImage(Bitmap.convertImage(pixel, Bpp), width,
+				surface.displayImage(Bitmap.convertImage(options, pixel, Bpp), width,
 						height, left, top, cx, cy);
 				continue;
 			}
@@ -1513,24 +1520,24 @@ public class Rdp {
 
 			}
 			if (Bpp == 1) {
-				pixel = Bitmap.decompress(width, height, size, data, Bpp);
+				pixel = Bitmap.decompress(options, width, height, size, data, Bpp);
 				if (pixel != null)
-					surface.displayImage(Bitmap.convertImage(pixel, Bpp),
+					surface.displayImage(Bitmap.convertImage(options, pixel, Bpp),
 							width, height, left, top, cx, cy);
 				else
 					logger.warn("Could not decompress bitmap");
 			} else {
 
-				if (Options.bitmap_decompression_store == Options.INTEGER_BITMAP_DECOMPRESSION) {
-					int[] pixeli = Bitmap.decompressInt(width, height, size,
+				if (options.bitmap_decompression_store == options.INTEGER_BITMAP_DECOMPRESSION) {
+					int[] pixeli = Bitmap.decompressInt(options, width, height, size,
 							data, Bpp);
 					if (pixeli != null)
 						surface.displayImage(pixeli, width, height, left, top,
 								cx, cy);
 					else
 						logger.warn("Could not decompress bitmap");
-				} else if (Options.bitmap_decompression_store == Options.BUFFEREDIMAGE_BITMAP_DECOMPRESSION) {
-					Image pix = Bitmap.decompressImg(width, height, size, data,
+				} else if (options.bitmap_decompression_store == options.BUFFEREDIMAGE_BITMAP_DECOMPRESSION) {
+					Image pix = Bitmap.decompressImg(options, width, height, size, data,
 							Bpp, null);
 					if (pix != null)
 						surface.displayImage(pix, left, top);

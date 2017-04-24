@@ -288,7 +288,9 @@ public class Rdesktop {
 
 		// Attempt to run a native RDP Client
 
-		RDPClientChooser Chooser = new RDPClientChooser();
+		Options options = new Options();
+
+		RDPClientChooser Chooser = new RDPClientChooser(options);
 
 		if (Chooser.RunNativeRDPClient(args)) {
 			if (!Common.underApplet)
@@ -328,7 +330,7 @@ public class Rdesktop {
 		Getopt g = new Getopt("properJavaRDP", args,
 				"bc:d:f::g:k:l:m:n:p:s:t:T:u:o:r:", alo);
 
-		ClipChannel clipChannel = new ClipChannel();
+		ClipChannel clipChannel = new ClipChannel(options);
 
 		while ((c = g.getopt()) != -1) {
 			switch (c) {
@@ -336,10 +338,10 @@ public class Rdesktop {
 			case 0:
 				switch (g.getLongind()) {
 				case 0:
-					Options.debug_keyboard = true;
+					options.debug_keyboard = true;
 					break;
 				case 1:
-					Options.debug_hexdump = true;
+					options.debug_hexdump = true;
 					break;
 				case 2:
 					break;
@@ -349,36 +351,36 @@ public class Rdesktop {
 					showTools = true;
 					break;
 				case 5:
-					Options.altkey_quiet = true;
+					options.altkey_quiet = true;
 					break;
 				case 6:
-					Options.remap_hash = false;
+					options.remap_hash = false;
 					break;
 				case 7:
-					Options.packet_encryption = false;
+					options.packet_encryption = false;
 					break;
 				case 8:
-					Options.use_rdp5 = false;
-					// Options.server_bpp = 8;
-					Options.set_bpp(8);
+					options.use_rdp5 = false;
+					// options.server_bpp = 8;
+					options.set_bpp(8);
 					break;
 				case 9:
-					Options.use_ssl = true;
+					options.use_ssl = true;
 					break;
 				case 10:
-					Options.enable_menu = true;
+					options.enable_menu = true;
 					break;
 				case 11:
-					Options.console_session = true;
+					options.console_session = true;
 					break;
 				case 12:
-					Options.load_licence = true;
+					options.load_licence = true;
 					break;
 				case 13:
-					Options.save_licence = true;
+					options.save_licence = true;
 					break;
 				case 14:
-					Options.persistent_bitmap_caching = true;
+					options.persistent_bitmap_caching = true;
 					break;
 				default:
 					usage();
@@ -386,27 +388,27 @@ public class Rdesktop {
 				break;
 
 			case 'o':
-				Options.set_bpp(Integer.parseInt(g.getOptarg()));
+				options.set_bpp(Integer.parseInt(g.getOptarg()));
 				break;
 			case 'b':
-				Options.low_latency = false;
+				options.low_latency = false;
 				break;
 			case 'm':
 				mapFile = g.getOptarg();
 				break;
 			case 'c':
-				Options.directory = g.getOptarg();
+				options.directory = g.getOptarg();
 				break;
 			case 'd':
-				Options.domain = g.getOptarg();
+				options.domain = g.getOptarg();
 				break;
 			case 'f':
 				Dimension screen_size = Toolkit.getDefaultToolkit()
 						.getScreenSize();
 				// ensure width a multiple of 4
-				Options.width = screen_size.width & ~3;
-				Options.height = screen_size.height;
-				Options.fullscreen = true;
+				options.width = screen_size.width & ~3;
+				options.height = screen_size.height;
+				options.fullscreen = true;
 				arg = g.getOptarg();
 				if (arg != null) {
 					if (arg.charAt(0) == 'l')
@@ -425,13 +427,13 @@ public class Rdesktop {
 					System.err.println(progname + ": Invalid geometry: " + arg);
 					usage();
 				}
-				Options.width = Integer.parseInt(arg.substring(0, cut)) & ~3;
-				Options.height = Integer.parseInt(arg.substring(cut + 1));
+				options.width = Integer.parseInt(arg.substring(0, cut)) & ~3;
+				options.height = Integer.parseInt(arg.substring(cut + 1));
 				break;
 			case 'k':
 				arg = g.getOptarg();
-				// Options.keylayout = KeyLayout.strToCode(arg);
-				if (Options.keylayout == -1) {
+				// options.keylayout = KeyLayout.strToCode(arg);
+				if (options.keylayout == -1) {
 					System.err.println(progname + ": Invalid key layout: "
 							+ arg);
 					usage();
@@ -440,22 +442,22 @@ public class Rdesktop {
 			case 'l':
 				throw new UnsupportedOperationException("Use a custom log4j configuration file");
 			case 'n':
-				Options.hostname = g.getOptarg();
+				options.hostname = g.getOptarg();
 				break;
 			case 'p':
-				Options.password = g.getOptarg();
+				options.password = g.getOptarg();
 				logonflags |= Rdp.RDP_LOGON_AUTO;
 				break;
 			case 's':
-				Options.command = g.getOptarg();
+				options.command = g.getOptarg();
 				break;
 			case 'u':
-				Options.username = g.getOptarg();
+				options.username = g.getOptarg();
 				break;
 			case 't':
 				arg = g.getOptarg();
 				try {
-					Options.port = Integer.parseInt(arg);
+					options.port = Integer.parseInt(arg);
 				} catch (NumberFormatException nex) {
 					System.err.println(progname + ": Invalid port number: "
 							+ arg);
@@ -463,10 +465,10 @@ public class Rdesktop {
 				}
 				break;
 			case 'T':
-				Options.windowTitle = g.getOptarg().replace('_', ' ');
+				options.windowTitle = g.getOptarg().replace('_', ' ');
 				break;
 			case 'r':
-				Options.licence_path = g.getOptarg();
+				options.licence_path = g.getOptarg();
 				break;
 
 			case '?':
@@ -478,7 +480,7 @@ public class Rdesktop {
 		}
 
 		if (fKdeHack) {
-			Options.height -= 46;
+			options.height -= 46;
 		}
 
 		String server = null;
@@ -489,7 +491,7 @@ public class Rdesktop {
 				server = args[args.length - 1];
 			} else {
 				server = args[args.length - 1].substring(0, colonat);
-				Options.port = Integer.parseInt(args[args.length - 1]
+				options.port = Integer.parseInt(args[args.length - 1]
 						.substring(colonat + 1));
 			}
 		} else {
@@ -497,12 +499,12 @@ public class Rdesktop {
 			usage();
 		}
 
-		VChannels channels = new VChannels();
+		VChannels channels = new VChannels(options);
 
 		// Initialise all RDP5 channels
-		if (Options.use_rdp5) {
+		if (options.use_rdp5) {
 			// TODO: implement all relevant channels
-			if (Options.map_clipboard)
+			if (options.map_clipboard)
 				channels.register(clipChannel);
 		}
 
@@ -520,7 +522,7 @@ public class Rdesktop {
 		String osvers = System.getProperty("os.version");
 
 		if (os.equals("Windows 2000") || os.equals("Windows XP"))
-			Options.built_in_licence = true;
+			options.built_in_licence = true;
 
 		logger.info("Operating System is " + os + " version " + osvers);
 
@@ -532,11 +534,11 @@ public class Rdesktop {
 			Constants.OS = Constants.MAC;
 
 		if (Constants.OS == Constants.MAC)
-			Options.caps_sends_up_and_down = false;
+			options.caps_sends_up_and_down = false;
 
 		Rdp5 RdpLayer = null;
 		Common.rdp = RdpLayer;
-		RdesktopFrame window = new RdesktopFrame_Localised();
+		RdesktopFrame window = new RdesktopFrame_Localised(options);
 		window.setClip(clipChannel);
 
 		// Configure a keyboard layout
@@ -548,14 +550,14 @@ public class Rdesktop {
 			// logger.info("istr = " + istr);
 			if (istr == null) {
 				logger.debug("Loading keymap from filename");
-				keyMap = new KeyCode_FileBased_Localised(keyMapPath + mapFile);
+				keyMap = new KeyCode_FileBased_Localised(options, keyMapPath + mapFile);
 			} else {
 				logger.debug("Loading keymap from InputStream");
-				keyMap = new KeyCode_FileBased_Localised(istr);
+				keyMap = new KeyCode_FileBased_Localised(options, istr);
 			}
 			if (istr != null)
 				istr.close();
-			Options.keylayout = keyMap.getMapCode();
+			options.keylayout = keyMap.getMapCode();
 		} catch (Exception kmEx) {
 			String[] msg = { (kmEx.getClass() + ": " + kmEx.getMessage()) };
 			window.showErrorDialog(msg);
@@ -573,7 +575,7 @@ public class Rdesktop {
 		logger.debug("keep_running = " + keep_running);
 		while (keep_running) {
 			logger.debug("Initialising RDP layer...");
-			RdpLayer = new Rdp5(channels);
+			RdpLayer = new Rdp5(options, channels);
 			Common.rdp = RdpLayer;
 			logger.debug("Registering drawing surface...");
 			RdpLayer.registerDrawingSurface(window);
@@ -582,19 +584,19 @@ public class Rdesktop {
 			loggedon = false;
 			readytosend = false;
 			logger
-					.info("Connecting to " + server + ":" + Options.port
+					.info("Connecting to " + server + ":" + options.port
 							+ " ...");
 
 			if (server.equalsIgnoreCase("localhost"))
 				server = "127.0.0.1";
 
 			if (RdpLayer != null) {
-				// Attempt to connect to server on port Options.port
+				// Attempt to connect to server on port options.port
 				try {
-					RdpLayer.connect(Options.username, InetAddress
-							.getByName(server), logonflags, Options.domain,
-							Options.password, Options.command,
-							Options.directory);
+					RdpLayer.connect(options.username, InetAddress
+							.getByName(server), logonflags, options.domain,
+							options.password, options.command,
+							options.directory);
 
 					// Remove to get rid of sendEvent tool
 					if (showTools) {
@@ -610,8 +612,8 @@ public class Rdesktop {
 						 * encrypted login packet but unencrypted transfer of
 						 * other packets
 						 */
-						if (!Options.packet_encryption)
-							Options.encryption = false;
+						if (!options.packet_encryption)
+							options.encryption = false;
 
 						logger.info("Connection successful");
 						// now show window after licence negotiation

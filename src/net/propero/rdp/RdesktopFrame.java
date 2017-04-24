@@ -117,9 +117,9 @@ public abstract class RdesktopFrame extends Frame {
 	 */
 	public void showMenu() {
 		if (menu == null)
-			menu = new RdpMenu(this);
+			menu = new RdpMenu(options, this);
 
-		if (!menuVisible && Options.enable_menu)
+		if (!menuVisible && options.enable_menu)
 			this.setMenuBar(menu);
 		canvas.repaint();
 		menuVisible = true;
@@ -129,7 +129,7 @@ public abstract class RdesktopFrame extends Frame {
 	 * Hide the menu bar
 	 */
 	public void hideMenu() {
-		if (menuVisible && Options.enable_menu)
+		if (menuVisible && options.enable_menu)
 			this.setMenuBar(null);
 		// canvas.setSize(this.WIDTH, this.HEIGHT);
 		canvas.repaint();
@@ -147,24 +147,27 @@ public abstract class RdesktopFrame extends Frame {
 			hideMenu();
 	}
 
+	protected final Options options;
+
 	/**
-	 * Create a new RdesktopFrame. Size defined by Options.width and
-	 * Options.height Creates RdesktopCanvas occupying entire frame
+	 * Create a new RdesktopFrame. Size defined by options.width and
+	 * options.height Creates RdesktopCanvas occupying entire frame
 	 */
-	public RdesktopFrame() {
+	public RdesktopFrame(Options options) {
 		super();
+		this.options = options;
 		Common.frame = this;
-		this.canvas = new RdesktopCanvas_Localised(Options.width,
-				Options.height);
+		this.canvas = new RdesktopCanvas_Localised(options, options.width,
+				options.height);
 		add(this.canvas);
-		setTitle(Options.windowTitle);
+		setTitle(options.windowTitle);
 
 		if (Constants.OS == Constants.WINDOWS)
 			setResizable(false);
 		// Windows has to setResizable(false) before pack,
 		// else draws on the frame
 
-		if (Options.fullscreen) {
+		if (options.fullscreen) {
 			goFullScreen();
 			pack();
 			setLocation(0, 0);
@@ -222,7 +225,7 @@ public abstract class RdesktopFrame extends Frame {
 		public void focusGained(FocusEvent arg0) {
 			if (Constants.OS == Constants.WINDOWS) {
 				// canvas.repaint();
-				canvas.repaint(0, 0, Options.width, Options.height);
+				canvas.repaint(0, 0, options.width, options.height);
 			}
 			// gained focus..need to check state of locking keys
 			canvas.gainedFocus();
@@ -250,7 +253,7 @@ public abstract class RdesktopFrame extends Frame {
 		public void windowDeiconified(WindowEvent e) {
 			if (Constants.OS == Constants.WINDOWS) {
 				// canvas.repaint();
-				canvas.repaint(0, 0, Options.width, Options.height);
+				canvas.repaint(0, 0, options.width, options.height);
 			}
 			canvas.gainedFocus();
 		}
@@ -258,7 +261,7 @@ public abstract class RdesktopFrame extends Frame {
 		public void windowActivated(WindowEvent e) {
 			if (Constants.OS == Constants.WINDOWS) {
 				// canvas.repaint();
-				canvas.repaint(0, 0, Options.width, Options.height);
+				canvas.repaint(0, 0, options.width, options.height);
 			}
 			// gained focus..need to check state of locking keys
 			canvas.gainedFocus();
@@ -267,7 +270,7 @@ public abstract class RdesktopFrame extends Frame {
 		public void windowGainedFocus(WindowEvent e) {
 			if (Constants.OS == Constants.WINDOWS) {
 				// canvas.repaint();
-				canvas.repaint(0, 0, Options.width, Options.height);
+				canvas.repaint(0, 0, options.width, options.height);
 			}
 			// gained focus..need to check state of locking keys
 			canvas.gainedFocus();
@@ -276,7 +279,7 @@ public abstract class RdesktopFrame extends Frame {
 
 	class RdesktopComponentAdapter extends ComponentAdapter {
 		public void componentMoved(ComponentEvent e) {
-			canvas.repaint(0, 0, Options.width, Options.height);
+			canvas.repaint(0, 0, options.width, options.height);
 		}
 	}
 

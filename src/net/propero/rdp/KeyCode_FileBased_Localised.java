@@ -41,24 +41,24 @@ public class KeyCode_FileBased_Localised extends KeyCode_FileBased {
 	 * @param fstream
 	 * @throws KeyMapException
 	 */
-	public KeyCode_FileBased_Localised(InputStream fstream)
+	public KeyCode_FileBased_Localised(Options options, InputStream fstream)
 			throws KeyMapException {
-		super(fstream);
+		super(options, fstream);
 	}
 
-	public KeyCode_FileBased_Localised(String s) throws KeyMapException {
-		super(s);
+	public KeyCode_FileBased_Localised(Options options, String s) throws KeyMapException {
+		super(options, s);
 	}
 
 	private void updateCapsLock(KeyEvent e) {
-		if (Options.useLockingKeyState) {
+		if (options.useLockingKeyState) {
 			try {
-				Options.useLockingKeyState = true;
+				options.useLockingKeyState = true;
 				capsLockDown = e.getComponent().getToolkit()
 						.getLockingKeyState(KeyEvent.VK_CAPS_LOCK);
 			} catch (Exception uoe) {
 				uoe.printStackTrace();
-				Options.useLockingKeyState = false;
+				options.useLockingKeyState = false;
 			}
 		}
 	}

@@ -84,8 +84,11 @@ public abstract class KeyCode_FileBased {
 
 	}
 
-	public KeyCode_FileBased(InputStream fstream) throws KeyMapException {
+	protected final Options options;
+
+	public KeyCode_FileBased(Options options, InputStream fstream) throws KeyMapException {
 		readMapFile(fstream);
+		this.options = options;
 	}
 
 	/**
@@ -95,10 +98,11 @@ public abstract class KeyCode_FileBased {
 	 * @param keyMapFile
 	 *            File containing keymap data
 	 */
-	public KeyCode_FileBased(String keyMapFile) throws KeyMapException {
+	public KeyCode_FileBased(Options options, String keyMapFile) throws KeyMapException {
 		// logger.info("String called keycode reader");
 
 		FileInputStream fstream;
+		this.options = options;
 		try {
 			fstream = new FileInputStream(keyMapFile);
 			readMapFile(fstream);
@@ -141,7 +145,7 @@ public abstract class KeyCode_FileBased {
 				// ignore blank and commented lines
 				if ((line != null) && (line.length() > 0) && (fc != '#')
 						&& (fc != 'c')) {
-					keyMap.add(new MapDef(line)); // parse line into a MapDef
+					keyMap.add(new MapDef(options, line)); // parse line into a MapDef
 					// object and add to list
 
 				} else if (fc == 'c') {
@@ -167,9 +171,9 @@ public abstract class KeyCode_FileBased {
 					int code = getCodeFromAlphaChar(current.getKeyChar());
 					if (code > -1) {
 
-						newMap.add(new MapDef(code, 0, current.getScancode(),
+						newMap.add(new MapDef(options, code, 0, current.getScancode(),
 								true, false, false, false));
-						newMap.add(new MapDef(code, 0, current.getScancode(),
+						newMap.add(new MapDef(options, code, 0, current.getScancode(),
 								false, false, true, false));
 					}
 				}
@@ -296,7 +300,7 @@ public abstract class KeyCode_FileBased {
 				changes += ((char) 0x1d) + down;
 		}
 
-		if (Options.altkey_quiet) {
+		if (options.altkey_quiet) {
 
 			if (state[ALT][BEFORE] != state[ALT][AFTER]) {
 				if (state[ALT][BEFORE])
@@ -499,7 +503,7 @@ public abstract class KeyCode_FileBased {
 
 		if (e.getID() == KeyEvent.KEY_RELEASED) {
 			keysCurrentlyDown.remove(new Integer(e.getKeyCode()));
-			if ((!Options.caps_sends_up_and_down)
+			if ((!options.caps_sends_up_and_down)
 					&& (e.getKeyCode() == KeyEvent.VK_CAPS_LOCK)) {
 				logger.debug("Turning CAPSLOCK off - key release");
 				capsLockDown = false;
@@ -513,7 +517,7 @@ public abstract class KeyCode_FileBased {
 				lastEventMatched = true;
 			else
 				lastEventMatched = false;
-			if ((Options.caps_sends_up_and_down)
+			if ((options.caps_sends_up_and_down)
 					&& (e.getKeyCode() == KeyEvent.VK_CAPS_LOCK)) {
 				logger.debug("Toggling CAPSLOCK");
 				capsLockDown = !capsLockDown;
@@ -554,7 +558,7 @@ public abstract class KeyCode_FileBased {
 		String type = "";
 
 		if (e.getID() == KeyEvent.KEY_RELEASED) {
-			if ((!Options.caps_sends_up_and_down)
+			if ((!options.caps_sends_up_and_down)
 					&& (e.getKeyCode() == KeyEvent.VK_CAPS_LOCK)) {
 				logger.debug("Sending CAPSLOCK toggle");
 				codes = "" + ((char) 0x3a) + ((char) DOWN) + ((char) 0x3a)
@@ -564,7 +568,7 @@ public abstract class KeyCode_FileBased {
 				codes = ((char) d.getScancode()) + type + codes;
 			}
 		} else {
-			if ((!Options.caps_sends_up_and_down)
+			if ((!options.caps_sends_up_and_down)
 					&& (e.getKeyCode() == KeyEvent.VK_CAPS_LOCK)) {
 				logger.debug("Sending CAPSLOCK toggle");
 				codes += "" + ((char) 0x3a) + ((char) DOWN) + ((char) 0x3a)

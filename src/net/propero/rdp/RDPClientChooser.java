@@ -43,12 +43,15 @@ import org.apache.logging.log4j.Logger;
 public class RDPClientChooser {
 	static Logger logger = LogManager.getLogger(RDPClientChooser.class);
 
+	protected final Options options;
+
 	/**
 	 * Initialise a client chooser, set logging level to DEBUG
 	 */
-	public RDPClientChooser() {
+	public RDPClientChooser(Options options) {
 		//logger.setLevel(Level.DEBUG);
 		logger.info("RDPClientChooser");
+		this.options = options;
 	}
 
 	/**
@@ -115,7 +118,7 @@ public class RDPClientChooser {
 		int c;
 		String arg;
 
-		Options.windowTitle = "Remote Desktop Connection";
+		options.windowTitle = "Remote Desktop Connection";
 
 		// Process arguments (there are more than we need now - need to reduce -
 		// also need to check for correct args)
@@ -127,32 +130,32 @@ public class RDPClientChooser {
 			switch (c) {
 
 			case 'd':
-				Options.domain = g.getOptarg();
+				options.domain = g.getOptarg();
 				break;
 
 			case 'n':
-				Options.hostname = g.getOptarg();
+				options.hostname = g.getOptarg();
 				break;
 
 			case 'p':
-				Options.password = g.getOptarg();
+				options.password = g.getOptarg();
 				break;
 
 			case 't':
 				arg = g.getOptarg();
 				try {
-					Options.port = Integer.parseInt(arg);
+					options.port = Integer.parseInt(arg);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 				break;
 
 			case 'T':
-				Options.windowTitle = g.getOptarg().replace('_', ' ');
+				options.windowTitle = g.getOptarg().replace('_', ' ');
 				break;
 
 			case 'u':
-				Options.username = g.getOptarg();
+				options.username = g.getOptarg();
 				break;
 
 			case '?':
@@ -172,7 +175,7 @@ public class RDPClientChooser {
 				server = args[args.length - 1];
 			} else {
 				server = args[args.length - 1].substring(0, colonat);
-				Options.port = Integer.parseInt(args[args.length - 1]
+				options.port = Integer.parseInt(args[args.length - 1]
 						.substring(colonat + 1));
 			}
 		} else {
@@ -184,8 +187,8 @@ public class RDPClientChooser {
 		// that
 		// we can run multiple instances
 
-		String rdproot = "/var/tmp/RDP-" + Options.hostname + "-"
-				+ Options.port;
+		String rdproot = "/var/tmp/RDP-" + options.hostname + "-"
+				+ options.port;
 
 		try {
 			new File(rdproot).mkdir();
@@ -213,7 +216,7 @@ public class RDPClientChooser {
 		rdpConfigFile.write("session bpp:i:8\n"); // 256 colors
 		rdpConfigFile.write("winposstr:s:0,3,0,0,800,600\n");
 		rdpConfigFile.write("auto connect:i:1\n");
-		rdpConfigFile.write("full address:s:" + server + ":" + Options.port
+		rdpConfigFile.write("full address:s:" + server + ":" + options.port
 				+ "\n");
 		rdpConfigFile.write("compression:i:1\n");
 		rdpConfigFile.write("rightclickmodifiers:i:4608\n");
@@ -221,9 +224,9 @@ public class RDPClientChooser {
 		rdpConfigFile.write("audiomode:i:1\n");
 		rdpConfigFile.write("redirectdrives:i:1\n");
 		rdpConfigFile.write("redirectprinters:i:1\n");
-		rdpConfigFile.write("username:s:" + Options.username + "\n");
-		rdpConfigFile.write("clear password:s:" + Options.password + "\n");
-		rdpConfigFile.write("domain:s:" + Options.domain + "\n");
+		rdpConfigFile.write("username:s:" + options.username + "\n");
+		rdpConfigFile.write("clear password:s:" + options.password + "\n");
+		rdpConfigFile.write("domain:s:" + options.domain + "\n");
 		rdpConfigFile.write("alternate shell:s:\n");
 		rdpConfigFile.write("shell working directory:s:\n");
 		rdpConfigFile.write("preference flag id:i:2\n");
@@ -300,7 +303,7 @@ public class RDPClientChooser {
 				"/bin/sh",
 				"-c",
 				"mv " + rdproot + "/Remote\\ Desktop\\ Connection '" + rdproot
-						+ "/" + Options.windowTitle
+						+ "/" + options.windowTitle
 						+ "' >/dev/null 2>/dev/null" };
 
 		try {
@@ -321,7 +324,7 @@ public class RDPClientChooser {
 		String[] rdpcmd = {
 				"/bin/sh",
 				"-c",
-				"open -a '" + rdproot + "/" + Options.windowTitle + "' "
+				"open -a '" + rdproot + "/" + options.windowTitle + "' "
 						+ rdproot + "/Default.rdp >/dev/null 2>/dev/null" };
 
 		try {

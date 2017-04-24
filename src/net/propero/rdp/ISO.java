@@ -68,11 +68,14 @@ public abstract class ISO {
 
 	private static final int EOT = 0x80;
 
+	private final Options options;
+
 	/**
 	 * Construct ISO object, initialises hex dump
 	 */
-	public ISO() {
+	public ISO(Options options) {
 		dump = new HexDump();
+		this.options = options;
 	}
 
 	/**
@@ -123,7 +126,7 @@ public abstract class ISO {
 			RdesktopException, OrderException, CryptoException {
 		int[] code = new int[1];
 		doSocketConnect(host, port);
-		rdpsock.setTcpNoDelay(Options.low_latency);
+		rdpsock.setTcpNoDelay(options.low_latency);
 		// this.in = new InputStreamReader(rdpsock.getInputStream());
 		this.in = new DataInputStream(new BufferedInputStream(rdpsock
 				.getInputStream()));
@@ -138,7 +141,7 @@ public abstract class ISO {
 		}
 
 		/*
-		 * if(Options.use_ssl){ try { rdpsock = this.negotiateSSL(rdpsock);
+		 * if(options.use_ssl){ try { rdpsock = this.negotiateSSL(rdpsock);
 		 * this.in = new DataInputStream(rdpsock.getInputStream()); this.out=
 		 * new DataOutputStream(rdpsock.getOutputStream()); } catch (Exception
 		 * e) { e.printStackTrace(); throw new RdesktopException("SSL
@@ -202,7 +205,7 @@ public abstract class ISO {
 			buffer.set8(DATA_TRANSFER);
 			buffer.set8(EOT);
 			buffer.copyToByteArray(packet, 0, 0, buffer.getEnd());
-			if (Options.debug_hexdump)
+			if (options.debug_hexdump)
 				dump.encode(packet, "SEND"/* System.out */);
 			out.write(packet);
 			out.flush();
@@ -256,7 +259,7 @@ public abstract class ISO {
 		// try{ }
 		// catch(IOException e){ logger.warn("IOException: " + e.getMessage());
 		// return null; }
-		if (Options.debug_hexdump)
+		if (options.debug_hexdump)
 			dump.encode(packet, "RECEIVE" /* System.out */);
 
 		if (p == null) {
@@ -370,10 +373,10 @@ public abstract class ISO {
 	 */
 	void send_connection_request() throws IOException {
 
-		String uname = Options.username;
+		String uname = options.username;
 		if (uname.length() > 9)
 			uname = uname.substring(0, 9);
-		int length = 11 + (Options.username.length() > 0 ? ("Cookie: mstshash="
+		int length = 11 + (options.username.length() > 0 ? ("Cookie: mstshash="
 				.length()
 				+ uname.length() + 2) : 0) + 8;
 		RdpPacket_Localised buffer = new RdpPacket_Localised(length);
@@ -388,7 +391,7 @@ public abstract class ISO {
 		buffer.setBigEndian16(0); // source reference should be a reasonable
 									// address we use 0
 		buffer.set8(0); // service class
-		if (Options.username.length() > 0) {
+		if (options.username.length() > 0) {
 			logger.debug("Including username");
 			buffer
 					.out_uint8p("Cookie: mstshash=", "Cookie: mstshash="
@@ -402,7 +405,7 @@ public abstract class ISO {
 		/*
 		 * // Authentication request? buffer.setLittleEndian16(0x01);
 		 * buffer.setLittleEndian16(0x08); // Do we try to use SSL?
-		 * buffer.set8(Options.use_ssl? 0x01 : 0x00);
+		 * buffer.set8(options.use_ssl? 0x01 : 0x00);
 		 * buffer.incrementPosition(3);
 		 */
 		buffer.copyToByteArray(packet, 0, 0, packet.length);

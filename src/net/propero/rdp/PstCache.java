@@ -102,7 +102,7 @@ public class PstCache {
 		Bitmap bitmap;
 		byte[] cellHead = null;
 
-		if (!Options.persistent_bitmap_caching)
+		if (!options.persistent_bitmap_caching)
 			return false;
 
 		if (!IS_PERSISTENT(cache_id) || cache_idx >= Rdp.BMPCACHE2_NUM_PSTCELLS)
@@ -125,7 +125,7 @@ public class PstCache {
 					+ ")\n");
 		}
 
-		bitmap = new Bitmap(celldata, c.width, c.height, 0, 0, Options.Bpp);
+		bitmap = new Bitmap(celldata, c.width, c.height, 0, 0, options.Bpp);
 		// bitmap = ui_create_bitmap(cellhdr.width, cellhdr.height, celldata);
 		Orders.cache.putBitmap(cache_id, cache_idx, bitmap, c.stamp);
 
@@ -153,7 +153,7 @@ public class PstCache {
 
 		try (FileOutputStream fd = new FileOutputStream(g_pstcache_fd[cache_id])) {
 			int offset = cache_idx
-					* (Options.Bpp * MAX_CELL_SIZE + CELLHEADER.size());
+					* (options.Bpp * MAX_CELL_SIZE + CELLHEADER.size());
 			fd.write(cellhdr.toBytes(), offset, CELLHEADER.size());
 			fd.write(data);
 			// rd_lseek_file(fd, cache_idx * (g_pstcache_Bpp * MAX_CELL_SIZE +
@@ -171,7 +171,7 @@ public class PstCache {
 		int n, c = 0;
 		CELLHEADER cellhdr = null;
 
-		if (!(Options.bitmap_caching && Options.persistent_bitmap_caching && IS_PERSISTENT(cache_id)))
+		if (!(options.bitmap_caching && options.persistent_bitmap_caching && IS_PERSISTENT(cache_id)))
 			return 0;
 
 		/*
@@ -209,7 +209,7 @@ public class PstCache {
 					 * Pre-caching is not possible with 8bpp because a colourmap
 					 * is needed to load them
 					 */
-					if (Options.precache_bitmaps && (Options.server_bpp > 8)) {
+					if (options.precache_bitmaps && (options.server_bpp > 8)) {
 						if (pstcache_load_bitmap(cache_id, n))
 							c++;
 					}
@@ -237,10 +237,10 @@ public class PstCache {
 
 		g_pstcache_fd[cache_id] = null;
 
-		if (!(Options.bitmap_caching && Options.persistent_bitmap_caching))
+		if (!(options.bitmap_caching && options.persistent_bitmap_caching))
 			return false;
 
-		g_pstcache_Bpp = Options.Bpp;
+		g_pstcache_Bpp = options.Bpp;
 		filename = "./cache/pstcache_" + cache_id + "_" + g_pstcache_Bpp;
 		logger.debug("persistent bitmap cache file: " + filename);
 

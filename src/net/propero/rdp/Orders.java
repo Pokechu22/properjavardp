@@ -135,8 +135,10 @@ public class Orders {
 
 	private static final int TEXT2_IMPLICIT_X = 0x20;
 
-	public Orders() {
+	protected final Options options;
+	public Orders(Options options) {
 		os = new OrderState();
+		this.options = options;
 	}
 
 	public void resetOrderState() {
@@ -427,7 +429,7 @@ public class Orders {
 			pdata += width * Bpp;
 		}
 
-		cache.putBitmap(cache_id, cache_idx, new Bitmap(Bitmap.convertImage(
+		cache.putBitmap(cache_id, cache_idx, new Bitmap(Bitmap.convertImage(options,
 				inverted, Bpp), width, height, 0, 0), 0);
 	}
 
@@ -498,7 +500,7 @@ public class Orders {
 		 * final_size
 		 */
 
-		if (Options.use_rdp5) {
+		if (options.use_rdp5) {
 
 			/* Begin compressedBitmapData */
 			pad2 = data.getLittleEndian16(); // in_uint16_le(s, pad2); /* pad
@@ -526,14 +528,14 @@ public class Orders {
 		// row_size + ",fs=" + final_size + ")");
 
 		if (Bpp == 1) {
-			byte[] pixel = Bitmap.decompress(width, height, size, data, Bpp);
+			byte[] pixel = Bitmap.decompress(options, width, height, size, data, Bpp);
 			if (pixel != null)
 				cache.putBitmap(cache_id, cache_idx, new Bitmap(Bitmap
-						.convertImage(pixel, Bpp), width, height, 0, 0), 0);
+						.convertImage(options, pixel, Bpp), width, height, 0, 0), 0);
 			else
 				logger.warn("Failed to decompress bitmap");
 		} else {
-			int[] pixel = Bitmap.decompressInt(width, height, size, data, Bpp);
+			int[] pixel = Bitmap.decompressInt(options, width, height, size, data, Bpp);
 			if (pixel != null)
 				cache.putBitmap(cache_id, cache_idx, new Bitmap(pixel, width,
 						height, 0, 0), 0);
@@ -568,7 +570,7 @@ public class Orders {
 		bitmap_id = new byte[8]; /* prevent compiler warning */
 		cache_id = flags & ID_MASK;
 		Bpp = ((flags & MODE_MASK) >> MODE_SHIFT) - 2;
-		Bpp = Options.Bpp;
+		Bpp = options.Bpp;
 		if ((flags & PERSIST) != 0) {
 			bitmap_id = new byte[8];
 			data.copyToByteArray(bitmap_id, 0, data.getPosition(), 8);
@@ -602,10 +604,10 @@ public class Orders {
 
 		if (compressed) {
 			if (Bpp == 1)
-				bmpdataInt = Bitmap.convertImage(Bitmap.decompress(width,
+				bmpdataInt = Bitmap.convertImage(options, Bitmap.decompress(options, width,
 						height, bufsize, data, Bpp), Bpp);
 			else
-				bmpdataInt = Bitmap.decompressInt(width, height, bufsize, data,
+				bmpdataInt = Bitmap.decompressInt(options, width, height, bufsize, data,
 						Bpp);
 
 			if (bmpdataInt == null) {
@@ -632,7 +634,7 @@ public class Orders {
 			// *
 			// Bpp);
 
-			bitmap = new Bitmap(Bitmap.convertImage(bmpdata, Bpp), width,
+			bitmap = new Bitmap(Bitmap.convertImage(options, bmpdata, Bpp), width,
 					height, 0, 0);
 		}
 

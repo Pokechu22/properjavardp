@@ -67,6 +67,8 @@ public class MapDef {
 
 	private int keyLocation;
 
+	private final Options options;
+
 	/**
 	 * Constructor for a character-defined mapping definition
 	 * 
@@ -78,7 +80,7 @@ public class MapDef {
 	 * @param altDown
 	 * @param capslockDown
 	 */
-	public MapDef(char keyChar, int keyLocation, int scancode,
+	public MapDef(Options options, char keyChar, int keyLocation, int scancode,
 			boolean ctrlDown, boolean shiftDown, boolean altDown,
 			boolean capslockDown) {
 		this.keyChar = keyChar;
@@ -90,6 +92,7 @@ public class MapDef {
 		this.altDown = altDown;
 		this.shiftDown = shiftDown;
 		this.capslockDown = capslockDown;
+		this.options = options;
 	}
 
 	/**
@@ -103,7 +106,7 @@ public class MapDef {
 	 * @param altDown
 	 * @param capslockDown
 	 */
-	public MapDef(int keyCode, int keyLocation, int scancode, boolean ctrlDown,
+	public MapDef(Options options, int keyCode, int keyLocation, int scancode, boolean ctrlDown,
 			boolean shiftDown, boolean altDown, boolean capslockDown) {
 		this.keyCode = keyCode;
 		this.characterDef = false;
@@ -114,6 +117,7 @@ public class MapDef {
 		this.altDown = altDown;
 		this.shiftDown = shiftDown;
 		this.capslockDown = capslockDown;
+		this.options = options;
 	}
 
 	public int getKeyCode() {
@@ -231,7 +235,7 @@ public class MapDef {
 
 		if (Constants.OS == Constants.MAC) {
 			// Remap the hash key to §
-			if (Options.remap_hash && (e.getKeyChar() == '§')) {
+			if (options.remap_hash && (e.getKeyChar() == '§')) {
 				return ((characterDef) && (this.keyChar == '#'));
 			}
 
@@ -276,7 +280,7 @@ public class MapDef {
 	 * @throws KeyMapException
 	 *             Any parsing errors which may occur
 	 */
-	public MapDef(String definition) throws KeyMapException {
+	public MapDef(Options options, String definition) throws KeyMapException {
 		StringTokenizer st = new StringTokenizer(definition);
 		try {
 			// determine whether the definition is character-oriented
@@ -301,6 +305,7 @@ public class MapDef {
 			ctrlDown = ((modifiers & this.FLAG_CTRL) != 0);
 			altDown = ((modifiers & this.FLAG_ALT) != 0);
 			capslockDown = ((modifiers & this.FLAG_CAPSLOCK) != 0);
+			this.options = options;
 
 		} catch (NumberFormatException nfEx) {
 			throw new KeyMapException("" + nfEx.getMessage()

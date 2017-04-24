@@ -83,6 +83,10 @@ public class ISO_Localised extends ISO {
 	 *  }
 	 */
 
+	public ISO_Localised(Options options) {
+		super(options);
+	}
+
 	protected void doSocketConnect(InetAddress host, int port)
 			throws IOException {
 		int timeout_ms = 3000; // timeout in milliseconds

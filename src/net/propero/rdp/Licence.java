@@ -42,10 +42,11 @@ import org.apache.logging.log4j.Logger;
 public class Licence {
 	private Secure secure = null;
 
-	Licence(Secure s) {
+	Licence(Options options, Secure s) {
 		secure = s;
 		licence_key = new byte[16];
 		licence_sign_key = new byte[16];
+		this.options = options;
 	}
 
 	private byte[] licence_key = null;
@@ -93,10 +94,16 @@ public class Licence {
 
 	private static final int LICENCE_TAG_HOST = 0x0010;
 
+	private final Options options;
+
+	public Licence(Options options) {
+		this.options = options;
+	}
+
 	public byte[] generate_hwid() throws UnsupportedEncodingException {
 		byte[] hwid = new byte[LICENCE_HWID_SIZE];
 		secure.setLittleEndian32(hwid, 2);
-		byte[] name = Options.hostname.getBytes("US-ASCII");
+		byte[] name = options.hostname.getBytes("US-ASCII");
 
 		if (name.length > LICENCE_HWID_SIZE - 4) {
 			System.arraycopy(name, 0, hwid, 4, LICENCE_HWID_SIZE - 4);
@@ -164,8 +171,8 @@ public class Licence {
 			IOException, CryptoException {
 		byte[] null_data = new byte[Secure.SEC_MODULUS_SIZE];
 		byte[] server_random = new byte[Secure.SEC_RANDOM_SIZE];
-		byte[] host = Options.hostname.getBytes("US-ASCII");
-		byte[] user = Options.username.getBytes("US-ASCII");
+		byte[] host = options.hostname.getBytes("US-ASCII");
+		byte[] user = options.username.getBytes("US-ASCII");
 
 		/* retrieve the server random */
 		data.copyToByteArray(server_random, 0, data.getPosition(),
@@ -175,7 +182,7 @@ public class Licence {
 		/* Null client keys are currently used */
 		this.generate_keys(null_data, server_random, null_data);
 
-		if (!Options.built_in_licence && Options.load_licence) {
+		if (!options.built_in_licence && options.load_licence) {
 			byte[] licence_data = load_licence();
 			if ((licence_data != null) && (licence_data.length > 0)) {
 				logger.debug("licence_data.length = " + licence_data.length);
@@ -410,7 +417,7 @@ public class Licence {
 
 	/**
 	 * Handle a licence issued by the server, save to disk if
-	 * Options.save_licence
+	 * options.save_licence
 	 * 
 	 * @param data
 	 *            Packet containing issued licence
@@ -452,7 +459,7 @@ public class Licence {
 
 		secure.licenceIssued = true;
 		logger.debug("Server issued Licence");
-		if (Options.save_licence)
+		if (options.save_licence)
 			save_licence(data, length - 2);
 	}
 
@@ -483,8 +490,8 @@ public class Licence {
 
 		buffer.setLittleEndian32(1);
 
-		if (Options.built_in_licence && (!Options.load_licence)
-				&& (!Options.save_licence)) {
+		if (options.built_in_licence && (!options.load_licence)
+				&& (!options.save_licence)) {
 			logger.debug("Using built-in Windows Licence");
 			buffer.setLittleEndian32(0x03010000);
 		} else {
@@ -543,7 +550,7 @@ public class Licence {
 		logger.debug("load_licence");
 		// String home = "/root"; // getenv("HOME");
 
-		return (new LicenceStore_Localised()).load_licence();
+		return (new LicenceStore_Localised(options)).load_licence();
 	}
 
 	/**
@@ -582,11 +589,11 @@ public class Licence {
 		byte[] databytes = new byte[len];
 		data.copyToByteArray(databytes, 0, data.getPosition(), len);
 
-		new LicenceStore_Localised().save_licence(databytes);
+		new LicenceStore_Localised(options).save_licence(databytes);
 
 		/*
-		 * String dirpath = Options.licence_path;//home+"/.rdesktop"; String
-		 * filepath = dirpath +"/licence."+Options.hostname;
+		 * String dirpath = options.licence_path;//home+"/.rdesktop"; String
+		 * filepath = dirpath +"/licence."+options.hostname;
 		 * 
 		 * File file = new File(dirpath); file.mkdir(); try{ FileOutputStream fd =
 		 * new FileOutputStream(filepath);

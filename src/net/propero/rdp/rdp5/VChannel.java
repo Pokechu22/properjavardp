@@ -50,6 +50,11 @@ public abstract class VChannel {
 
 	private int mcs_id = 0;
 
+	protected final Options options;
+	public VChannel(Options options) {
+		this.options = options;
+	}
+
 	/**
 	 * Provide the name of this channel
 	 * 
@@ -101,7 +106,7 @@ public abstract class VChannel {
 	public RdpPacket_Localised init(int length) throws RdesktopException {
 		RdpPacket_Localised s;
 
-		s = Common.secure.init(Options.encryption ? Secure.SEC_ENCRYPT : 0,
+		s = Common.secure.init(options.encryption ? Secure.SEC_ENCRYPT : 0,
 				length + 8);
 		s.setHeader(RdpPacket.CHANNEL_HEADER);
 		s.incrementPosition(8);
