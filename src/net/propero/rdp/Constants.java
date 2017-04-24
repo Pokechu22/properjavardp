@@ -37,8 +37,10 @@ public class Constants {
 
 	public static final boolean SystemExit = true;
 
+	@Deprecated
 	public static boolean encryption = true;
 
+	@Deprecated
 	public static boolean licence = true;
 
 	public static final int WINDOWS = 1;
@@ -47,5 +49,6 @@ public class Constants {
 
 	public static final int MAC = 3;
 
+	@Deprecated
 	public static int OS = 0;
 }

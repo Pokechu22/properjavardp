@@ -44,19 +44,25 @@ public class PstCache {
 
 	public static final int MAX_CELL_SIZE = 0x1000; /* pixels */
 
+	@Deprecated
 	protected static boolean IS_PERSISTENT(int id) {
 		return (id < 8 && g_pstcache_fd[id] != null);
 	}
 
+	@Deprecated
 	static int g_stamp;
 
+	@Deprecated
 	static File[] g_pstcache_fd = new File[8];
 
+	@Deprecated
 	static int g_pstcache_Bpp;
 
+	@Deprecated
 	static boolean g_pstcache_enumerated = false;
 
 	/* Update usage info for a bitmap */
+	@Deprecated
 	protected static void touchBitmap(int cache_id, int cache_idx, int stamp) {
 		logger.info("PstCache.touchBitmap");
 

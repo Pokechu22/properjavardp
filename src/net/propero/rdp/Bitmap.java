@@ -86,8 +86,6 @@ public class Bitmap {
 		return (r24 << 16) | (g24 << 8) | b24;
 	}
 
-	private static int bmpCount = 0;
-
 	/**
 	 * Read integer of a specified byte-length from byte array
 	 * 
@@ -2035,8 +2033,6 @@ public class Bitmap {
 				}
 			}
 		}
-
-		bmpCount++;
 
 		return pixel;
 	}

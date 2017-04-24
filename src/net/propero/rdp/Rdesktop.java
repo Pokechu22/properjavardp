@@ -196,20 +196,27 @@ public class Rdesktop {
 
 	static Logger logger = LogManager.getLogger("net.propero.rdp");
 
+	@Deprecated
 	public static boolean keep_running;
 
+	@Deprecated
 	public static boolean loggedon;
 
+	@Deprecated
 	public static boolean readytosend;
 
+	@Deprecated
 	public static boolean showTools;
 
 	public static final String keyMapPath = "keymaps/";
 
+	@Deprecated
 	public static String mapFile = "en-gb";
 
+	@Deprecated
 	public static String keyMapLocation = "";
 
+	@Deprecated
 	public static SendEvent toolFrame = null;
 
 	/**

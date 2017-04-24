@@ -33,8 +33,10 @@
 
 package net.propero.rdp;
 
+@Deprecated
 public class CommunicationMonitor {
 
+	@Deprecated
 	public static Object locker = null;
 
 	/**
@@ -42,6 +44,7 @@ public class CommunicationMonitor {
 	 * 
 	 * @return True if locked
 	 */
+	@Deprecated
 	public static boolean locked() {
 		return locker != null;
 	}
@@ -52,6 +55,7 @@ public class CommunicationMonitor {
 	 * @param o
 	 *            Calling object should supply reference to self
 	 */
+	@Deprecated
 	public static void lock(Object o) {
 		if (locker == null)
 			locker = o;
@@ -76,6 +80,7 @@ public class CommunicationMonitor {
 	 *            Calling object should supply reference to self
 	 * @return
 	 */
+	@Deprecated
 	public static boolean unlock(Object o) {
 		if (locker == o) {
 			locker = null;

@@ -43,6 +43,13 @@ import net.propero.rdp.keymapping.KeyCode;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
 import net.propero.rdp.keymapping.KeyMapException;
 
+
+
+
+
+
+
+
 //import org.apache.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -55,18 +62,25 @@ public abstract class Input {
 
 	protected Set<Integer> pressedKeys;
 
+	@Deprecated
 	protected static boolean capsLockOn = false;
 
+	@Deprecated
 	protected static boolean numLockOn = false;
 
+	@Deprecated
 	protected static boolean scrollLockOn = false;
 
+	@Deprecated
 	protected static boolean serverAltDown = false;
 
+	@Deprecated
 	protected static boolean altDown = false;
 
+	@Deprecated
 	protected static boolean ctrlDown = false;
 
+	@Deprecated
 	protected static long last_mousemove = 0;
 
 	// Using this flag value (0x0001) seems to do nothing, and after running
