@@ -104,8 +104,10 @@ public class DIBHandler extends TypeHandler implements ImageObserver {
 		} catch (UnsupportedFlavorException e) {
 			System.err
 					.println("Failed to send DIB: UnsupportedFlavorException");
+			e.printStackTrace();
 		} catch (IOException e) {
 			System.err.println("Failed to send DIB: IOException");
+			e.printStackTrace();
 		}
 
 	}

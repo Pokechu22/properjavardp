@@ -72,7 +72,8 @@ public class UnicodeHandler extends TypeHandler {
 			try {
 				s = (String) (in.getTransferData(DataFlavor.stringFlavor));
 			} catch (Exception e) {
-				s = e.toString();
+				s = e.toString(); // TODO: Is this right?
+				e.printStackTrace();
 			}
 
 			// TODO: think of a better way of fixing this

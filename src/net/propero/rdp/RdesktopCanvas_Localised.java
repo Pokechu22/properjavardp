@@ -69,6 +69,7 @@ public class RdesktopCanvas_Localised extends RdesktopCanvas {
 			Options.imgCount++;
 			ImageIO.write(img, "jpg", file);
 		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
 		g.dispose();
@@ -101,7 +102,7 @@ public class RdesktopCanvas_Localised extends RdesktopCanvas {
 			try {
 				robot = new Robot();
 			} catch (AWTException e) {
-				logger.warn("Pointer movement not allowed");
+				logger.warn("Pointer movement not allowed", e);
 			}
 		}
 	}

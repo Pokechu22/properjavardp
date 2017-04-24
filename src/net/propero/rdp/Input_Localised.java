@@ -120,6 +120,7 @@ public class Input_Localised extends Input {
 			}
 		} catch (Exception e) {
 			Options.useLockingKeyState = false;
+			e.printStackTrace();
 		}
 	}
 

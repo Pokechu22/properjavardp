@@ -672,7 +672,7 @@ public class Rdesktop {
 					if (RdpLayer.isConnected()) {
 						logger.fatal(s.getClass().getName() + " "
 								+ s.getMessage());
-						// s.printStackTrace();
+						s.printStackTrace();
 						error(s, RdpLayer, window, true);
 						Rdesktop.exit(0, RdpLayer, window, true);
 					}
@@ -804,10 +804,10 @@ public class Rdesktop {
 			String[] msg = { msg1, msg2 };
 			window.showErrorDialog(msg);
 
-			// e.printStackTrace(System.err);
+			e.printStackTrace(System.err);
 		} catch (Exception ex) {
 			logger.warn("Exception in Rdesktop.error: "
-					+ ex.getClass().getName() + ": " + ex.getMessage());
+					+ ex.getClass().getName() + ": " + ex.getMessage(), ex);
 		}
 
 		Rdesktop.exit(0, RdpLayer, window, sysexit);

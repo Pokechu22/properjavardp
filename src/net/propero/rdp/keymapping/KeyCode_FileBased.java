@@ -354,6 +354,7 @@ public abstract class KeyCode_FileBased {
 
 		} catch (Exception e) {
 			System.err.println("Error writing to file: " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 

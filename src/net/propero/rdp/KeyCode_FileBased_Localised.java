@@ -57,6 +57,7 @@ public class KeyCode_FileBased_Localised extends KeyCode_FileBased {
 				capsLockDown = e.getComponent().getToolkit()
 						.getLockingKeyState(KeyEvent.VK_CAPS_LOCK);
 			} catch (Exception uoe) {
+				uoe.printStackTrace();
 				Options.useLockingKeyState = false;
 			}
 		}

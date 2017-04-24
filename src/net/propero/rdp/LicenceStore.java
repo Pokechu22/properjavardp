@@ -54,9 +54,9 @@ public abstract class LicenceStore {
 			data = new byte[fd.available()];
 			fd.read(data);
 		} catch (FileNotFoundException e) {
-			logger.warn("Licence file not found!");
+			logger.warn("Licence file not found!", e);
 		} catch (IOException e) {
-			logger.warn("IOException in load_licence");
+			logger.warn("IOException in load_licence", e);
 		}
 		return data;
 	}
@@ -83,9 +83,9 @@ public abstract class LicenceStore {
 			fd.close();
 			logger.info("Stored licence at " + filepath);
 		} catch (FileNotFoundException e) {
-			logger.warn("save_licence: file path not valid!");
+			logger.warn("save_licence: file path not valid!", e);
 		} catch (IOException e) {
-			logger.warn("IOException in save_licence");
+			logger.warn("IOException in save_licence", e);
 		}
 	}
 

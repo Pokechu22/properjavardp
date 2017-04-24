@@ -76,7 +76,7 @@ public class RDPClientChooser {
 					return RunMacRemoteDesktopConnection(args);
 				} catch (IOException e) {
 					logger
-							.info("MAC OS X Microsoft Remote Desktop Connection not found");
+							.info("MAC OS X Microsoft Remote Desktop Connection not found", e);
 					return false;
 				}
 			} else {
@@ -143,6 +143,7 @@ public class RDPClientChooser {
 				try {
 					Options.port = Integer.parseInt(arg);
 				} catch (Exception e) {
+					e.printStackTrace();
 				}
 				break;
 
@@ -189,7 +190,7 @@ public class RDPClientChooser {
 		try {
 			new File(rdproot).mkdir();
 		} catch (Exception e) {
-			logger.warn("Failed to create directory " + rdproot);
+			logger.warn("Failed to create directory " + rdproot, e);
 			return false;
 		}
 
@@ -274,7 +275,7 @@ public class RDPClientChooser {
 		try {
 			Runtime.getRuntime().exec(appcopycmd);
 		} catch (IOException e) {
-			logger.warn("Unable to copy application to temporary directory");
+			logger.warn("Unable to copy application to temporary directory", e);
 			return false;
 		}
 
@@ -284,11 +285,11 @@ public class RDPClientChooser {
 			try {
 				p.waitFor(); // Wait for the command to complete
 			} catch (InterruptedException e) {
-				logger.warn("Unable to wait for application to copy");
+				logger.warn("Unable to wait for application to copy", e);
 				return false;
 			}
 		} catch (IOException e) {
-			logger.warn("Unable to copy application to temporary directory");
+			logger.warn("Unable to copy application to temporary directory", e);
 			return false;
 		}
 
@@ -307,11 +308,11 @@ public class RDPClientChooser {
 			try {
 				p.waitFor(); // Wait for the mv command to complete
 			} catch (InterruptedException e) {
-				logger.warn("Unable to wait for application to run");
+				logger.warn("Unable to wait for application to run", e);
 				return false;
 			}
 		} catch (IOException e) {
-			logger.warn("Unable to move application");
+			logger.warn("Unable to move application", e);
 			return false;
 		}
 
@@ -329,11 +330,11 @@ public class RDPClientChooser {
 			try {
 				p.waitFor(); // Wait for the open command to complete
 			} catch (InterruptedException e) {
-				logger.warn("Unable to wait for application to run");
+				logger.warn("Unable to wait for application to run", e);
 				return false;
 			}
 		} catch (IOException e) {
-			logger.warn("Unable to open (run) application");
+			logger.warn("Unable to open (run) application", e);
 			return false;
 		}
 
@@ -343,7 +344,7 @@ public class RDPClientChooser {
 		try {
 			Thread.sleep(10000);
 		} catch (Exception e) {
-			logger.info("Unable to wait for 10 seconds");
+			logger.info("Unable to wait for 10 seconds", e);
 			return false;
 		}
 
@@ -355,7 +356,7 @@ public class RDPClientChooser {
 		try {
 			Runtime.getRuntime().exec(rmcmd);
 		} catch (IOException e) {
-			logger.warn("Unable to remove temporary directory " + rdproot);
+			logger.warn("Unable to remove temporary directory " + rdproot, e);
 			return true;
 		}
 

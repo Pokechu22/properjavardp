@@ -176,6 +176,7 @@ public abstract class Input {
 			newKeyMapper = new KeyCode_FileBased_Localised(keymapFile);
 		} catch (KeyMapException kmEx) {
 			System.err.println(kmEx.getMessage());
+			kmEx.printStackTrace();
 			if (!Common.underApplet)
 				System.exit(-1);
 		}
@@ -241,6 +242,7 @@ public abstract class Input {
 			if (pressSequence.length() > 0)
 				logger.debug(debugString);
 		} catch (Exception ex) {
+			ex.printStackTrace();
 			return;
 		}
 	}

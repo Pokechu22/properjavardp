@@ -79,6 +79,7 @@ public class PstCache {
 			// one???
 
 		} catch (IOException e) {
+			e.printStackTrace();
 			return;
 		}
 	}
@@ -257,6 +258,7 @@ public class PstCache {
 				return false;
 			}
 		} catch (IOException e) {
+			e.printStackTrace();
 			return false;
 		}
 

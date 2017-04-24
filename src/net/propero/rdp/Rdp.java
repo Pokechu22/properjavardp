@@ -634,6 +634,7 @@ public class Rdp {
 				if (data == null)
 					return;
 			} catch (EOFException e) {
+				e.printStackTrace();
 				return;
 			}
 
@@ -1351,14 +1352,17 @@ public class Rdp {
 		try {
 			this.sendData(data, RDP_DATA_PDU_INPUT);
 		} catch (RdesktopException r) {
+			r.printStackTrace();
 			if (Common.rdp.isConnected())
 				Rdesktop.error(r, Common.rdp, Common.frame, true);
 			Common.exit();
 		} catch (CryptoException c) {
+			c.printStackTrace();
 			if (Common.rdp.isConnected())
 				Rdesktop.error(c, Common.rdp, Common.frame, true);
 			Common.exit();
 		} catch (IOException i) {
+			i.printStackTrace();
 			if (Common.rdp.isConnected())
 				Rdesktop.error(i, Common.rdp, Common.frame, true);
 			Common.exit();

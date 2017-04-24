@@ -330,9 +330,8 @@ public class ClipChannel extends VChannel implements ClipInterface,
 		if (Options.use_rdp5) {
 			try {
 				send_format_announce();
-			} catch (RdesktopException e) {
-			} catch (IOException e) {
-			} catch (CryptoException e) {
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 	}

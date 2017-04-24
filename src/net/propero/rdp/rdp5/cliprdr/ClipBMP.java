@@ -608,8 +608,9 @@ public class ClipBMP extends Component {
 			fs.close();
 			return image;
 		} catch (Exception e) {
-			// System.out.println("\nCaught exception in loadbitmap: " +
-			// e.getMessage() + " " + e.getClass().getName());
+			System.out.println("\nCaught exception in loadbitmap: " +
+			e.getMessage() + " " + e.getClass().getName());
+			e.printStackTrace();
 		}
 		return (Image) null;
 	}

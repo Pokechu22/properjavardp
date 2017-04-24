@@ -795,6 +795,7 @@ public abstract class RdesktopCanvas extends Canvas {
 
 			this.repaint(x, y, cx, cy);
 		} catch (RdesktopException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -985,6 +986,7 @@ public abstract class RdesktopCanvas extends Canvas {
 						bitmap.getBitmapData(), bitmap.getWidth(), srcx, srcy);
 			}
 		} catch (RdesktopException e) {
+			e.printStackTrace();
 		}
 	}
 

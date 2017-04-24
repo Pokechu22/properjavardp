@@ -352,6 +352,7 @@ public abstract class ISO {
 			if (rdpsock != null)
 				rdpsock.close();
 		} catch (IOException e) {
+			e.printStackTrace();
 			in = null;
 			out = null;
 			rdpsock = null;
