@@ -734,6 +734,7 @@ public class Rdesktop {
 	 * @param window
 	 * @param sysexit
 	 */
+	@Deprecated
 	public static void exit(int n, Rdp rdp, RdesktopFrame window,
 			boolean sysexit) {
 		keep_running = false;
@@ -772,6 +773,7 @@ public class Rdesktop {
 	 * @param window
 	 * @param sysexit
 	 */
+	@Deprecated
 	public static void customError(String emsg, Rdp RdpLayer,
 			RdesktopFrame window, boolean sysexit) {
 		logger.fatal(emsg);
@@ -792,6 +794,7 @@ public class Rdesktop {
 	 * @param window
 	 * @param sysexit
 	 */
+	@Deprecated
 	public static void error(Exception e, Rdp RdpLayer, RdesktopFrame window,
 			boolean sysexit) {
 		try {
