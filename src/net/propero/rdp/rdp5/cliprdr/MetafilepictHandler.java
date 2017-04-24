@@ -75,7 +75,6 @@ public class MetafilepictHandler extends TypeHandler {
 
 	public Transferable handleData(RdpPacket data, int length) {
 		String thingy = "";
-		OutputStream out = null;
 
 		// System.out.print("Metafile mapping mode = ");
 		int mm = data.getLittleEndian32();
@@ -85,8 +84,7 @@ public class MetafilepictHandler extends TypeHandler {
 		int height = data.getLittleEndian32();
 		// System.out.println(", height = " + height);
 
-		try {
-			out = new FileOutputStream("test.wmf");
+		try (OutputStream out = new FileOutputStream("test.wmf")) {
 
 			for (int i = 0; i < (length - 12); i++) {
 				int aByte = data.get8();
@@ -112,7 +110,6 @@ public class MetafilepictHandler extends TypeHandler {
 
 	public void handleData(RdpPacket data, int length, ClipInterface c) {
 		String thingy = "";
-		OutputStream out = null;
 
 		// System.out.print("Metafile mapping mode = ");
 		int mm = data.getLittleEndian32();
@@ -122,8 +119,7 @@ public class MetafilepictHandler extends TypeHandler {
 		int height = data.getLittleEndian32();
 		// System.out.println(", height = " + height);
 
-		try {
-			out = new FileOutputStream("test.wmf");
+		try (OutputStream out = new FileOutputStream("test.wmf")) {
 
 			for (int i = 0; i < (length - 12); i++) {
 				int aByte = data.get8();

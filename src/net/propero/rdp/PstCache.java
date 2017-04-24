@@ -59,14 +59,11 @@ public class PstCache {
 	/* Update usage info for a bitmap */
 	protected static void touchBitmap(int cache_id, int cache_idx, int stamp) {
 		logger.info("PstCache.touchBitmap");
-		FileOutputStream fd;
 
 		if (!IS_PERSISTENT(cache_id) || cache_idx >= Rdp.BMPCACHE2_NUM_PSTCELLS)
 			return;
 
-		try {
-			fd = new FileOutputStream(g_pstcache_fd[cache_id]);
-
+		try (FileOutputStream fd = new FileOutputStream(g_pstcache_fd[cache_id])) {
 			fd.write(toBigEndian32(stamp), 12 + cache_idx
 					* (g_pstcache_Bpp * MAX_CELL_SIZE + CELLHEADER.size()), 4);
 			// rd_lseek_file(fd, 12 + cache_idx * (g_pstcache_Bpp *
@@ -94,7 +91,6 @@ public class PstCache {
 			throws IOException, RdesktopException {
 		logger.info("PstCache.pstcache_load_bitmap");
 		byte[] celldata = null;
-		FileInputStream fd;
 		// CELLHEADER cellhdr;
 		Bitmap bitmap;
 		byte[] cellHead = null;
@@ -105,20 +101,22 @@ public class PstCache {
 		if (!IS_PERSISTENT(cache_id) || cache_idx >= Rdp.BMPCACHE2_NUM_PSTCELLS)
 			return false;
 
-		fd = new FileInputStream(g_pstcache_fd[cache_id]);
-		int offset = cache_idx
-				* (g_pstcache_Bpp * MAX_CELL_SIZE + CELLHEADER.size());
-		fd.read(cellHead, offset, CELLHEADER.size());
-		CELLHEADER c = new CELLHEADER(cellHead);
-		// rd_lseek_file(fd, cache_idx * (g_pstcache_Bpp * MAX_CELL_SIZE +
-		// sizeof(CELLHEADER)));
-		// rd_read_file(fd, &cellhdr, sizeof(CELLHEADER));
-		// celldata = (uint8 *) xmalloc(cellhdr.length);
-		// rd_read_file(fd, celldata, cellhdr.length);
-		celldata = new byte[c.length];
-		fd.read(celldata);
-		logger.debug("Loading bitmap from disk (" + cache_id + ":" + cache_idx
-				+ ")\n");
+		CELLHEADER c;
+		try (FileInputStream fd = new FileInputStream(g_pstcache_fd[cache_id])) {
+			int offset = cache_idx
+					* (g_pstcache_Bpp * MAX_CELL_SIZE + CELLHEADER.size());
+			fd.read(cellHead, offset, CELLHEADER.size());
+			c = new CELLHEADER(cellHead);
+			// rd_lseek_file(fd, cache_idx * (g_pstcache_Bpp * MAX_CELL_SIZE +
+			// sizeof(CELLHEADER)));
+			// rd_read_file(fd, &cellhdr, sizeof(CELLHEADER));
+			// celldata = (uint8 *) xmalloc(cellhdr.length);
+			// rd_read_file(fd, celldata, cellhdr.length);
+			celldata = new byte[c.length];
+			fd.read(celldata);
+			logger.debug("Loading bitmap from disk (" + cache_id + ":" + cache_idx
+					+ ")\n");
+		}
 
 		bitmap = new Bitmap(celldata, c.width, c.height, 0, 0, Options.Bpp);
 		// bitmap = ui_create_bitmap(cellhdr.width, cellhdr.height, celldata);
@@ -133,7 +131,6 @@ public class PstCache {
 			byte[] bitmap_id, int width, int height, int length, byte[] data)
 			throws IOException {
 		logger.info("PstCache.pstcache_put_bitmap");
-		FileOutputStream fd;
 		CELLHEADER cellhdr = new CELLHEADER();
 
 		if (!IS_PERSISTENT(cache_id) || cache_idx >= Rdp.BMPCACHE2_NUM_PSTCELLS)
@@ -147,15 +144,16 @@ public class PstCache {
 		cellhdr.length = length;
 		cellhdr.stamp = 0;
 
-		fd = new FileOutputStream(g_pstcache_fd[cache_id]);
-		int offset = cache_idx
-				* (Options.Bpp * MAX_CELL_SIZE + CELLHEADER.size());
-		fd.write(cellhdr.toBytes(), offset, CELLHEADER.size());
-		fd.write(data);
-		// rd_lseek_file(fd, cache_idx * (g_pstcache_Bpp * MAX_CELL_SIZE +
-		// sizeof(CELLHEADER)));
-		// rd_write_file(fd, &cellhdr, sizeof(CELLHEADER));
-		// rd_write_file(fd, data, length);
+		try (FileOutputStream fd = new FileOutputStream(g_pstcache_fd[cache_id])) {
+			int offset = cache_idx
+					* (Options.Bpp * MAX_CELL_SIZE + CELLHEADER.size());
+			fd.write(cellhdr.toBytes(), offset, CELLHEADER.size());
+			fd.write(data);
+			// rd_lseek_file(fd, cache_idx * (g_pstcache_Bpp * MAX_CELL_SIZE +
+			// sizeof(CELLHEADER)));
+			// rd_write_file(fd, &cellhdr, sizeof(CELLHEADER));
+			// rd_write_file(fd, data, length);
+		}
 		return true;
 	}
 
@@ -163,7 +161,6 @@ public class PstCache {
 	static int pstcache_enumerate(int cache_id, int[] idlist)
 			throws IOException, RdesktopException {
 		logger.info("PstCache.pstcache_enumerate");
-		FileInputStream fd;
 		int n, c = 0;
 		CELLHEADER cellhdr = null;
 
@@ -179,13 +176,14 @@ public class PstCache {
 
 		logger.debug("pstcache enumeration... ");
 		for (n = 0; n < Rdp.BMPCACHE2_NUM_PSTCELLS; n++) {
-			fd = new FileInputStream(g_pstcache_fd[cache_id]);
-
 			byte[] cellhead_data = new byte[CELLHEADER.size()];
-			if (fd.read(cellhead_data, n
-					* (g_pstcache_Bpp * MAX_CELL_SIZE + CELLHEADER.size()),
-					CELLHEADER.size()) <= 0)
-				break;
+			try (FileInputStream fd = new FileInputStream(g_pstcache_fd[cache_id])) {
+				if (fd.read(cellhead_data, n
+						* (g_pstcache_Bpp * MAX_CELL_SIZE + CELLHEADER.size()),
+						CELLHEADER.size()) <= 0) {
+					break;
+				}
+			}
 
 			cellhdr = new CELLHEADER(cellhead_data);
 

@@ -37,7 +37,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.IOException;
-import java.util.Iterator;
 
 import net.propero.rdp.Common;
 import net.propero.rdp.CommunicationMonitor;
@@ -203,9 +202,7 @@ public class ClipChannel extends VChannel implements ClipInterface,
 		s.setLittleEndian16(CLIPRDR_REQUEST);
 		s.setLittleEndian32(number_of_formats * 36);
 
-		TypeHandler handler = null;
-		for (Iterator i = availableFormats.iterator(); i.hasNext();) {
-			handler = (TypeHandler) i.next();
+		for (TypeHandler handler : availableFormats) {
 			s.setLittleEndian32(handler.preferredFormat());
 			s.incrementPosition(32);
 		}

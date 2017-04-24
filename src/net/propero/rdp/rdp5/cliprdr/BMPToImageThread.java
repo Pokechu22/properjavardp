@@ -31,7 +31,6 @@ package net.propero.rdp.rdp5.cliprdr;
 
 import java.awt.Image;
 import java.io.ByteArrayInputStream;
-import java.io.OutputStream;
 
 import net.propero.rdp.RdpPacket;
 

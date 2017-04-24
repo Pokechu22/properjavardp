@@ -50,8 +50,7 @@ public abstract class LicenceStore {
 	public byte[] load_licence() {
 		String path = Options.licence_path + "/licence." + Options.hostname;
 		byte[] data = null;
-		try {
-			FileInputStream fd = new FileInputStream(path);
+		try (FileInputStream fd = new FileInputStream(path)) {
 			data = new byte[fd.available()];
 			fd.read(data);
 		} catch (FileNotFoundException e) {

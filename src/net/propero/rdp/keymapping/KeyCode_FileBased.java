@@ -37,11 +37,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.util.Hashtable;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import net.propero.rdp.Input;
 import net.propero.rdp.Options;
@@ -51,7 +52,7 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class KeyCode_FileBased {
 
-	private Hashtable keysCurrentlyDown = new Hashtable();
+	private Map<Integer, MapDef> keysCurrentlyDown = new HashMap<>();
 
 	private KeyEvent lastKeyEvent = null;
 
@@ -77,7 +78,7 @@ public abstract class KeyCode_FileBased {
 
 	public boolean capsLockDown = false;
 
-	Vector keyMap = new Vector();
+	private List<MapDef> keyMap = new ArrayList<>();
 
 	private void updateCapsLock(KeyEvent e) {
 
@@ -156,11 +157,9 @@ public abstract class KeyCode_FileBased {
 			// Add a set of mappings for alphabet characters with ctrl and alt
 			// pressed
 
-			Vector newMap = new Vector();
+			List<MapDef> newMap = new ArrayList<>();
 
-			Iterator i = keyMap.iterator();
-			while (i.hasNext()) {
-				MapDef current = (MapDef) i.next();
+			for (MapDef current : this.keyMap) {
 				if (current.isCharacterDef()
 						&& !(current.isAltDown() || current.isCtrlDown()
 								|| current.isShiftDown() || current
@@ -347,10 +346,8 @@ public abstract class KeyCode_FileBased {
 			FileOutputStream out = new FileOutputStream(filename);
 			PrintStream p = new PrintStream(out);
 
-			Iterator i = keyMap.iterator();
-
-			while (i.hasNext()) {
-				((MapDef) i.next()).writeToStream(p);
+			for (MapDef def : this.keyMap) {
+				def.writeToStream(p);
 			}
 
 			p.close();
@@ -375,11 +372,9 @@ public abstract class KeyCode_FileBased {
 		if (c == KeyEvent.CHAR_UNDEFINED)
 			return false;
 
-		Iterator i = keyMap.iterator();
 		MapDef best = null;
 
-		while (i.hasNext()) {
-			MapDef current = (MapDef) i.next();
+		for (MapDef current : this.keyMap) {
 			if (current.appliesTo(c)) {
 				best = current;
 			}
@@ -401,11 +396,9 @@ public abstract class KeyCode_FileBased {
 	 * @return Scancode of supplied key
 	 */
 	public int charToScancode(char c, String[] mod) {
-		Iterator i = keyMap.iterator();
 		MapDef best = null;
 
-		while (i.hasNext()) {
-			MapDef current = (MapDef) i.next();
+		for (MapDef current : this.keyMap) {
 			if (current.appliesTo(c)) {
 				best = current;
 			}
@@ -447,14 +440,12 @@ public abstract class KeyCode_FileBased {
 
 		updateCapsLock(e);
 
-		Iterator i = keyMap.iterator();
 		int smallestDist = -1;
 		MapDef best = null;
 
 		boolean noScanCode = !hasScancode(e.getKeyChar());
 
-		while (i.hasNext()) {
-			MapDef current = (MapDef) i.next();
+		for (MapDef current : this.keyMap) {
 			boolean applies;
 
 			if ((e.getID() == KeyEvent.KEY_PRESSED)) {

@@ -36,7 +36,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.util.Vector;
+import java.util.Set;
+import java.util.HashSet;
 
 import net.propero.rdp.keymapping.KeyCode;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
@@ -52,7 +53,7 @@ public abstract class Input {
 
 	KeyCode_FileBased newKeyMapper = null;
 
-	protected Vector pressedKeys;
+	protected Set<Integer> pressedKeys;
 
 	protected static boolean capsLockOn = false;
 
@@ -143,7 +144,7 @@ public abstract class Input {
 		//if (Options.debug_keyboard)
 		//	logger.setLevel(Level.DEBUG);
 		addInputListeners();
-		pressedKeys = new Vector();
+		pressedKeys = new HashSet<>();
 	}
 
 	/**
@@ -170,7 +171,7 @@ public abstract class Input {
 		//if (Options.debug_keyboard)
 		//	logger.setLevel(Level.DEBUG);
 		addInputListeners();
-		pressedKeys = new Vector();
+		pressedKeys = new HashSet<>();
 	}
 
 	/**
@@ -358,7 +359,7 @@ public abstract class Input {
 
 			// Some java versions have keys that don't generate keyPresses -
 			// here we add the key so we can later check if it happened
-			pressedKeys.addElement(new Integer(e.getKeyCode()));
+			pressedKeys.add(new Integer(e.getKeyCode()));
 
 			logger.debug("PRESSED keychar='" + e.getKeyChar() + "' keycode=0x"
 					+ Integer.toHexString(e.getKeyCode()) + " char='"
@@ -383,7 +384,7 @@ public abstract class Input {
 
 			// Some java versions have keys that don't generate keyPresses -
 			// here we add the key so we can later check if it happened
-			pressedKeys.addElement(new Integer(e.getKeyCode()));
+			pressedKeys.add(new Integer(e.getKeyCode()));
 
 			logger.debug("TYPED keychar='" + e.getKeyChar() + "' keycode=0x"
 					+ Integer.toHexString(e.getKeyCode()) + " char='"
@@ -409,7 +410,7 @@ public abstract class Input {
 				this.keyPressed(e);
 			}
 
-			pressedKeys.removeElement(keycode);
+			pressedKeys.remove(keycode);
 
 			lastKeyEvent = e;
 			modifiersValid = true;

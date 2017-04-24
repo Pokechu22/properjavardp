@@ -35,9 +35,9 @@ import java.util.Iterator;
 
 import net.propero.rdp.RdpPacket;
 
-public class TypeHandlerList {
+public class TypeHandlerList implements Iterable<TypeHandler> {
 
-	ArrayList handlers = new ArrayList();
+	private ArrayList<TypeHandler> handlers = new ArrayList<TypeHandler>();
 
 	private int count;
 
@@ -53,9 +53,7 @@ public class TypeHandlerList {
 	}
 
 	public TypeHandler getHandlerForFormat(int format) {
-		TypeHandler handler = null;
-		for (Iterator i = handlers.iterator(); i.hasNext();) {
-			handler = (TypeHandler) i.next();
+		for (TypeHandler handler : handlers) {
 			if ((handler != null) && handler.formatValid(format))
 				return handler;
 		}
@@ -65,9 +63,7 @@ public class TypeHandlerList {
 	public TypeHandlerList getHandlersForMimeType(String mimeType) {
 		TypeHandlerList outList = new TypeHandlerList();
 
-		TypeHandler handler = null;
-		for (Iterator i = handlers.iterator(); i.hasNext();) {
-			handler = (TypeHandler) i.next();
+		for (TypeHandler handler : handlers) {
 			if (handler.mimeTypeValid(mimeType))
 				outList.add(handler);
 		}
@@ -77,9 +73,7 @@ public class TypeHandlerList {
 	public TypeHandlerList getHandlersForClipboard(DataFlavor[] dataTypes) {
 		TypeHandlerList outList = new TypeHandlerList();
 
-		TypeHandler handler = null;
-		for (Iterator i = handlers.iterator(); i.hasNext();) {
-			handler = (TypeHandler) i.next();
+		for (TypeHandler handler : handlers) {
 			if (handler.clipboardValid(dataTypes))
 				outList.add(handler);
 		}
@@ -87,9 +81,7 @@ public class TypeHandlerList {
 	}
 
 	public void writeTypeDefinitions(RdpPacket data) {
-		TypeHandler handler = null;
-		for (Iterator i = handlers.iterator(); i.hasNext();) {
-			handler = (TypeHandler) i.next();
+		for (TypeHandler handler : handlers) {
 			data.setLittleEndian32(handler.preferredFormat());
 			data.incrementPosition(32);
 		}
@@ -99,6 +91,10 @@ public class TypeHandlerList {
 		return count;
 	}
 
+	/**
+	 * Gets the first type handler in the list. If there are no type handlers,
+	 * returns null.
+	 */
 	public TypeHandler getFirst() {
 		if (count > 0)
 			return (TypeHandler) handlers.get(0);
@@ -106,7 +102,7 @@ public class TypeHandlerList {
 			return null;
 	}
 
-	public Iterator iterator() {
+	public Iterator<TypeHandler> iterator() {
 		return handlers.iterator();
 	}
 }
