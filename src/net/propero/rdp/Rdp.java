@@ -150,57 +150,109 @@ public class Rdp {
 	private static final int RDP_INPUT_MOUSE = 0x8001;
 
 	/* RDP capabilities */
-	private static final int RDP_CAPSET_GENERAL = 1;
-
-	private static final int RDP_CAPLEN_GENERAL = 0x18;
 
 	private static final int OS_MAJOR_TYPE_UNIX = 4;
 
 	private static final int OS_MINOR_TYPE_XSERVER = 7;
 
-	private static final int RDP_CAPSET_BITMAP = 2;
-
-	private static final int RDP_CAPLEN_BITMAP = 0x1C;
-
-	private static final int RDP_CAPSET_ORDER = 3;
-
-	private static final int RDP_CAPLEN_ORDER = 0x58;
-
 	private static final int ORDER_CAP_NEGOTIATE = 2;
 
 	private static final int ORDER_CAP_NOSUPPORT = 4;
 
-	private static final int RDP_CAPSET_BMPCACHE = 4;
+	private static enum Capset {
+		GENERAL(0x01, 0x18),
+		BITMAP(0x02, 0x1C),
+		ORDER(0x03, 0x58),
+		BITMAPCACHE(0x04, 0x28),
+		CONTROL(0x05, 0x0C),
 
-	private static final int RDP_CAPLEN_BMPCACHE = 0x28;
+		ACTIVATION(0x07, 0x0C),
+		POINTER(0x08, 0x08),
+		SHARE(0x09, 0x08),
+		COLORCACHE(0x0A, 0x08),
 
-	private static final int RDP_CAPSET_CONTROL = 5;
+		SOUND(0x0C),
+		INPUT(0x0D, 0x9C), // Previously, "UNKNOWN"
+		FONT(0x0E),
+		BRUSH(0x0F),
+		GLYPHCACHE(0x10),
+		OFFSCREENCACHE(0x11),
+		BITMAPCACHE_HOSTSUPPORT(0x12),
+		BITMAPCACHE_REV2(0x13, 0x28),
+		VIRTUALCHANNEL(0x14),
+		DRAWNINEGRIDCACHE(0x15),
+		DRAWGDIPLUS(0x16),
+		RAIL(0x17),
+		WINDOW(0x18),
+		COMPDESK(0x19),
+		MULTIFRAGMENTUPDATE(0x1A),
+		LARGE_POINTER(0x1B),
+		SURFACE_COMMANDS(0x1C),
+		BITMAP_CODECS(0x1D),
+		FRAME_ACKNOWLEDGE(0x1E),
+		;
+		public final int id; // unsigned 16-bit: the ID
+		private final int len; // unsigned 16-bit: the length in bytes (I'm assuming this is always that size)
 
-	private static final int RDP_CAPLEN_CONTROL = 0x0C;
+		private Capset(final int id) {
+			this(id, -1);
+		}
 
-	private static final int RDP_CAPSET_ACTIVATE = 7;
+		private Capset(final int id, final int len) {
+			if (id < 0 || id > 0xFFFF) throw new IllegalArgumentException("id must be an unsigned short; got " + id);
+			if (len < -1 || len > 0xFFFF) throw new IllegalArgumentException("len must be an unsigned short or -1; got " + len);
+			this.id = id;
+			this.len = len;
+		}
 
-	private static final int RDP_CAPLEN_ACTIVATE = 0x0C;
+		/**
+		 * Gets the expected length of this capset, if known, including the 4-byte header.
+		 * @throws UnsupportedOperationException when the capset length is not known.
+		 */
+		public int getLength() throws UnsupportedOperationException {
+			if (len == -1) {
+				throw new UnsupportedOperationException("Don't know the length of capset " + this);
+			}
+			return len;
+		}
 
-	private static final int RDP_CAPSET_POINTER = 8;
+		@Override
+		public String toString() {
+			return super.toString() + " (id=0x" + Integer.toHexString(this.id) + ", len=" + (len != -1 ? "0x" + Integer.toHexString(this.len) : "?") + ")";
+		}
 
-	private static final int RDP_CAPLEN_POINTER = 0x08;
+		private static final Capset[] BY_ID;
+		static {
+			int largestID = 0;
+			for (Capset capset : values()) {
+				if (capset.id > largestID) {
+					largestID = capset.id;
+				}
+			}
+			BY_ID = new Capset[largestID + 1];
+			for (Capset capset : values()) {
+				if (BY_ID[capset.id] != null) {
+					throw new AssertionError("Duplicate capsets with ID " + capset.id + ": tried to register " + capset + " over " + BY_ID[capset.id] + "!");
+				}
+				BY_ID[capset.id]= capset; 
+			}
+		}
 
-	private static final int RDP_CAPSET_SHARE = 9;
-
-	private static final int RDP_CAPLEN_SHARE = 0x08;
-
-	private static final int RDP_CAPSET_COLCACHE = 10;
-
-	private static final int RDP_CAPLEN_COLCACHE = 0x08;
-
-	private static final int RDP_CAPSET_UNKNOWN = 13;
-
-	private static final int RDP_CAPLEN_UNKNOWN = 0x9C;
-
-	private static final int RDP_CAPSET_BMPCACHE2 = 19;
-
-	private static final int RDP_CAPLEN_BMPCACHE2 = 0x28;
+		/**
+		 * Attempts to fetch a capset with the given id.
+		 * @param id The ID to fetch.  Should be positive.
+		 * @return The matching capset, or <code>null</code> if none match.
+		 */
+		public static Capset forId(int id) {
+			if (id < 0) {
+				throw new IllegalArgumentException("id must be positive");
+			}
+			if (id >= BY_ID.length) {
+				return null;
+			}
+			return BY_ID[id]; // may be null
+		}
+	}
 
 	private static final int BMPCACHE2_FLAG_PERSIST = (1 << 31);
 
@@ -215,13 +267,9 @@ public class Rdp {
 
 	private static final int RDP5_FLAG = 0x0030;
 
+	/** MSTSC encoded as 7 byte US-Ascii */
 	private static final byte[] RDP_SOURCE = { (byte) 0x4D, (byte) 0x53,
 			(byte) 0x54, (byte) 0x53, (byte) 0x43, (byte) 0x00 }; // string
-
-	// MSTSC
-	// encoded
-	// as 7 byte
-	// US-Ascii
 
 	protected Secure SecureLayer = null;
 
@@ -391,20 +439,26 @@ public class Rdp {
 			capset_length = data.getLittleEndian16(); // in_uint16_le(s,
 			// capset_length);
 
+			Capset capset = Capset.forId(capset_type);
+
 			next = data.getPosition() + capset_length - 4;
 
-			switch (capset_type) {
-			case RDP_CAPSET_GENERAL:
-				processGeneralCaps(data);
-				break;
+			if (capset == null) {
+				logger.warn("Unknown capset " + capset_type + " (len " + capset_length + ")");
+			} else {
+				switch (capset) {
+				case GENERAL:
+					processGeneralCaps(data);
+					break;
 
-			case RDP_CAPSET_BITMAP:
-				processBitmapCaps(data);
-				break;
+				case BITMAP:
+					processBitmapCaps(data);
+					break;
 
-			default:
-				logger.warn("Unhandled capset " + capset_type + " (len " + capset_length + ")");
-				break;
+				default:
+					logger.warn("Unhandled capset " + capset + " (sent len " + Integer.toHexString(capset_length) + ")");
+					break;
+				}
 			}
 
 			data.setPosition(next);
@@ -1040,13 +1094,10 @@ public class Rdp {
 
 	private void sendConfirmActive() throws RdesktopException, IOException,
 			CryptoException {
-		int caplen = RDP_CAPLEN_GENERAL + RDP_CAPLEN_BITMAP + RDP_CAPLEN_ORDER
-				+ RDP_CAPLEN_BMPCACHE + RDP_CAPLEN_COLCACHE
-				+ RDP_CAPLEN_ACTIVATE + RDP_CAPLEN_CONTROL + RDP_CAPLEN_POINTER
-				+ RDP_CAPLEN_SHARE + RDP_CAPLEN_UNKNOWN + 4; // this is a fix
-		// for W2k.
-		// Purpose
-		// unknown
+		int caplen = Capset.GENERAL.getLength() + Capset.BITMAP.getLength() + Capset.ORDER.getLength()
+				+ Capset.BITMAPCACHE.getLength() + Capset.COLORCACHE.getLength()
+				+ Capset.ACTIVATION.getLength() + Capset.CONTROL.getLength() + Capset.POINTER.getLength()
+				+ Capset.SHARE.getLength() + /*Previously unknown */ Capset.INPUT.getLength() + 4; // this is a fix for W2k. Purpose unknown
 
 		int sec_flags = options.encryption ? (RDP5_FLAG | Secure.SEC_ENCRYPT)
 				: RDP5_FLAG;
@@ -1090,6 +1141,7 @@ public class Rdp {
 		this.sendShareCaps(data);
 		// this.sendUnknownCaps(data);
 
+		// :(
 		this.sendUnknownCaps(data, 0x0d, 0x58, caps_0x0d); // rdp_out_unknown_caps(s,
 		// 0x0d, 0x58,
 		// caps_0x0d); /*
@@ -1111,10 +1163,14 @@ public class Rdp {
 		this.SecureLayer.send(data, sec_flags);
 	}
 
+	private void sendCapHeader(RdpPacket_Localised data, Capset capset) {
+		data.setLittleEndian16(capset.id);
+		data.setLittleEndian16(capset.getLength());
+	}
+
 	private void sendGeneralCaps(RdpPacket_Localised data) {
 
-		data.setLittleEndian16(RDP_CAPSET_GENERAL);
-		data.setLittleEndian16(RDP_CAPLEN_GENERAL);
+		sendCapHeader(data, Capset.GENERAL);
 
 		data.setLittleEndian16(1); /* OS major type */
 		data.setLittleEndian16(3); /* OS minor type */
@@ -1137,8 +1193,7 @@ public class Rdp {
 
 	private void sendBitmapCaps(RdpPacket_Localised data) {
 
-		data.setLittleEndian16(RDP_CAPSET_BITMAP);
-		data.setLittleEndian16(RDP_CAPLEN_BITMAP);
+		sendCapHeader(data, Capset.BITMAP);
 
 		data.setLittleEndian16(options.server_bpp); /* Preferred BPP */
 		data.setLittleEndian16(1); /* Receive 1 BPP */
@@ -1177,8 +1232,7 @@ public class Rdp {
 		order_caps[25] = (byte) (options.polygon_ellipse_orders ? 1 : 0); /* ellipse */
 		order_caps[26] = (byte) (options.polygon_ellipse_orders ? 1 : 0); /* ellipse2 */
 		order_caps[27] = 1; /* text2 */
-		data.setLittleEndian16(RDP_CAPSET_ORDER);
-		data.setLittleEndian16(RDP_CAPLEN_ORDER);
+		sendCapHeader(data, Capset.ORDER);
 
 		data.incrementPosition(20); /* Terminal desc, pad */
 		data.setLittleEndian16(1); /* Cache X granularity */
@@ -1205,8 +1259,7 @@ public class Rdp {
 
 	private void sendBitmapcacheCaps(RdpPacket_Localised data) {
 
-		data.setLittleEndian16(RDP_CAPSET_BMPCACHE);
-		data.setLittleEndian16(RDP_CAPLEN_BMPCACHE);
+		sendCapHeader(data, Capset.BITMAPCACHE);
 
 		data.incrementPosition(24); /* unused */
 		data.setLittleEndian16(0x258); /* entries */
@@ -1219,10 +1272,7 @@ public class Rdp {
 
 	/* Output bitmap cache v2 capability set */
 	private void sendBitmapcache2Caps(RdpPacket_Localised data) {
-		data.setLittleEndian16(RDP_CAPSET_BMPCACHE2); // out_uint16_le(s,
-		// RDP_CAPSET_BMPCACHE2);
-		data.setLittleEndian16(RDP_CAPLEN_BMPCACHE2); // out_uint16_le(s,
-		// RDP_CAPLEN_BMPCACHE2);
+		sendCapHeader(data, Capset.BITMAPCACHE_REV2);
 
 		data.setLittleEndian16(options.persistent_bitmap_caching ? 2 : 0); /* version */
 
@@ -1252,8 +1302,7 @@ public class Rdp {
 
 	private void sendColorcacheCaps(RdpPacket_Localised data) {
 
-		data.setLittleEndian16(RDP_CAPSET_COLCACHE);
-		data.setLittleEndian16(RDP_CAPLEN_COLCACHE);
+		sendCapHeader(data, Capset.COLORCACHE);
 
 		data.setLittleEndian16(6); /* cache size */
 		data.setLittleEndian16(0); /* pad */
@@ -1261,8 +1310,7 @@ public class Rdp {
 
 	private void sendActivateCaps(RdpPacket_Localised data) {
 
-		data.setLittleEndian16(RDP_CAPSET_ACTIVATE);
-		data.setLittleEndian16(RDP_CAPLEN_ACTIVATE);
+		sendCapHeader(data, Capset.ACTIVATION);
 
 		data.setLittleEndian16(0); /* Help key */
 		data.setLittleEndian16(0); /* Help index key */
@@ -1272,8 +1320,7 @@ public class Rdp {
 
 	private void sendControlCaps(RdpPacket_Localised data) {
 
-		data.setLittleEndian16(RDP_CAPSET_CONTROL);
-		data.setLittleEndian16(RDP_CAPLEN_CONTROL);
+		sendCapHeader(data, Capset.CONTROL);
 
 		data.setLittleEndian16(0); /* Control capabilities */
 		data.setLittleEndian16(0); /* Remote detach */
@@ -1283,8 +1330,7 @@ public class Rdp {
 
 	private void sendPointerCaps(RdpPacket_Localised data) {
 
-		data.setLittleEndian16(RDP_CAPSET_POINTER);
-		data.setLittleEndian16(RDP_CAPLEN_POINTER);
+		sendCapHeader(data, Capset.POINTER);
 
 		data.setLittleEndian16(0); /* Colour pointer */
 		data.setLittleEndian16(20); /* Cache size */
@@ -1292,8 +1338,7 @@ public class Rdp {
 
 	private void sendShareCaps(RdpPacket_Localised data) {
 
-		data.setLittleEndian16(RDP_CAPSET_SHARE);
-		data.setLittleEndian16(RDP_CAPLEN_SHARE);
+		sendCapHeader(data, Capset.SHARE);
 
 		data.setLittleEndian16(0); /* userid */
 		data.setLittleEndian16(0); /* pad */
