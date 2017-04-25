@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 
 import net.propero.rdp.crypto.CryptoException;
+import net.propero.rdp.rdp5.Rdp5;
 import net.propero.rdp.rdp5.VChannels;
 
 import org.apache.logging.log4j.LogManager;
@@ -81,6 +82,7 @@ public class MCS {
 
 	private static final int SDIN = 26; /* Send Data Indication */
 
+	private Secure secure;
 	private VChannels channels;
 
 	/**
@@ -89,9 +91,10 @@ public class MCS {
 	 * @param channels
 	 *            Set of available MCS channels
 	 */
-	public MCS(Options options, VChannels channels) {
+	public MCS(Options options, VChannels channels, Secure secure, Rdp5 rdp) {
 		this.channels = channels;
-		IsoLayer = new ISO_Localised(options);
+		this.secure = secure;
+		IsoLayer = new ISO_Localised(options, rdp);
 	}
 
 	/**
@@ -502,7 +505,7 @@ public class MCS {
 		parseDomainParams(buffer);
 		length = berParseHeader(buffer, BER_TAG_OCTET_STRING);
 
-		Common.secure.processMcsData(buffer);
+		secure.processMcsData(buffer);
 
 		/*
 		 * if (length > data.size()) { logger.warn("MCS Datalength exceeds

@@ -30,31 +30,9 @@
  */
 package net.propero.rdp;
 
-import net.propero.rdp.rdp5.Rdp5;
-
 @Deprecated
 public class Common {
 
 	@Deprecated
 	public static boolean underApplet = false;
-
-	@Deprecated
-	public static Rdp5 rdp;
-
-	@Deprecated
-	public static Secure secure;
-
-	@Deprecated
-	public static MCS mcs;
-
-	@Deprecated
-	public static RdesktopFrame frame;
-
-	/**
-	 * Quit the application
-	 */
-	@Deprecated
-	public static void exit() {
-		Rdesktop.exit(0, rdp, frame, true);
-	}
 }

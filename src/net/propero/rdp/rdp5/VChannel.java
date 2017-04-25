@@ -31,7 +31,6 @@ package net.propero.rdp.rdp5;
 
 import java.io.IOException;
 
-import net.propero.rdp.Common;
 import net.propero.rdp.Constants;
 import net.propero.rdp.Input;
 import net.propero.rdp.Options;
@@ -51,8 +50,13 @@ public abstract class VChannel {
 	private int mcs_id = 0;
 
 	protected final Options options;
+	protected Secure secure;
 	public VChannel(Options options) {
 		this.options = options;
+	}
+
+	public void setSecure(Secure secure) {
+		this.secure = secure;
 	}
 
 	/**
@@ -106,7 +110,7 @@ public abstract class VChannel {
 	public RdpPacket_Localised init(int length) throws RdesktopException {
 		RdpPacket_Localised s;
 
-		s = Common.secure.init(options.encryption ? Secure.SEC_ENCRYPT : 0,
+		s = secure.init(options.encryption ? Secure.SEC_ENCRYPT : 0,
 				length + 8);
 		s.setHeader(RdpPacket.CHANNEL_HEADER);
 		s.incrementPosition(8);
@@ -125,7 +129,7 @@ public abstract class VChannel {
 	 */
 	public void send_packet(RdpPacket_Localised data) throws RdesktopException,
 			IOException, CryptoException {
-		if (Common.secure == null)
+		if (secure == null)
 			return;
 		int length = data.size();
 
@@ -139,7 +143,7 @@ public abstract class VChannel {
 			int thisLength = Math.min(VChannels.CHANNEL_CHUNK_LENGTH, length
 					- data_offset);
 
-			RdpPacket_Localised s = Common.secure.init(
+			RdpPacket_Localised s = secure.init(
 					Constants.encryption ? Secure.SEC_ENCRYPT : 0,
 					8 + thisLength);
 			s.setLittleEndian32(length);
@@ -158,8 +162,8 @@ public abstract class VChannel {
 
 			data_offset += thisLength;
 
-			if (Common.secure != null)
-				Common.secure.send_to_channel(s,
+			if (secure != null)
+				secure.send_to_channel(s,
 						Constants.encryption ? Secure.SEC_ENCRYPT : 0, this
 								.mcs_id());
 			packets_sent++;

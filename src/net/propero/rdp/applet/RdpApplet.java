@@ -93,7 +93,7 @@ public class RdpApplet extends Applet {
 
 	public void start() {
 
-		Common.underApplet = true;
+		Common.underApplet = true; // TODO
 
 		String argLine = "";
 		argLine += genParam("-m", "keymap");
@@ -213,6 +213,6 @@ class RdpThread extends Thread {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
 			e.printStackTrace();
 		}
-		Common.underApplet = false;
+		Common.underApplet = false; // TODO
 	}
 }

@@ -31,6 +31,8 @@ package net.propero.rdp.rdp5.cliprdr;
 
 import java.awt.datatransfer.Transferable;
 
+import net.propero.rdp.Options;
+
 public interface ClipInterface {
 
 	public void copyToClipboard(Transferable t);
@@ -38,4 +40,6 @@ public interface ClipInterface {
 	public void send_data(byte[] data, int length);
 
 	public void send_null(int type, int status);
+
+	public Options getOptions();
 }

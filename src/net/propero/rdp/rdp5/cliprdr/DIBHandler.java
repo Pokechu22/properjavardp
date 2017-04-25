@@ -37,7 +37,6 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.ImageObserver;
 import java.io.IOException;
 
-import net.propero.rdp.Common;
 import net.propero.rdp.Input;
 import net.propero.rdp.RdpPacket;
 import net.propero.rdp.Utilities_Localised;
@@ -89,7 +88,7 @@ public class DIBHandler extends TypeHandler implements ImageObserver {
 					mediaTracker.waitForID(0);
 				} catch (InterruptedException ie) {
 					System.err.println(ie);
-					if (!Common.underApplet)
+					if (!c.getOptions().noSystemExit)
 						System.exit(1);
 				}
 				if (img == null)

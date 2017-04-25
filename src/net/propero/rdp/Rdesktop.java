@@ -293,7 +293,7 @@ public class Rdesktop {
 		RDPClientChooser Chooser = new RDPClientChooser(options);
 
 		if (Chooser.RunNativeRDPClient(args)) {
-			if (!Common.underApplet)
+			if (!options.noSystemExit)
 				System.exit(0);
 		}
 
@@ -329,8 +329,6 @@ public class Rdesktop {
 
 		Getopt g = new Getopt("properJavaRDP", args,
 				"bc:d:f::g:k:l:m:n:p:s:t:T:u:o:r:", alo);
-
-		ClipChannel clipChannel = new ClipChannel(options);
 
 		while ((c = g.getopt()) != -1) {
 			switch (c) {
@@ -501,6 +499,8 @@ public class Rdesktop {
 
 		VChannels channels = new VChannels(options);
 
+		ClipChannel clipChannel = new ClipChannel(options);
+
 		// Initialise all RDP5 channels
 		if (options.use_rdp5) {
 			// TODO: implement all relevant channels
@@ -537,7 +537,6 @@ public class Rdesktop {
 			options.caps_sends_up_and_down = false;
 
 		Rdp5 RdpLayer = null;
-		Common.rdp = RdpLayer;
 		RdesktopFrame window = new RdesktopFrame_Localised(options);
 		window.setClip(clipChannel);
 
@@ -576,7 +575,7 @@ public class Rdesktop {
 		while (keep_running) {
 			logger.debug("Initialising RDP layer...");
 			RdpLayer = new Rdp5(options, channels);
-			Common.rdp = RdpLayer;
+			clipChannel.setSecure(RdpLayer.SecureLayer);  // XXX this shouldn't be needed
 			logger.debug("Registering drawing surface...");
 			RdpLayer.registerDrawingSurface(window);
 			logger.debug("Registering comms layer...");
@@ -759,7 +758,7 @@ public class Rdesktop {
 		System.gc();
 
 		if (sysexit && Constants.SystemExit) {
-			if (!Common.underApplet)
+			if (!rdp.options/* XXX THIS IS NOT GOOD */.noSystemExit)
 				System.exit(n);
 		}
 	}

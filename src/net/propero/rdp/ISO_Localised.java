@@ -39,6 +39,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import net.propero.rdp.rdp5.Rdp5;
+
 public class ISO_Localised extends ISO {
 
 	/*
@@ -83,8 +85,8 @@ public class ISO_Localised extends ISO {
 	 *  }
 	 */
 
-	public ISO_Localised(Options options) {
-		super(options);
+	public ISO_Localised(Options options, Rdp5 rdp) {
+		super(options, rdp);
 	}
 
 	protected void doSocketConnect(InetAddress host, int port)

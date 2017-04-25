@@ -34,8 +34,8 @@ import java.awt.Menu;
 import java.awt.MenuBar;
 import java.awt.MenuItem;
 
-import net.propero.rdp.Common;
 import net.propero.rdp.Options;
+import net.propero.rdp.Rdesktop;
 import net.propero.rdp.RdesktopFrame;
 
 public class RdpMenu extends MenuBar {
@@ -95,7 +95,7 @@ public class RdpMenu extends MenuBar {
 			((MenuItem) event.target).setLabel("Turn Scroll-Lock On");
 
 		if (arg == "Exit")
-			Common.exit();
+			Rdesktop.exit(0, parent.rdp, parent, true);
 
 		if (arg == "Fullscreen Mode") {
 			parent.goFullScreen();

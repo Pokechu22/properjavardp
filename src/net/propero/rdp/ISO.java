@@ -38,6 +38,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 
 import net.propero.rdp.crypto.CryptoException;
+import net.propero.rdp.rdp5.Rdp5;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -69,13 +70,15 @@ public abstract class ISO {
 	private static final int EOT = 0x80;
 
 	private final Options options;
+	private final Rdp5 rdp;
 
 	/**
 	 * Construct ISO object, initialises hex dump
 	 */
-	public ISO(Options options) {
+	public ISO(Options options, Rdp5 rdp) {
 		dump = new HexDump();
 		this.options = options;
+		this.rdp = rdp;
 	}
 
 	/**
@@ -321,7 +324,7 @@ public abstract class ISO {
 				return null;
 			if ((version & 3) == 0) {
 				logger.debug("Processing rdp5 packet");
-				Common.rdp.rdp5_process(s, (version & 0x80) != 0);
+				this.rdp.rdp5_process(s, (version & 0x80) != 0);
 				continue next_packet;
 			} else
 				break;

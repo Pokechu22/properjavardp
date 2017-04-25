@@ -38,7 +38,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.IOException;
 
-import net.propero.rdp.Common;
 import net.propero.rdp.CommunicationMonitor;
 import net.propero.rdp.Constants;
 import net.propero.rdp.Input;
@@ -269,7 +268,7 @@ public class ClipChannel extends VChannel implements ClipInterface,
 	void request_clipboard_data(int formatcode) throws RdesktopException,
 			IOException, CryptoException {
 
-		RdpPacket_Localised s = Common.secure.init(
+		RdpPacket_Localised s = this.secure.init(
 				Constants.encryption ? Secure.SEC_ENCRYPT : 0, 24);
 		s.setLittleEndian32(16); // length
 
@@ -285,7 +284,7 @@ public class ClipChannel extends VChannel implements ClipInterface,
 		s.setLittleEndian32(0); // Unknown. Garbage pad?
 		s.markEnd();
 
-		Common.secure.send_to_channel(s,
+		this.secure.send_to_channel(s,
 				Constants.encryption ? Secure.SEC_ENCRYPT : 0, this.mcs_id());
 	}
 
@@ -309,17 +308,17 @@ public class ClipChannel extends VChannel implements ClipInterface,
 		} catch (RdesktopException e) {
 			System.err.println(e.getMessage());
 			e.printStackTrace();
-			if (!Common.underApplet)
+			if (!options.noSystemExit)
 				System.exit(-1);
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			e.printStackTrace();
-			if (!Common.underApplet)
+			if (!options.noSystemExit)
 				System.exit(-1);
 		} catch (CryptoException e) {
 			System.err.println(e.getMessage());
 			e.printStackTrace();
-			if (!Common.underApplet)
+			if (!options.noSystemExit)
 				System.exit(-1);
 		}
 
@@ -363,4 +362,8 @@ public class ClipChannel extends VChannel implements ClipInterface,
 		clipboard.setContents(t, this);
 	}
 
+	@Override
+	public Options getOptions() {
+		return options;
+	}
 }

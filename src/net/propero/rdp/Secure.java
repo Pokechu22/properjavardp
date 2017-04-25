@@ -42,6 +42,7 @@ import net.propero.rdp.crypto.CryptoException;
 import net.propero.rdp.crypto.MD5;
 import net.propero.rdp.crypto.RC4;
 import net.propero.rdp.crypto.SHA1;
+import net.propero.rdp.rdp5.Rdp5;
 import net.propero.rdp.rdp5.VChannels;
 
 import org.apache.logging.log4j.LogManager;
@@ -95,7 +96,7 @@ public class Secure {
 
 	private static final int SEC_RSA_MAGIC = 0x31415352; /* RSA1 */
 
-	private MCS McsLayer = null;
+	protected MCS McsLayer = null;
 
 	// private String hostname=null;
 	// private String username=null;
@@ -160,12 +161,11 @@ public class Secure {
 	 * @param options
 	 *            The options instance
 	 */
-	public Secure(VChannels channels, Options options) {
+	public Secure(VChannels channels, Options options, Rdp5 rdp) {
 		this.channels = channels;
 		this.options = options;
 		this.licence = new Licence(options, this);
-		McsLayer = new MCS(options, channels);
-		Common.mcs = McsLayer;
+		McsLayer = new MCS(options, channels, this, rdp);
 		rc4_dec = new RC4();
 		rc4_enc = new RC4();
 		rc4_update = new RC4();

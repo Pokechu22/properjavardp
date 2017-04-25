@@ -167,4 +167,9 @@ public class Options {
 
 	public boolean save_graphics = false;
 
+	// -------------------------
+
+	// Previously under Common.  True if run in an applet.
+	// When set, System.exit should not be used.
+	public boolean noSystemExit;
 }

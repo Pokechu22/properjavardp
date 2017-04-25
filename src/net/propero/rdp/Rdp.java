@@ -41,6 +41,7 @@ import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
 
 import net.propero.rdp.crypto.CryptoException;
+import net.propero.rdp.rdp5.Rdp5;
 import net.propero.rdp.rdp5.VChannels;
 
 import org.apache.logging.log4j.LogManager;
@@ -428,8 +429,7 @@ public class Rdp {
 	 */
 	public Rdp(Options options, VChannels channels) {
 		this.options = options;
-		this.SecureLayer = new Secure(channels, options);
-		Common.secure = SecureLayer;
+		this.SecureLayer = new Secure(channels, options, (Rdp5) this); // XXX Uuh, cast to self in constructor.  Not good.
 		this.orders = new Orders(options);
 		this.cache = new Cache(options);
 		orders.registerCache(cache);
@@ -1057,7 +1057,7 @@ public class Rdp {
 
 		data.setLittleEndian16(2 + 14 + caplen + RDP_SOURCE.length);
 		data.setLittleEndian16((RDP_PDU_CONFIRM_ACTIVE | 0x10));
-		data.setLittleEndian16(Common.mcs.getUserID() /* McsUserID() */+ 1001);
+		data.setLittleEndian16(SecureLayer.McsLayer.getUserID() /* McsUserID() */+ 1001);
 
 		data.setLittleEndian32(this.rdp_shareid);
 		data.setLittleEndian16(0x3ea); // user id
@@ -1106,7 +1106,7 @@ public class Rdp {
 		data.markEnd();
 		logger.debug("confirm active");
 		// this.send(data, RDP_PDU_CONFIRM_ACTIVE);
-		Common.secure.send(data, sec_flags);
+		this.SecureLayer.send(data, sec_flags);
 	}
 
 	private void sendGeneralCaps(RdpPacket_Localised data) {
@@ -1360,19 +1360,19 @@ public class Rdp {
 			this.sendData(data, RDP_DATA_PDU_INPUT);
 		} catch (RdesktopException r) {
 			r.printStackTrace();
-			if (Common.rdp.isConnected())
-				Rdesktop.error(r, Common.rdp, Common.frame, true);
-			Common.exit();
+			if (this.isConnected())
+				Rdesktop.error(r, this, this.frame, true);
+			Rdesktop.exit(0, this, this.frame, true);
 		} catch (CryptoException c) {
 			c.printStackTrace();
-			if (Common.rdp.isConnected())
-				Rdesktop.error(c, Common.rdp, Common.frame, true);
-			Common.exit();
+			if (this.isConnected())
+				Rdesktop.error(c, this, this.frame, true);
+			Rdesktop.exit(0, this, this.frame, true);
 		} catch (IOException i) {
 			i.printStackTrace();
-			if (Common.rdp.isConnected())
-				Rdesktop.error(i, Common.rdp, Common.frame, true);
-			Common.exit();
+			if (this.isConnected())
+				Rdesktop.error(i, this, this.frame, true);
+			Rdesktop.exit(0, this, this.frame, true);
 		}
 	}
 

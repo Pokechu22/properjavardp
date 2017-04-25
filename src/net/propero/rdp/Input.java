@@ -179,7 +179,7 @@ public abstract class Input {
 		} catch (KeyMapException kmEx) {
 			System.err.println(kmEx.getMessage());
 			kmEx.printStackTrace();
-			if (!Common.underApplet)
+			if (!options.noSystemExit)
 				System.exit(-1);
 		}
 
