@@ -39,7 +39,6 @@ import java.awt.event.FocusListener;
 import java.io.IOException;
 
 import net.propero.rdp.CommunicationMonitor;
-import net.propero.rdp.Constants;
 import net.propero.rdp.Input;
 import net.propero.rdp.Options;
 import net.propero.rdp.RdesktopException;
@@ -269,7 +268,7 @@ public class ClipChannel extends VChannel implements ClipInterface,
 			IOException, CryptoException {
 
 		RdpPacket_Localised s = this.secure.init(
-				Constants.encryption ? Secure.SEC_ENCRYPT : 0, 24);
+				options.encryption ? Secure.SEC_ENCRYPT : 0, 24);
 		s.setLittleEndian32(16); // length
 
 		int flags = VChannels.CHANNEL_FLAG_FIRST | VChannels.CHANNEL_FLAG_LAST;
@@ -285,7 +284,7 @@ public class ClipChannel extends VChannel implements ClipInterface,
 		s.markEnd();
 
 		this.secure.send_to_channel(s,
-				Constants.encryption ? Secure.SEC_ENCRYPT : 0, this.mcs_id());
+				options.encryption ? Secure.SEC_ENCRYPT : 0, this.mcs_id());
 	}
 
 	public void send_data(byte[] data, int length) {

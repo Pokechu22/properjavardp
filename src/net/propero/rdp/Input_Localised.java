@@ -90,9 +90,9 @@ public class Input_Localised extends Input {
 			return;
 		if (!options.useLockingKeyState)
 			return;
-		if (Constants.OS == Constants.LINUX)
+		if (options.os == Options.OS.LINUX)
 			return; // broken for linux
-		if (Constants.OS == Constants.MAC)
+		if (options.os == Options.OS.MAC)
 			return; // unsupported operation for mac
 		logger.debug("doLockKeys");
 

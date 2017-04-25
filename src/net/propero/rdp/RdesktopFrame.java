@@ -161,7 +161,7 @@ public abstract class RdesktopFrame extends Frame {
 		add(this.canvas);
 		setTitle(options.windowTitle);
 
-		if (Constants.OS == Constants.WINDOWS)
+		if (options.os == Options.OS.WINDOWS)
 			setResizable(false);
 		// Windows has to setResizable(false) before pack,
 		// else draws on the frame
@@ -175,13 +175,13 @@ public abstract class RdesktopFrame extends Frame {
 			centreWindow();
 		}
 
-		if (Constants.OS != Constants.WINDOWS)
+		if (options.os != Options.OS.WINDOWS)
 			setResizable(false);
 		// Linux Java 1.3 needs pack() before setResizeable
 
 		addWindowListener(new RdesktopWindowAdapter());
 		canvas.addFocusListener(new RdesktopFocusListener());
-		if (Constants.OS == Constants.WINDOWS) {
+		if (options.os == Options.OS.WINDOWS) {
 			// redraws screen on window move
 			addComponentListener(new RdesktopComponentAdapter());
 		}
@@ -222,7 +222,7 @@ public abstract class RdesktopFrame extends Frame {
 	class RdesktopFocusListener implements FocusListener {
 
 		public void focusGained(FocusEvent arg0) {
-			if (Constants.OS == Constants.WINDOWS) {
+			if (options.os == Options.OS.WINDOWS) {
 				// canvas.repaint();
 				canvas.repaint(0, 0, options.width, options.height);
 			}
@@ -250,7 +250,7 @@ public abstract class RdesktopFrame extends Frame {
 		}
 
 		public void windowDeiconified(WindowEvent e) {
-			if (Constants.OS == Constants.WINDOWS) {
+			if (options.os == Options.OS.WINDOWS) {
 				// canvas.repaint();
 				canvas.repaint(0, 0, options.width, options.height);
 			}
@@ -258,7 +258,7 @@ public abstract class RdesktopFrame extends Frame {
 		}
 
 		public void windowActivated(WindowEvent e) {
-			if (Constants.OS == Constants.WINDOWS) {
+			if (options.os == Options.OS.WINDOWS) {
 				// canvas.repaint();
 				canvas.repaint(0, 0, options.width, options.height);
 			}
@@ -267,7 +267,7 @@ public abstract class RdesktopFrame extends Frame {
 		}
 
 		public void windowGainedFocus(WindowEvent e) {
-			if (Constants.OS == Constants.WINDOWS) {
+			if (options.os == Options.OS.WINDOWS) {
 				// canvas.repaint();
 				canvas.repaint(0, 0, options.width, options.height);
 			}

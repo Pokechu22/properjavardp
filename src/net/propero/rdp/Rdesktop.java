@@ -527,13 +527,13 @@ public class Rdesktop {
 		logger.info("Operating System is " + os + " version " + osvers);
 
 		if (os.startsWith("Linux"))
-			Constants.OS = Constants.LINUX;
+			options.os = Options.OS.LINUX;
 		else if (os.startsWith("Windows"))
-			Constants.OS = Constants.WINDOWS;
+			options.os = Options.OS.WINDOWS;
 		else if (os.startsWith("Mac"))
-			Constants.OS = Constants.MAC;
+			options.os = Options.OS.MAC;
 
-		if (Constants.OS == Constants.MAC)
+		if (options.os == Options.OS.MAC)
 			options.caps_sends_up_and_down = false;
 
 		Rdp5 RdpLayer = null;
@@ -757,7 +757,7 @@ public class Rdesktop {
 
 		System.gc();
 
-		if (sysexit && Constants.SystemExit) {
+		if (sysexit) {
 			if (!rdp.options/* XXX THIS IS NOT GOOD */.noSystemExit)
 				System.exit(n);
 		}

@@ -29,6 +29,7 @@
  */
 package net.propero.rdp.keymapping;
 
+@SuppressWarnings("unused")
 public class KeyCode {
 	/**
 	 * X scancodes for the printable keys of a standard 102 key MF-II Keyboard

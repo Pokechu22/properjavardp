@@ -402,7 +402,7 @@ public class Licence {
 				sealed_buffer.length);
 
 		/* deliberately break signature if licencing disabled */
-		if (!Constants.licence) {
+		if (!options.use_real_license_signature) {
 			out_sig = new byte[LICENCE_SIGNATURE_SIZE]; // set to 0
 		}
 

@@ -31,7 +31,6 @@ package net.propero.rdp.rdp5;
 
 import java.io.IOException;
 
-import net.propero.rdp.Constants;
 import net.propero.rdp.Input;
 import net.propero.rdp.Options;
 import net.propero.rdp.RdesktopException;
@@ -144,7 +143,7 @@ public abstract class VChannel {
 					- data_offset);
 
 			RdpPacket_Localised s = secure.init(
-					Constants.encryption ? Secure.SEC_ENCRYPT : 0,
+					options.encryption ? Secure.SEC_ENCRYPT : 0,
 					8 + thisLength);
 			s.setLittleEndian32(length);
 
@@ -164,7 +163,7 @@ public abstract class VChannel {
 
 			if (secure != null)
 				secure.send_to_channel(s,
-						Constants.encryption ? Secure.SEC_ENCRYPT : 0, this
+						options.encryption ? Secure.SEC_ENCRYPT : 0, this
 								.mcs_id());
 			packets_sent++;
 		}

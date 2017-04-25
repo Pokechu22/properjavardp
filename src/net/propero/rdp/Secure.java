@@ -212,7 +212,7 @@ public class Secure {
 
 		this.processMcsData(mcs_data);
 
-		if (Constants.encryption) {
+		if (options.encryption) {
 			this.establishKey();
 		}
 	}
@@ -1129,7 +1129,7 @@ public class Secure {
 			if (buffer == null)
 				return null;
 			buffer.setHeader(RdpPacket.SECURE_HEADER);
-			if (Constants.encryption || (!this.licenceIssued)) {
+			if (options.encryption || (!this.licenceIssued)) {
 
 				sec_flags = buffer.getLittleEndian32();
 

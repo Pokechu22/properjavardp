@@ -76,6 +76,9 @@ public class Options {
 
 	public String licence_path = "./";
 
+	// Controls one flag within License; I don't entirely get it
+	public boolean use_real_license_signature = true;
+
 	public boolean debug_keyboard = false;
 
 	public boolean debug_hexdump = false;
@@ -172,4 +175,13 @@ public class Options {
 	// Previously under Common.  True if run in an applet.
 	// When set, System.exit should not be used.
 	public boolean noSystemExit;
+
+	// Previously under Constants
+	public OS os = OS.UNKNOWN;
+	public static enum OS {
+		UNKNOWN,
+		WINDOWS,
+		MAC,
+		LINUX
+	}
 }
