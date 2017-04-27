@@ -379,7 +379,7 @@ public class Rdp {
 			next = data.getPosition() + capset_length - 4;
 
 			if (capset == null) {
-				logger.warn("Unknown capset " + capset_type + " (len " + capset_length + ")");
+				logger.warn("Unknown server capset " + capset_type + " (sent len 0x" + Integer.toHexString(capset_length) + ")");
 			} else {
 				switch (capset) {
 				case GENERAL:
@@ -391,7 +391,7 @@ public class Rdp {
 					break;
 
 				default:
-					logger.warn("Unhandled capset " + capset + " (sent len " + Integer.toHexString(capset_length) + ")");
+					logger.warn("Unhandled server capset " + capset + " (sent len 0x" + Integer.toHexString(capset_length) + ")");
 					break;
 				}
 			}
