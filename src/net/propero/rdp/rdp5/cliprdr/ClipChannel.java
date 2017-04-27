@@ -38,7 +38,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.IOException;
 
-import net.propero.rdp.CommunicationMonitor;
 import net.propero.rdp.Input;
 import net.propero.rdp.Options;
 import net.propero.rdp.RdesktopException;
@@ -288,8 +287,6 @@ public class ClipChannel extends VChannel implements ClipInterface,
 	}
 
 	public void send_data(byte[] data, int length) {
-		CommunicationMonitor.lock(this);
-
 		RdpPacket_Localised all = new RdpPacket_Localised(12 + length);
 
 		all.setLittleEndian16(CLIPRDR_DATA_RESPONSE);
@@ -320,8 +317,6 @@ public class ClipChannel extends VChannel implements ClipInterface,
 			if (!options.noSystemExit)
 				System.exit(-1);
 		}
-
-		CommunicationMonitor.unlock(this);
 	}
 
 	/*

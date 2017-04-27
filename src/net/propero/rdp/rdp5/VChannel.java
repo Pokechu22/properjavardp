@@ -130,42 +130,44 @@ public abstract class VChannel {
 			IOException, CryptoException {
 		if (secure == null)
 			return;
-		int length = data.size();
+		synchronized (this.secure) {
+			int length = data.size();
 
-		int data_offset = 0;
-		int packets_sent = 0;
-		int num_packets = (length / VChannels.CHANNEL_CHUNK_LENGTH);
-		num_packets += length - (VChannels.CHANNEL_CHUNK_LENGTH) * num_packets;
+			int data_offset = 0;
+			int packets_sent = 0;
+			int num_packets = (length / VChannels.CHANNEL_CHUNK_LENGTH);
+			num_packets += length - (VChannels.CHANNEL_CHUNK_LENGTH) * num_packets;
 
-		while (data_offset < length) {
+			while (data_offset < length) {
 
-			int thisLength = Math.min(VChannels.CHANNEL_CHUNK_LENGTH, length
-					- data_offset);
+				int thisLength = Math.min(VChannels.CHANNEL_CHUNK_LENGTH, length
+						- data_offset);
 
-			RdpPacket_Localised s = secure.init(
-					options.encryption ? Secure.SEC_ENCRYPT : 0,
-					8 + thisLength);
-			s.setLittleEndian32(length);
+				RdpPacket_Localised s = secure.init(
+						options.encryption ? Secure.SEC_ENCRYPT : 0,
+								8 + thisLength);
+				s.setLittleEndian32(length);
 
-			int flags = ((data_offset == 0) ? VChannels.CHANNEL_FLAG_FIRST : 0);
-			if (data_offset + thisLength >= length)
-				flags |= VChannels.CHANNEL_FLAG_LAST;
+				int flags = ((data_offset == 0) ? VChannels.CHANNEL_FLAG_FIRST : 0);
+				if (data_offset + thisLength >= length)
+					flags |= VChannels.CHANNEL_FLAG_LAST;
 
-			if ((this.flags() & VChannels.CHANNEL_OPTION_SHOW_PROTOCOL) != 0)
-				flags |= VChannels.CHANNEL_FLAG_SHOW_PROTOCOL;
+				if ((this.flags() & VChannels.CHANNEL_OPTION_SHOW_PROTOCOL) != 0)
+					flags |= VChannels.CHANNEL_FLAG_SHOW_PROTOCOL;
 
-			s.setLittleEndian32(flags);
-			s.copyFromPacket(data, data_offset, s.getPosition(), thisLength);
-			s.incrementPosition(thisLength);
-			s.markEnd();
+				s.setLittleEndian32(flags);
+				s.copyFromPacket(data, data_offset, s.getPosition(), thisLength);
+				s.incrementPosition(thisLength);
+				s.markEnd();
 
-			data_offset += thisLength;
+				data_offset += thisLength;
 
-			if (secure != null)
-				secure.send_to_channel(s,
-						options.encryption ? Secure.SEC_ENCRYPT : 0, this
-								.mcs_id());
-			packets_sent++;
+				if (secure != null)
+					secure.send_to_channel(s,
+							options.encryption ? Secure.SEC_ENCRYPT : 0, this
+									.mcs_id());
+				packets_sent++;
+			}
 		}
 	}
 

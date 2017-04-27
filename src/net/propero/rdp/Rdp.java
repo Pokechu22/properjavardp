@@ -460,28 +460,26 @@ public class Rdp {
 	private void sendData(RdpPacket_Localised data, int data_pdu_type)
 			throws RdesktopException, IOException, CryptoException {
 
-		CommunicationMonitor.lock(this);
+		synchronized (this.SecureLayer) {
+			int length;
 
-		int length;
+			data.setPosition(data.getHeader(RdpPacket.RDP_HEADER));
+			length = data.getEnd() - data.getPosition();
 
-		data.setPosition(data.getHeader(RdpPacket.RDP_HEADER));
-		length = data.getEnd() - data.getPosition();
+			data.setLittleEndian16(length);
+			data.setLittleEndian16(RDP_PDU_DATA | 0x10);
+			data.setLittleEndian16(SecureLayer.getUserID() + 1001);
 
-		data.setLittleEndian16(length);
-		data.setLittleEndian16(RDP_PDU_DATA | 0x10);
-		data.setLittleEndian16(SecureLayer.getUserID() + 1001);
+			data.setLittleEndian32(this.rdp_shareid);
+			data.set8(0); // pad
+			data.set8(1); // stream id
+			data.setLittleEndian16(length - 14);
+			data.set8(data_pdu_type);
+			data.set8(0); // compression type
+			data.setLittleEndian16(0); // compression length
 
-		data.setLittleEndian32(this.rdp_shareid);
-		data.set8(0); // pad
-		data.set8(1); // stream id
-		data.setLittleEndian16(length - 14);
-		data.set8(data_pdu_type);
-		data.set8(0); // compression type
-		data.setLittleEndian16(0); // compression length
-
-		SecureLayer.send(data, options.encryption ? Secure.SEC_ENCRYPT : 0);
-
-		CommunicationMonitor.unlock(this);
+			SecureLayer.send(data, options.encryption ? Secure.SEC_ENCRYPT : 0);
+		}
 	}
 
 	/**
