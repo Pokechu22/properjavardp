@@ -596,42 +596,32 @@ public class Rdp {
 		return this.connected;
 	}
 
-	boolean deactivated;
-
-	int ext_disc_reason;
-
 	/**
 	 * RDP receive loop
 	 * 
-	 * @param deactivated
-	 *            On return, stores true in deactivated[0] if the session
-	 *            disconnected cleanly
-	 * @param ext_disc_reason
-	 *            On return, stores the reason for disconnection in
-	 *            ext_disc_reason[0]
+	 * @return Info about the disconnection
 	 * @throws IOException
 	 * @throws RdesktopException
 	 * @throws OrderException
 	 * @throws CryptoException
 	 */
-	public void mainLoop(boolean[] deactivated, int[] ext_disc_reason)
+	public DisconnectInfo mainLoop()
 			throws IOException, RdesktopException, OrderException,
 			CryptoException {
 		int[] type = new int[1];
 
-		boolean disc = false; /* True when a disconnect PDU was received */
-		boolean cont = true;
-
 		RdpPacket_Localised data = null;
 
-		while (cont) {
+		boolean cleanDisconnect = false;
+
+		while (true) {
 			try {
 				data = this.receive(type);
 				if (data == null)
-					return;
+					return new DisconnectInfo(false, "No data?");
 			} catch (EOFException e) {
 				e.printStackTrace();
-				return;
+				return new DisconnectInfo(false, "EOF?");
 			}
 
 			switch (type[0]) {
@@ -648,12 +638,12 @@ public class Rdp {
 				Rdesktop.readytosend = true;
 				frame.triggerReadyToSend();
 				ThreadContext.pop();
-				deactivated[0] = false;
+				cleanDisconnect = false;
 				break;
 
 			case (Rdp.RDP_PDU_DEACTIVATE):
 				// get this on log off
-				deactivated[0] = true;
+				cleanDisconnect = true;
 				this.stream = null; // ty this fix
 				break;
 
@@ -662,7 +652,11 @@ public class Rdp {
 				// all the others should be this
 				ThreadContext.push("processData");
 
-				disc = this.processData(data, ext_disc_reason);
+				Integer result = this.processData(data);
+				if (result != null) {
+					// Received a disconnect PDU; exit
+					return new DisconnectInfo(cleanDisconnect, result.intValue());
+				}
 				ThreadContext.pop();
 				break;
 
@@ -673,11 +667,7 @@ public class Rdp {
 				throw new RdesktopException("Unimplemented type in main loop :"
 						+ type[0]);
 			}
-
-			if (disc)
-				return;
 		}
-		return;
 	}
 
 	/**
@@ -935,14 +925,11 @@ public class Rdp {
 	 * 
 	 * @param data
 	 *            Packet containing data PDU at current read position
-	 * @param ext_disc_reason
-	 *            If a disconnect PDU is received, stores disconnection reason
-	 *            at ext_disc_reason[0]
-	 * @return True if disconnect PDU was received
+	 * @return If non-null, the disconnect error code.
 	 * @throws RdesktopException
 	 * @throws OrderException
 	 */
-	private boolean processData(RdpPacket_Localised data, int[] ext_disc_reason)
+	private Integer processData(RdpPacket_Localised data)
 			throws RdesktopException, OrderException {
 		int data_type, ctype, clen, len, roff, rlen;
 		data_type = 0;
@@ -987,15 +974,15 @@ public class Rdp {
 			 * Normally received when user logs out or disconnects from a
 			 * console session on Windows XP and 2003 Server
 			 */
-			ext_disc_reason[0] = processDisconnectPdu(data);
+			int code = processDisconnectPdu(data);
 			logger.debug(("Received disconnect PDU\n"));
-			return true;
+			return code;
 
 		default:
 			logger.warn("Unimplemented Data PDU type " + data_type);
 
 		}
-		return false;
+		return null;
 	}
 
 	private void processUpdate(RdpPacket_Localised data) throws OrderException,
