@@ -87,8 +87,8 @@ public abstract class KeyCode_FileBased {
 	protected final Options options;
 
 	public KeyCode_FileBased(Options options, InputStream fstream) throws KeyMapException {
-		readMapFile(fstream);
 		this.options = options;
+		readMapFile(fstream);
 	}
 
 	/**
