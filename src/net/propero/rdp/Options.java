@@ -44,7 +44,7 @@ public class Options {
 	// disables bandwidth saving tcp packets
 	public boolean low_latency = true;
 
-	public int keylayout = 0x809; // UK by default
+	public int keylayout = 0x409; // US by default - https://technet.microsoft.com/en-us/library/cc766503(WS.10).aspx
 
 	public String username = "Administrator"; // -u username
 

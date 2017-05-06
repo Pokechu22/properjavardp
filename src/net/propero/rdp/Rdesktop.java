@@ -69,7 +69,7 @@ public class Rdesktop {
 	public static final String keyMapPath = "keymaps/";
 
 	@Deprecated
-	public static String mapFile = "en-gb";
+	public static String mapFile = "en-us";
 
 	@Deprecated
 	public static String keyMapLocation = "";
