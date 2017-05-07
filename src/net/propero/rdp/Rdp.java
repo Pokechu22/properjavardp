@@ -273,7 +273,7 @@ public class Rdp {
 
 	protected Secure SecureLayer = null;
 
-	private RdesktopFrame frame = null;
+	private RdesktopCallback callback = null;
 
 	private RdesktopCanvas surface = null;
 
@@ -636,7 +636,7 @@ public class Rdp {
 				// 1st order
 				logger.debug("ready to send (got past licence negotiation)");
 				Rdesktop.readytosend = true;
-				frame.triggerReadyToSend();
+				callback.triggerReadyToSend();
 				ThreadContext.pop();
 				cleanDisconnect = false;
 				break;
@@ -1360,7 +1360,8 @@ public class Rdp {
 		try {
 			data = this.initData(16);
 		} catch (RdesktopException e) {
-			Rdesktop.error(e, this, frame, false);
+			e.printStackTrace();
+			this.callback.error(e, this);
 		}
 
 		data.setLittleEndian16(1); /* number of events */
@@ -1380,19 +1381,13 @@ public class Rdp {
 			this.sendData(data, RDP_DATA_PDU_INPUT);
 		} catch (RdesktopException r) {
 			r.printStackTrace();
-			if (this.isConnected())
-				Rdesktop.error(r, this, this.frame, true);
-			Rdesktop.exit(0, this, this.frame, true);
+			this.callback.error(r, this);
 		} catch (CryptoException c) {
 			c.printStackTrace();
-			if (this.isConnected())
-				Rdesktop.error(c, this, this.frame, true);
-			Rdesktop.exit(0, this, this.frame, true);
+			this.callback.error(c, this);
 		} catch (IOException i) {
 			i.printStackTrace();
-			if (this.isConnected())
-				Rdesktop.error(i, this, this.frame, true);
-			Rdesktop.exit(0, this, this.frame, true);
+			this.callback.error(i, this);
 		}
 	}
 
@@ -1601,9 +1596,9 @@ public class Rdp {
 		surface.registerPalette(cm);
 	}
 
-	public void registerDrawingSurface(RdesktopFrame fr) {
-		this.frame = fr;
-		RdesktopCanvas ds = fr.getCanvas();
+	public void registerDrawingSurface(RdesktopCallback callback) {
+		this.callback = callback;
+		RdesktopCanvas ds = callback.getCanvas();
 		this.surface = ds;
 		orders.registerDrawingSurface(ds);
 	}

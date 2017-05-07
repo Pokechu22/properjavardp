@@ -58,7 +58,7 @@ import org.apache.logging.log4j.Logger;
 
 // import javax.swing.Box;
 
-public abstract class RdesktopFrame extends Frame {
+public abstract class RdesktopFrame extends Frame implements RdesktopCallback {
 
 	static Logger logger = LogManager.getLogger(RdesktopFrame.class);
 
@@ -194,6 +194,7 @@ public abstract class RdesktopFrame extends Frame {
 	 * 
 	 * @return RdesktopCanvas object associated with this frame
 	 */
+	@Override
 	public RdesktopCanvas getCanvas() {
 		return this.canvas;
 	}
@@ -394,6 +395,7 @@ public abstract class RdesktopFrame extends Frame {
 	/**
 	 * Notify the canvas that the connection is ready for sending messages
 	 */
+	@Override
 	public void triggerReadyToSend() {
 		this.show();
 		canvas.triggerReadyToSend();
@@ -424,4 +426,8 @@ public abstract class RdesktopFrame extends Frame {
 		centreWindow(this);
 	}
 
+	@Override
+	public void error(Exception ex, Rdp rdp) {
+		Rdesktop.error(ex, rdp, this, true);
+	}
 }
