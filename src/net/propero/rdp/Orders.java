@@ -339,7 +339,7 @@ public class Orders {
 		}
 		supportedPrimaryOrders.add(PrimaryOrder.SCRBLT);
 		supportedPrimaryOrders.add(PrimaryOrder.LINETO);
-		if (true/*SAVE_DESKTOP*/) {
+		if (Rdp.SAVE_DESKTOP) {
 			supportedPrimaryOrders.add(PrimaryOrder.SAVEBITMAP);
 		}
 		supportedPrimaryOrders.add(PrimaryOrder.MEM3BLT);
