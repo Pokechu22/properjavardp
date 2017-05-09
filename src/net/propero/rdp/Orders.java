@@ -77,21 +77,56 @@ public class Orders {
 
 	private static final int BUFSIZE_MASK = 0x3FFF; /* or 0x1FFF? */
 
-	private static final int RDP_ORDER_STANDARD = 0x01;
+	/**
+	 * Flags to indicate the type of an order.  More flags may exist.
+	 *
+	 * If the TS_STANDARD (0x01) flag is set, the order is a primary drawing
+	 * order. If both the TS_STANDARD (0x01) and TS_SECONDARY (0x02) flags are
+	 * set, the order is a secondary drawing order. Finally, if only the
+	 * TS_SECONDARY (0x02) flag is set, the order is an alternate secondary
+	 * drawing order.
+	 */
+	private static final int RDP_ORDER_STANDARD = 0x01, RDP_ORDER_SECONDARY = 0x02;
 
-	private static final int RDP_ORDER_SECONDARY = 0x02;
+	/**
+	 * Control flags that apply to a primary drawing order.
+	 *
+	 * @see [MS-RDPEGDI] 2.2.2.2.1.1.2 controlFlags
+	 */
+	private static class PrimaryOrderFlags {
+		/**
+		 * Indicates that the order has a bounding rectangle.
+		 */
+		private static final int BOUNDS = 0x04;
 
-	private static final int RDP_ORDER_BOUNDS = 0x04;
+		/**
+		 * Indicates that the order type has changed and that the orderType field is
+		 * present.
+		 */
+		private static final int TYPE_CHANGE = 0x08;
 
-	private static final int RDP_ORDER_CHANGE = 0x08;
+		/**
+		 * Indicates that all of the Coord-type fields in the order (see section
+		 * 2.2.2.2.1.1.1.1) are specified as 1-byte signed deltas from their
+		 * previous values.
+		 */
+		private static final int DELTA_COORDINATES = 0x10;
 
-	private static final int RDP_ORDER_DELTA = 0x10;
+		/**
+		 * Indicates that the previous bounding rectangle MUST be used, as the
+		 * bounds have not changed (this implies that the bounds field is not
+		 * present). This flag is only applicable if the TS_BOUNDS (0x04) flag is
+		 * set.
+		 */
+		private static final int ZERO_BOUNDS_DELTAS = 0x20;
 
-	private static final int RDP_ORDER_LASTBOUNDS = 0x20;
-
-	private static final int RDP_ORDER_SMALL = 0x40;
-
-	private static final int RDP_ORDER_TINY = 0x80;
+		/**
+		 * Used to form a 2-bit count (so maximum of 3) of the number of field
+		 * flag bytes (present in the fieldFlags field) that are zero and not
+		 * present, counted from the end of the set of field flag bytes.
+		 */
+		private static final int ZERO_FIELD_BYTE_BIT0 = 0x40, ZERO_FIELD_BYTE_BIT1 = 0x80;
+	}
 
 	private int rect_colour;
 
@@ -360,29 +395,40 @@ public class Orders {
 		return;
 	}
 
-	private int inPresent(RdpPacket_Localised data, int flags, int size) {
-		int present = 0;
-		int bits = 0;
-		int i = 0;
+	/**
+	 * Gets flags for the given primary order.
+	 *
+	 * @param data The packet to read from
+	 * @param controlFlags The controlFlags field for the order
+	 * @param orderType The type of order
+	 * @return A bitmask of different flags.
+	 */
+	private int getOrderFlags(RdpPacket_Localised data, int controlFlags, PrimaryOrder orderType) {
+		int ret = 0;
+		int size = orderType.numFieldBytes;
 
-		if ((flags & RDP_ORDER_SMALL) != 0) {
+		// Jankyness, to save a few bytes (even though the protocol wastes tons
+		// of bytes elsewhere). See table on page 46 of [MS-RDPEGDI],
+		// specifically on fieldFlags
+
+		if ((controlFlags & PrimaryOrderFlags.ZERO_FIELD_BYTE_BIT0) != 0) {
 			size--;
 		}
-
-		if ((flags & RDP_ORDER_TINY) != 0) {
-
-			if (size < 2) {
-				size = 0;
-			} else {
-				size -= 2;
-			}
+		if ((controlFlags & PrimaryOrderFlags.ZERO_FIELD_BYTE_BIT1) != 0) {
+			size -= 2;
 		}
 
-		for (i = 0; i < size; i++) {
-			bits = data.get8();
-			present |= (bits << (i * 8));
+		if (size < 0) {
+			logger.warn("Invalid control flags/size combo for " + orderType + ": flags (" + Integer.toBinaryString(controlFlags) + ") led to size of " + size);
+			size = 0;
 		}
-		return present;
+
+		for (int i = 0; i < size; i++) {
+			int bits = data.get8();
+			ret |= (bits << (i * 8));
+		}
+
+		return ret;
 	}
 
 	/**
@@ -400,82 +446,27 @@ public class Orders {
 	public void processOrders(RdpPacket_Localised data, int next_packet,
 			int n_orders) throws OrderException, RdesktopException {
 
-		int present = 0;
 		int processed = 0;
 
 		while (processed < n_orders) {
+			int controlFlags = data.get8();
 
-			int order_flags = data.get8();
-
-			if ((order_flags & RDP_ORDER_STANDARD) == 0) {
-				throw new OrderException("Order parsing failed!");
+			switch (controlFlags & (RDP_ORDER_STANDARD | RDP_ORDER_SECONDARY)) {
+			case RDP_ORDER_STANDARD: {
+				this.processPrimaryOrders(data, controlFlags);
+				break;
 			}
-
-			if ((order_flags & RDP_ORDER_SECONDARY) != 0) {
-				this.processSecondaryOrders(data);
-			} else {
-
-				if ((order_flags & RDP_ORDER_CHANGE) != 0) {
-					os.setOrderType(PrimaryOrder.forEncodingNumber(data.get8()));
-				}
-
-				PrimaryOrder orderType = os.getOrderType();
-				int size = orderType.numFieldBytes;
-
-				present = this.inPresent(data, order_flags, size);
-
-				if ((order_flags & RDP_ORDER_BOUNDS) != 0) {
-
-					if ((order_flags & RDP_ORDER_LASTBOUNDS) == 0) {
-						this.parseBounds(data, os.getBounds());
-					}
-
-					surface.setClip(os.getBounds());
-				}
-
-				boolean delta = ((order_flags & RDP_ORDER_DELTA) != 0);
-
-				logger.debug("Primary order: " + orderType);
-				switch (orderType) {
-				case DSTBLT:
-					this.processDestBlt(data, os.getDestBlt(), present, delta); break;
-
-				case PATBLT:
-					this.processPatBlt(data, os.getPatBlt(), present, delta); break;
-
-				case SCRBLT:
-					this.processScreenBlt(data, os.getScreenBlt(), present, delta); break;
-
-				case LINETO:
-					this.processLine(data, os.getLine(), present, delta); break;
-
-				case OPAQUERECT:
-					this.processRectangle(data, os.getRectangle(), present, delta); break;
-
-				case SAVEBITMAP:
-					this.processDeskSave(data, os.getDeskSave(), present, delta); break;
-
-				case MEMBLT:
-					this.processMemBlt(data, os.getMemBlt(), present, delta); break;
-
-				case MEM3BLT:
-					this.processTriBlt(data, os.getTriBlt(), present, delta); break;
-
-				case POLYLINE:
-					this.processPolyLine(data, os.getPolyLine(), present, delta); break;
-
-				case GLYPHINDEX:
-					this.processText2(data, os.getText2(), present, delta); break;
-
-				default:
-					logger.warn("Unimplemented Order type " + orderType);
-					return;
-				}
-
-				if ((order_flags & RDP_ORDER_BOUNDS) != 0) {
-					surface.resetClip();
-					logger.debug("Reset clip");
-				}
+			case RDP_ORDER_STANDARD | RDP_ORDER_SECONDARY: {
+				this.processSecondaryOrders(data, controlFlags);
+				break;
+			}
+			case RDP_ORDER_SECONDARY: {
+				this.processAltSecondaryOrders(data, controlFlags);
+				break;
+			}
+			default: {
+				throw new OrderException("Order parsing failed - invalid control flags " + Integer.toBinaryString(controlFlags));
+			}
 			}
 
 			processed++;
@@ -507,14 +498,19 @@ public class Orders {
 
 	/**
 	 * Handle secondary, or caching, orders
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing secondary order
+	 * @param controlFlags
+	 *            The control flags in the main packet
 	 * @throws OrderException
 	 * @throws RdesktopException
 	 */
-	private void processSecondaryOrders(RdpPacket_Localised data)
-			throws RdesktopException {
+	private void processSecondaryOrders(RdpPacket_Localised data, int controlFlags)
+			throws OrderException, RdesktopException {
+		assert (controlFlags & RDP_ORDER_STANDARD) != 0;
+		assert (controlFlags & RDP_ORDER_SECONDARY) != 0;
+
 		int length = 0;
 		int flags = 0;
 		int next_order = 0;
@@ -854,6 +850,82 @@ public class Orders {
 			glyph = new Glyph(font, character, offset, baseline, width, height,
 					fontdata);
 			cache.putFont(glyph);
+		}
+	}
+
+	/**
+	 * Handle secondary, or caching, orders
+	 *
+	 * @param data
+	 *            Packet containing secondary order
+	 * @param controlFlags
+	 *            The control flags in the main packet
+	 * @throws OrderException
+	 * @throws RdesktopException
+	 */
+	private void processPrimaryOrders(RdpPacket_Localised data, int controlFlags)
+			throws OrderException, RdesktopException {
+		assert (controlFlags & RDP_ORDER_STANDARD) != 0;
+		assert (controlFlags & RDP_ORDER_SECONDARY) == 0;
+		if ((controlFlags & PrimaryOrderFlags.TYPE_CHANGE) != 0) {
+			os.setOrderType(PrimaryOrder.forEncodingNumber(data.get8()));
+		}
+	
+		PrimaryOrder orderType = os.getOrderType();
+	
+		int orderFlags = this.getOrderFlags(data, controlFlags, orderType);
+	
+		if ((controlFlags & PrimaryOrderFlags.BOUNDS) != 0) {
+	
+			if ((controlFlags & PrimaryOrderFlags.ZERO_BOUNDS_DELTAS) == 0) {
+				this.parseBounds(data, os.getBounds());
+			}
+	
+			surface.setClip(os.getBounds());
+		}
+	
+		boolean delta = ((controlFlags & PrimaryOrderFlags.DELTA_COORDINATES) != 0);
+	
+		logger.debug("Primary order: " + orderType);
+		switch (orderType) {
+		case DSTBLT:
+			this.processDestBlt(data, os.getDestBlt(), orderFlags, delta); break;
+	
+		case PATBLT:
+			this.processPatBlt(data, os.getPatBlt(), orderFlags, delta); break;
+	
+		case SCRBLT:
+			this.processScreenBlt(data, os.getScreenBlt(), orderFlags, delta); break;
+	
+		case LINETO:
+			this.processLine(data, os.getLine(), orderFlags, delta); break;
+	
+		case OPAQUERECT:
+			this.processRectangle(data, os.getRectangle(), orderFlags, delta); break;
+	
+		case SAVEBITMAP:
+			this.processDeskSave(data, os.getDeskSave(), orderFlags, delta); break;
+	
+		case MEMBLT:
+			this.processMemBlt(data, os.getMemBlt(), orderFlags, delta); break;
+	
+		case MEM3BLT:
+			this.processTriBlt(data, os.getTriBlt(), orderFlags, delta); break;
+	
+		case POLYLINE:
+			this.processPolyLine(data, os.getPolyLine(), orderFlags, delta); break;
+	
+		case GLYPHINDEX:
+			this.processText2(data, os.getText2(), orderFlags, delta); break;
+	
+		default:
+			logger.warn("Unimplemented Order type " + orderType);
+			return;
+		}
+	
+		if ((controlFlags & PrimaryOrderFlags.BOUNDS) != 0) {
+			surface.resetClip();
+			logger.debug("Reset clip");
 		}
 	}
 
@@ -1460,6 +1532,25 @@ public class Orders {
 		if (data.getPosition() > data.getEnd()) {
 			throw new OrderException("Too far!");
 		}
+	}
+
+	/**
+	 * Handle alternate secondary orders
+	 *
+	 * @param data
+	 *            Packet containing alternate secondary order
+	 * @param controlFlags
+	 *            The control flags in the main packet
+	 * @throws OrderException
+	 * @throws RdesktopException
+	 */
+	private void processAltSecondaryOrders(RdpPacket_Localised data,
+			int controlFlags) throws RdesktopException, OrderException {
+		assert (controlFlags & RDP_ORDER_STANDARD) == 0;
+		assert (controlFlags & RDP_ORDER_SECONDARY) != 0;
+
+		// TODO
+		throw new OrderException("Alternate secondary orders aren't implemented");
 	}
 
 	/**
