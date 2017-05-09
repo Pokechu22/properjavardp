@@ -579,363 +579,6 @@ public class Orders {
 	 * @throws OrderException
 	 * @throws RdesktopException
 	 */
-	private void processSecondaryOrders(RdpPacket_Localised data, int controlFlags)
-			throws OrderException, RdesktopException {
-		assert (controlFlags & RDP_ORDER_STANDARD) != 0;
-		assert (controlFlags & RDP_ORDER_SECONDARY) != 0;
-
-		int length = 0;
-		int flags = 0;
-		int next_order = 0;
-
-		length = data.getLittleEndian16();
-		flags = data.getLittleEndian16();
-		SecondaryOrder type = SecondaryOrder.forId(data.get8());
-
-		next_order = data.getPosition() + length + 7;
-
-		logger.debug("Secondary order: " + type);
-		switch (type) {
-		case BITMAP_UNCOMPRESSED:
-			this.processRawBitmapCache(data);
-			break;
-
-		case COLOR_TABLE:
-			this.processColorCache(data);
-			break;
-
-		case BITMAP_COMPRESSED:
-			this.processBitmapCache(data);
-			break;
-
-		case GLYPH:
-			this.processFontCache(data);
-			break;
-
-		case BITMAP_UNCOMPRESSED_REV2:
-			try {
-				this.process_bmpcache2(data, flags, false);
-			} catch (IOException e) {
-				throw new RdesktopException(e.getMessage(), e);
-			} /* uncompressed */
-			break;
-
-		case BITMAP_COMPRESSED_REV2:
-			try {
-				this.process_bmpcache2(data, flags, true);
-			} catch (IOException e) {
-				throw new RdesktopException(e.getMessage(), e);
-			} /* compressed */
-			break;
-
-		default:
-			logger.warn("Unimplemented 2ry Order type " + type);
-		}
-
-		data.setPosition(next_order);
-	}
-
-	/**
-	 * Process a raw bitmap and store it in the bitmap cache
-	 * 
-	 * @param data
-	 *            Packet containing raw bitmap data
-	 * @throws RdesktopException
-	 */
-	private void processRawBitmapCache(RdpPacket_Localised data)
-			throws RdesktopException {
-		int cache_id = data.get8();
-		data.incrementPosition(1); // pad
-		int width = data.get8();
-		int height = data.get8();
-		int bpp = data.get8();
-		int Bpp = (bpp + 7) / 8;
-		int bufsize = data.getLittleEndian16();
-		int cache_idx = data.getLittleEndian16();
-		int pdata = data.getPosition();
-		data.incrementPosition(bufsize);
-
-		byte[] inverted = new byte[width * height * Bpp];
-		int pinverted = (height - 1) * (width * Bpp);
-		for (int y = 0; y < height; y++) {
-			data.copyToByteArray(inverted, pinverted, pdata, width * Bpp);
-			// data.copyToByteArray(inverted, (height - y - 1) * (width * Bpp),
-			// y * (width * Bpp), width*Bpp);
-			pinverted -= width * Bpp;
-			pdata += width * Bpp;
-		}
-
-		cache.putBitmap(cache_id, cache_idx, new Bitmap(Bitmap.convertImage(options,
-				inverted, Bpp), width, height, 0, 0), 0);
-	}
-
-	/**
-	 * Process and store details of a colour cache
-	 * 
-	 * @param data
-	 *            Packet containing cache information
-	 * @throws RdesktopException
-	 */
-	private void processColorCache(RdpPacket_Localised data)
-			throws RdesktopException {
-		byte[] palette = null;
-
-		byte[] red = null;
-		byte[] green = null;
-		byte[] blue = null;
-		int j = 0;
-
-		int cache_id = data.get8();
-		int n_colors = data.getLittleEndian16(); // Number of Colors in
-		// Palette
-
-		palette = new byte[n_colors * 4];
-		red = new byte[n_colors];
-		green = new byte[n_colors];
-		blue = new byte[n_colors];
-		data.copyToByteArray(palette, 0, data.getPosition(), palette.length);
-		data.incrementPosition(palette.length);
-		for (int i = 0; i < n_colors; i++) {
-			blue[i] = palette[j];
-			green[i] = palette[j + 1];
-			red[i] = palette[j + 2];
-			// palette[j+3] is pad
-			j += 4;
-		}
-		IndexColorModel cm = new IndexColorModel(8, n_colors, red, green, blue);
-		cache.put_colourmap(cache_id, cm);
-		// surface.registerPalette(cm);
-	}
-
-	/**
-	 * Process a compressed bitmap and store in the bitmap cache
-	 * 
-	 * @param data
-	 *            Packet containing compressed bitmap
-	 * @throws RdesktopException
-	 */
-	private void processBitmapCache(RdpPacket_Localised data)
-			throws RdesktopException {
-		int bufsize, pad2, row_size, final_size, size;
-		int pad1;
-
-		bufsize = pad2 = row_size = final_size = size = 0;
-
-		int cache_id = data.get8();
-		pad1 = data.get8(); // pad
-		int width = data.get8();
-		int height = data.get8();
-		int bpp = data.get8();
-		int Bpp = (bpp + 7) / 8;
-		bufsize = data.getLittleEndian16(); // bufsize
-		int cache_idx = data.getLittleEndian16();
-
-		/*
-		 * data.incrementPosition(2); // pad int size =
-		 * data.getLittleEndian16(); data.incrementPosition(4); // row_size,
-		 * final_size
-		 */
-
-		if (options.use_rdp5) {
-
-			/* Begin compressedBitmapData */
-			pad2 = data.getLittleEndian16(); // in_uint16_le(s, pad2); /* pad
-			// */
-			size = data.getLittleEndian16(); // in_uint16_le(s, size);
-			row_size = data.getLittleEndian16(); // in_uint16_le(s,
-			// row_size);
-			final_size = data.getLittleEndian16(); // in_uint16_le(s,
-			// final_size);
-
-		} else {
-			data.incrementPosition(2); // pad
-			size = data.getLittleEndian16();
-			row_size = data.getLittleEndian16(); // in_uint16_le(s,
-			// row_size);
-			final_size = data.getLittleEndian16(); // in_uint16_le(s,
-			// final_size);
-			// this is what's in rdesktop, but doesn't seem to work
-			// size = bufsize;
-		}
-
-		// logger.info("BMPCACHE(cx=" + width + ",cy=" + height + ",id=" +
-		// cache_id + ",idx=" + cache_idx + ",bpp=" + bpp + ",size=" + size +
-		// ",pad1=" + pad1 + ",bufsize=" + bufsize + ",pad2=" + pad2 + ",rs=" +
-		// row_size + ",fs=" + final_size + ")");
-
-		if (Bpp == 1) {
-			byte[] pixel = Bitmap.decompress(options, width, height, size, data, Bpp);
-			if (pixel != null)
-				cache.putBitmap(cache_id, cache_idx, new Bitmap(Bitmap
-						.convertImage(options, pixel, Bpp), width, height, 0, 0), 0);
-			else
-				logger.warn("Failed to decompress bitmap");
-		} else {
-			int[] pixel = Bitmap.decompressInt(options, width, height, size, data, Bpp);
-			if (pixel != null)
-				cache.putBitmap(cache_id, cache_idx, new Bitmap(pixel, width,
-						height, 0, 0), 0);
-			else
-				logger.warn("Failed to decompress bitmap");
-		}
-	}
-
-	/* Process a bitmap cache v2 order */
-
-	/**
-	 * Process a bitmap cache v2 order, storing a bitmap in the main cache, and
-	 * the persistant cache if so required
-	 * 
-	 * @param data
-	 *            Packet containing order and bitmap data
-	 * @param flags
-	 *            Set of flags defining mode of order
-	 * @param compressed
-	 *            True if bitmap data is compressed
-	 * @throws RdesktopException
-	 * @throws IOException
-	 */
-	private void process_bmpcache2(RdpPacket_Localised data, int flags,
-			boolean compressed) throws RdesktopException, IOException {
-		Bitmap bitmap;
-		int y;
-		int cache_id, cache_idx_low, width, height, Bpp;
-		int cache_idx, bufsize;
-		byte[] bmpdata, bitmap_id;
-
-		bitmap_id = new byte[8]; /* prevent compiler warning */
-		cache_id = flags & ID_MASK;
-		Bpp = ((flags & MODE_MASK) >> MODE_SHIFT) - 2;
-		Bpp = options.Bpp;
-		if ((flags & PERSIST) != 0) {
-			bitmap_id = new byte[8];
-			data.copyToByteArray(bitmap_id, 0, data.getPosition(), 8);
-		}
-
-		if ((flags & SQUARE) != 0) {
-			width = data.get8(); // in_uint8(s, width);
-			height = width;
-		} else {
-			width = data.get8(); // in_uint8(s, width);
-			height = data.get8(); // in_uint8(s, height);
-		}
-
-		bufsize = data.getBigEndian16(); // in_uint16_be(s, bufsize);
-		bufsize &= BUFSIZE_MASK;
-		cache_idx = data.get8(); // in_uint8(s, cache_idx);
-
-		if ((cache_idx & LONG_FORMAT) != 0) {
-			cache_idx_low = data.get8(); // in_uint8(s, cache_idx_low);
-			cache_idx = ((cache_idx ^ LONG_FORMAT) << 8) + cache_idx_low;
-		}
-
-		// in_uint8p(s, data, bufsize);
-
-		logger.info("BMPCACHE2(compr=" + compressed + ",flags=" + flags
-				+ ",cx=" + width + ",cy=" + height + ",id=" + cache_id
-				+ ",idx=" + cache_idx + ",Bpp=" + Bpp + ",bs=" + bufsize + ")");
-
-		bmpdata = new byte[width * height * Bpp];
-		int[] bmpdataInt = new int[width * height];
-
-		if (compressed) {
-			if (Bpp == 1)
-				bmpdataInt = Bitmap.convertImage(options, Bitmap.decompress(options, width,
-						height, bufsize, data, Bpp), Bpp);
-			else
-				bmpdataInt = Bitmap.decompressInt(options, width, height, bufsize, data,
-						Bpp);
-
-			if (bmpdataInt == null) {
-				logger.debug("Failed to decompress bitmap data");
-				// xfree(bmpdata);
-				return;
-			}
-			bitmap = new Bitmap(bmpdataInt, width, height, 0, 0);
-		} else {
-			for (y = 0; y < height; y++)
-				data.copyToByteArray(bmpdata, y * (width * Bpp),
-						(height - y - 1) * (width * Bpp), width * Bpp); // memcpy(&bmpdata[(height
-			// - y -
-			// 1) *
-			// (width
-			// *
-			// Bpp)],
-			// &data[y
-			// *
-			// (width
-			// *
-			// Bpp)],
-			// width
-			// *
-			// Bpp);
-
-			bitmap = new Bitmap(Bitmap.convertImage(options, bmpdata, Bpp), width,
-					height, 0, 0);
-		}
-
-		// bitmap = ui_create_bitmap(width, height, bmpdata);
-
-		if (bitmap != null) {
-			cache.putBitmap(cache_id, cache_idx, bitmap, 0);
-			// cache_put_bitmap(cache_id, cache_idx, bitmap, 0);
-			if ((flags & PERSIST) != 0)
-				cache.pstCache.pstcache_put_bitmap(cache_id, cache_idx, bitmap_id,
-						width, height, width * height * Bpp, bmpdata);
-		} else {
-			logger.debug("process_bmpcache2: ui_create_bitmap failed");
-		}
-
-		// xfree(bmpdata);
-	}
-
-	/**
-	 * Process a font caching order, and store font in the cache
-	 * 
-	 * @param data
-	 *            Packet containing font cache order, with data for a series of
-	 *            glyphs representing a font
-	 * @throws RdesktopException
-	 */
-	private void processFontCache(RdpPacket_Localised data)
-			throws RdesktopException {
-		Glyph glyph = null;
-
-		int font = 0, nglyphs = 0;
-		int character = 0, offset = 0, baseline = 0, width = 0, height = 0;
-		int datasize = 0;
-		byte[] fontdata = null;
-
-		font = data.get8();
-		nglyphs = data.get8();
-
-		for (int i = 0; i < nglyphs; i++) {
-			character = data.getLittleEndian16();
-			offset = data.getLittleEndian16();
-			baseline = data.getLittleEndian16();
-			width = data.getLittleEndian16();
-			height = data.getLittleEndian16();
-			datasize = (height * ((width + 7) / 8) + 3) & ~3;
-			fontdata = new byte[datasize];
-
-			data.copyToByteArray(fontdata, 0, data.getPosition(), datasize);
-			data.incrementPosition(datasize);
-			glyph = new Glyph(font, character, offset, baseline, width, height,
-					fontdata);
-			cache.putFont(glyph);
-		}
-	}
-
-	/**
-	 * Handle secondary, or caching, orders
-	 *
-	 * @param data
-	 *            Packet containing secondary order
-	 * @param controlFlags
-	 *            The control flags in the main packet
-	 * @throws OrderException
-	 * @throws RdesktopException
-	 */
 	private void processPrimaryOrders(RdpPacket_Localised data, int controlFlags)
 			throws OrderException, RdesktopException {
 		assert (controlFlags & RDP_ORDER_STANDARD) != 0;
@@ -1604,6 +1247,361 @@ public class Orders {
 
 		if (data.getPosition() > data.getEnd()) {
 			throw new OrderException("Too far!");
+		}
+	}
+
+	/**
+	 * Handle secondary, or caching, orders
+	 *
+	 * @param data
+	 *            Packet containing secondary order
+	 * @param controlFlags
+	 *            The control flags in the main packet
+	 * @throws OrderException
+	 * @throws RdesktopException
+	 */
+	private void processSecondaryOrders(RdpPacket_Localised data, int controlFlags)
+			throws OrderException, RdesktopException {
+		assert (controlFlags & RDP_ORDER_STANDARD) != 0;
+		assert (controlFlags & RDP_ORDER_SECONDARY) != 0;
+	
+		int length = 0;
+		int flags = 0;
+		int next_order = 0;
+	
+		length = data.getLittleEndian16();
+		flags = data.getLittleEndian16();
+		SecondaryOrder type = SecondaryOrder.forId(data.get8());
+	
+		next_order = data.getPosition() + length + 7;
+	
+		logger.debug("Secondary order: " + type);
+		switch (type) {
+		case BITMAP_UNCOMPRESSED:
+			this.processRawBitmapCache(data);
+			break;
+	
+		case COLOR_TABLE:
+			this.processColorCache(data);
+			break;
+	
+		case BITMAP_COMPRESSED:
+			this.processBitmapCache(data);
+			break;
+	
+		case GLYPH:
+			this.processFontCache(data);
+			break;
+	
+		case BITMAP_UNCOMPRESSED_REV2:
+			try {
+				this.processBitmapCache2(data, flags, false);
+			} catch (IOException e) {
+				throw new RdesktopException(e.getMessage(), e);
+			} /* uncompressed */
+			break;
+	
+		case BITMAP_COMPRESSED_REV2:
+			try {
+				this.processBitmapCache2(data, flags, true);
+			} catch (IOException e) {
+				throw new RdesktopException(e.getMessage(), e);
+			} /* compressed */
+			break;
+	
+		default:
+			logger.warn("Unimplemented 2ry Order type " + type);
+		}
+	
+		data.setPosition(next_order);
+	}
+
+	/**
+	 * Process a raw bitmap and store it in the bitmap cache
+	 * 
+	 * @param data
+	 *            Packet containing raw bitmap data
+	 * @throws RdesktopException
+	 */
+	private void processRawBitmapCache(RdpPacket_Localised data)
+			throws RdesktopException {
+		int cache_id = data.get8();
+		data.incrementPosition(1); // pad
+		int width = data.get8();
+		int height = data.get8();
+		int bpp = data.get8();
+		int Bpp = (bpp + 7) / 8;
+		int bufsize = data.getLittleEndian16();
+		int cache_idx = data.getLittleEndian16();
+		int pdata = data.getPosition();
+		data.incrementPosition(bufsize);
+	
+		byte[] inverted = new byte[width * height * Bpp];
+		int pinverted = (height - 1) * (width * Bpp);
+		for (int y = 0; y < height; y++) {
+			data.copyToByteArray(inverted, pinverted, pdata, width * Bpp);
+			// data.copyToByteArray(inverted, (height - y - 1) * (width * Bpp),
+			// y * (width * Bpp), width*Bpp);
+			pinverted -= width * Bpp;
+			pdata += width * Bpp;
+		}
+	
+		cache.putBitmap(cache_id, cache_idx, new Bitmap(Bitmap.convertImage(options,
+				inverted, Bpp), width, height, 0, 0), 0);
+	}
+
+	/**
+	 * Process and store details of a colour cache
+	 * 
+	 * @param data
+	 *            Packet containing cache information
+	 * @throws RdesktopException
+	 */
+	private void processColorCache(RdpPacket_Localised data)
+			throws RdesktopException {
+		byte[] palette = null;
+	
+		byte[] red = null;
+		byte[] green = null;
+		byte[] blue = null;
+		int j = 0;
+	
+		int cache_id = data.get8();
+		int n_colors = data.getLittleEndian16(); // Number of Colors in
+		// Palette
+	
+		palette = new byte[n_colors * 4];
+		red = new byte[n_colors];
+		green = new byte[n_colors];
+		blue = new byte[n_colors];
+		data.copyToByteArray(palette, 0, data.getPosition(), palette.length);
+		data.incrementPosition(palette.length);
+		for (int i = 0; i < n_colors; i++) {
+			blue[i] = palette[j];
+			green[i] = palette[j + 1];
+			red[i] = palette[j + 2];
+			// palette[j+3] is pad
+			j += 4;
+		}
+		IndexColorModel cm = new IndexColorModel(8, n_colors, red, green, blue);
+		cache.put_colourmap(cache_id, cm);
+		// surface.registerPalette(cm);
+	}
+
+	/**
+	 * Process a compressed bitmap and store in the bitmap cache
+	 * 
+	 * @param data
+	 *            Packet containing compressed bitmap
+	 * @throws RdesktopException
+	 */
+	private void processBitmapCache(RdpPacket_Localised data)
+			throws RdesktopException {
+		int bufsize, pad2, row_size, final_size, size;
+		int pad1;
+	
+		bufsize = pad2 = row_size = final_size = size = 0;
+	
+		int cache_id = data.get8();
+		pad1 = data.get8(); // pad
+		int width = data.get8();
+		int height = data.get8();
+		int bpp = data.get8();
+		int Bpp = (bpp + 7) / 8;
+		bufsize = data.getLittleEndian16(); // bufsize
+		int cache_idx = data.getLittleEndian16();
+	
+		/*
+		 * data.incrementPosition(2); // pad int size =
+		 * data.getLittleEndian16(); data.incrementPosition(4); // row_size,
+		 * final_size
+		 */
+	
+		if (options.use_rdp5) {
+	
+			/* Begin compressedBitmapData */
+			pad2 = data.getLittleEndian16(); // in_uint16_le(s, pad2); /* pad
+			// */
+			size = data.getLittleEndian16(); // in_uint16_le(s, size);
+			row_size = data.getLittleEndian16(); // in_uint16_le(s,
+			// row_size);
+			final_size = data.getLittleEndian16(); // in_uint16_le(s,
+			// final_size);
+	
+		} else {
+			data.incrementPosition(2); // pad
+			size = data.getLittleEndian16();
+			row_size = data.getLittleEndian16(); // in_uint16_le(s,
+			// row_size);
+			final_size = data.getLittleEndian16(); // in_uint16_le(s,
+			// final_size);
+			// this is what's in rdesktop, but doesn't seem to work
+			// size = bufsize;
+		}
+	
+		// logger.info("BMPCACHE(cx=" + width + ",cy=" + height + ",id=" +
+		// cache_id + ",idx=" + cache_idx + ",bpp=" + bpp + ",size=" + size +
+		// ",pad1=" + pad1 + ",bufsize=" + bufsize + ",pad2=" + pad2 + ",rs=" +
+		// row_size + ",fs=" + final_size + ")");
+	
+		if (Bpp == 1) {
+			byte[] pixel = Bitmap.decompress(options, width, height, size, data, Bpp);
+			if (pixel != null)
+				cache.putBitmap(cache_id, cache_idx, new Bitmap(Bitmap
+						.convertImage(options, pixel, Bpp), width, height, 0, 0), 0);
+			else
+				logger.warn("Failed to decompress bitmap");
+		} else {
+			int[] pixel = Bitmap.decompressInt(options, width, height, size, data, Bpp);
+			if (pixel != null)
+				cache.putBitmap(cache_id, cache_idx, new Bitmap(pixel, width,
+						height, 0, 0), 0);
+			else
+				logger.warn("Failed to decompress bitmap");
+		}
+	}
+
+	/**
+	 * Process a bitmap cache v2 order, storing a bitmap in the main cache, and
+	 * the persistant cache if so required
+	 * 
+	 * @param data
+	 *            Packet containing order and bitmap data
+	 * @param flags
+	 *            Set of flags defining mode of order
+	 * @param compressed
+	 *            True if bitmap data is compressed
+	 * @throws RdesktopException
+	 * @throws IOException
+	 */
+	private void processBitmapCache2(RdpPacket_Localised data, int flags,
+			boolean compressed) throws RdesktopException, IOException {
+		Bitmap bitmap;
+		int y;
+		int cache_id, cache_idx_low, width, height, Bpp;
+		int cache_idx, bufsize;
+		byte[] bmpdata, bitmap_id;
+	
+		bitmap_id = new byte[8]; /* prevent compiler warning */
+		cache_id = flags & ID_MASK;
+		Bpp = ((flags & MODE_MASK) >> MODE_SHIFT) - 2;
+		Bpp = options.Bpp;
+		if ((flags & PERSIST) != 0) {
+			bitmap_id = new byte[8];
+			data.copyToByteArray(bitmap_id, 0, data.getPosition(), 8);
+		}
+	
+		if ((flags & SQUARE) != 0) {
+			width = data.get8(); // in_uint8(s, width);
+			height = width;
+		} else {
+			width = data.get8(); // in_uint8(s, width);
+			height = data.get8(); // in_uint8(s, height);
+		}
+	
+		bufsize = data.getBigEndian16(); // in_uint16_be(s, bufsize);
+		bufsize &= BUFSIZE_MASK;
+		cache_idx = data.get8(); // in_uint8(s, cache_idx);
+	
+		if ((cache_idx & LONG_FORMAT) != 0) {
+			cache_idx_low = data.get8(); // in_uint8(s, cache_idx_low);
+			cache_idx = ((cache_idx ^ LONG_FORMAT) << 8) + cache_idx_low;
+		}
+	
+		// in_uint8p(s, data, bufsize);
+	
+		logger.info("BMPCACHE2(compr=" + compressed + ",flags=" + flags
+				+ ",cx=" + width + ",cy=" + height + ",id=" + cache_id
+				+ ",idx=" + cache_idx + ",Bpp=" + Bpp + ",bs=" + bufsize + ")");
+	
+		bmpdata = new byte[width * height * Bpp];
+		int[] bmpdataInt = new int[width * height];
+	
+		if (compressed) {
+			if (Bpp == 1)
+				bmpdataInt = Bitmap.convertImage(options, Bitmap.decompress(options, width,
+						height, bufsize, data, Bpp), Bpp);
+			else
+				bmpdataInt = Bitmap.decompressInt(options, width, height, bufsize, data,
+						Bpp);
+	
+			if (bmpdataInt == null) {
+				logger.debug("Failed to decompress bitmap data");
+				// xfree(bmpdata);
+				return;
+			}
+			bitmap = new Bitmap(bmpdataInt, width, height, 0, 0);
+		} else {
+			for (y = 0; y < height; y++)
+				data.copyToByteArray(bmpdata, y * (width * Bpp),
+						(height - y - 1) * (width * Bpp), width * Bpp); // memcpy(&bmpdata[(height
+			// - y -
+			// 1) *
+			// (width
+			// *
+			// Bpp)],
+			// &data[y
+			// *
+			// (width
+			// *
+			// Bpp)],
+			// width
+			// *
+			// Bpp);
+	
+			bitmap = new Bitmap(Bitmap.convertImage(options, bmpdata, Bpp), width,
+					height, 0, 0);
+		}
+	
+		// bitmap = ui_create_bitmap(width, height, bmpdata);
+	
+		if (bitmap != null) {
+			cache.putBitmap(cache_id, cache_idx, bitmap, 0);
+			// cache_put_bitmap(cache_id, cache_idx, bitmap, 0);
+			if ((flags & PERSIST) != 0)
+				cache.pstCache.pstcache_put_bitmap(cache_id, cache_idx, bitmap_id,
+						width, height, width * height * Bpp, bmpdata);
+		} else {
+			logger.debug("process_bmpcache2: ui_create_bitmap failed");
+		}
+	
+		// xfree(bmpdata);
+	}
+
+	/**
+	 * Process a font caching order, and store font in the cache
+	 * 
+	 * @param data
+	 *            Packet containing font cache order, with data for a series of
+	 *            glyphs representing a font
+	 * @throws RdesktopException
+	 */
+	private void processFontCache(RdpPacket_Localised data)
+			throws RdesktopException {
+		Glyph glyph = null;
+	
+		int font = 0, nglyphs = 0;
+		int character = 0, offset = 0, baseline = 0, width = 0, height = 0;
+		int datasize = 0;
+		byte[] fontdata = null;
+	
+		font = data.get8();
+		nglyphs = data.get8();
+	
+		for (int i = 0; i < nglyphs; i++) {
+			character = data.getLittleEndian16();
+			offset = data.getLittleEndian16();
+			baseline = data.getLittleEndian16();
+			width = data.getLittleEndian16();
+			height = data.getLittleEndian16();
+			datasize = (height * ((width + 7) / 8) + 3) & ~3;
+			fontdata = new byte[datasize];
+	
+			data.copyToByteArray(fontdata, 0, data.getPosition(), datasize);
+			data.incrementPosition(datasize);
+			glyph = new Glyph(font, character, offset, baseline, width, height,
+					fontdata);
+			cache.putFont(glyph);
 		}
 	}
 
