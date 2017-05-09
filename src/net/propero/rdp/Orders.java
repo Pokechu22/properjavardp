@@ -112,49 +112,49 @@ public class Orders {
 	 */
 	public static enum PrimaryOrder {
 		/** DstBlt (section 2.2.2.2.1.1.2.1) Primary Drawing Order. */
-		DstBlt(0x00, 0x00, 5, 1, 9),
+		DSTBLT(0x00, 0x00, 5, 1, 9),
 		/** MultiDstBlt (section 2.2.2.2.1.1.2.2) Primary Drawing Order. */
-		MultiDstBlt(0x0F, 0x0F, 7, 1, 395),
+		MULTI_DSTBLT(0x0F, 0x0F, 7, 1, 395),
 		/** PatBlt (section 2.2.2.2.1.1.2.3) Primary Drawing Order. */
-		PatBlt(0x01, 0x01, 12, 2, 26),
+		PATBLT(0x01, 0x01, 12, 2, 26),
 		/** MultiPatBlt (section 2.2.2.2.1.1.2.4) Primary Drawing Order. */
-		MultiPatBlt(0x10, 0x10, 14, 2, 412),
+		MULTI_PATBLT(0x10, 0x10, 14, 2, 412),
 		/** OpaqueRect (section 2.2.2.2.1.1.2.5) Primary Drawing Order. */
-		OpaqueRect(0x0A, 0x01, 7, 1, 11), // NOTE: negotiation id 0x01 is registered to both OpaqueRect and PatBlt
+		OPAQUERECT(0x0A, 0x01, 7, 1, 11), // NOTE: negotiation id 0x01 is registered to both OpaqueRect and PatBlt
 		/** MultiOpaqueRect (section 2.2.2.2.1.1.2.6) Primary Drawing Order. */
-		MultiOpaqueRect(0x12, 0x12, 9, 2, 397),
+		MULTI_OPAQUERECT(0x12, 0x12, 9, 2, 397),
 		/** ScrBlt (section 2.2.2.2.1.1.2.7) Primary Drawing Order. */
-		ScrBlt(0x02, 0x02, 7, 1, 13),
+		SCRBLT(0x02, 0x02, 7, 1, 13),
 		/** MultiScrBlt (section 2.2.2.2.1.1.2.8) Primary Drawing Order. */
-		MultiScrBlt(0x11, 0x11, 9, 2, 399),
+		MULTI_SCRBLT(0x11, 0x11, 9, 2, 399),
 		/** MemBlt (section 2.2.2.2.1.1.2.9) Primary Drawing Order. */
-		MemBlt(0x0D, 0x03, 9, 2, 17),
+		MEMBLT(0x0D, 0x03, 9, 2, 17),
 		/** Mem3Blt (section 2.2.2.2.1.1.2.10) Primary Drawing Order. */
-		Mem3Blt(0x0E, 0x04, 16, 3, 34),
+		MEM3BLT(0x0E, 0x04, 16, 3, 34),
 		/** LineTo (section 2.2.2.2.1.1.2.11) Primary Drawing Order. */
-		LineTo(0x09, 0x08, 10, 2, 19),
+		LINETO(0x09, 0x08, 10, 2, 19),
 		/** SaveBitmap (section 2.2.2.2.1.1.2.12) Primary Drawing Order. */
-		SaveBitmap(0x0B, 0x0B, 6, 1, 13),
+		SAVEBITMAP(0x0B, 0x0B, 6, 1, 13),
 		/** GlyphIndex (section 2.2.2.2.1.1.2.13) Primary Drawing Order. */
-		GlyphIndex(0x1B, 0x1B, 22, 3, 297),
+		GLYPHINDEX(0x1B, 0x1B, 22, 3, 297),
 		/** FastIndex (section 2.2.2.2.1.1.2.14) Primary Drawing Order. */
-		FastIndex(0x13, 0x13, 15, 2, 285),
+		FASTINDEX(0x13, 0x13, 15, 2, 285),
 		/** FastGlyph (section 2.2.2.2.1.1.2.15) Primary Drawing Order. */
-		FastGlyph(0x18, 0x18, 15, 2, 285),
+		FASTGLPHY(0x18, 0x18, 15, 2, 285),
 		/** PolygonSC (section 2.2.2.2.1.1.2.16) Primary Drawing Order. */
-		PolygonSC(0x14, 0x14, 7, 1, 249),
+		POLYGON_SC(0x14, 0x14, 7, 1, 249),
 		/** PolygonCB (section 2.2.2.2.1.1.2.17) Primary Drawing Order. */
-		PolygonCB(0x15, 0x15, 13, 2, 263),
+		POLYGON_CB(0x15, 0x15, 13, 2, 263),
 		/** Polyline (section 2.2.2.2.1.1.2.18) Primary Drawing Order. */
-		Polyline(0x16, 0x16, 7, 1, 148),
+		POLYLINE(0x16, 0x16, 7, 1, 148),
 		/** EllipseSC (section 2.2.2.2.1.1.2.19) Primary Drawing Order. */
-		EllipseSC(0x19, 0x19, 7, 1, 13),
+		ELLIPSE_SC(0x19, 0x19, 7, 1, 13),
 		/** EllipseCB (section 2.2.2.2.1.1.2.20) Primary Drawing Order. */
-		EllipseCB(0x1A, 0x1A, 13, 2, 27),
+		ELLIPSE_CB(0x1A, 0x1A, 13, 2, 27),
 		/** DrawNineGrid (section 2.2.2.2.1.1.2.21) Primary Drawing Order. */
-		DrawNineGrid(0x07, 0x07, 5, 1, 10),
+		DRAWNINEGRID(0x07, 0x07, 5, 1, 10),
 		/** MultiDrawNineGrid (section 2.2.2.2.1.1.2.22) Primary Drawing Order. */
-		MultiDrawNineGrid(0x08, 0x09, 7, 1, 396);
+		MULTIDRAWLINEGRID(0x08, 0x09, 7, 1, 396);
 
 		public final int encodingNumber;
 		public final int negociationNumber;
@@ -331,20 +331,20 @@ public class Orders {
 		this.options = options;
 
 		supportedPrimaryOrders = EnumSet.noneOf(PrimaryOrder.class);
-		supportedPrimaryOrders.add(PrimaryOrder.DstBlt);
-		supportedPrimaryOrders.add(PrimaryOrder.PatBlt);
-		supportedPrimaryOrders.add(PrimaryOrder.OpaqueRect); // Note: same ID as PatBlt
+		supportedPrimaryOrders.add(PrimaryOrder.DSTBLT);
+		supportedPrimaryOrders.add(PrimaryOrder.PATBLT);
+		supportedPrimaryOrders.add(PrimaryOrder.OPAQUERECT); // Note: same ID as PatBlt
 		if (options.bitmap_caching) {
-			supportedPrimaryOrders.add(PrimaryOrder.MemBlt);
+			supportedPrimaryOrders.add(PrimaryOrder.MEMBLT);
 		}
-		supportedPrimaryOrders.add(PrimaryOrder.ScrBlt);
-		supportedPrimaryOrders.add(PrimaryOrder.LineTo);
+		supportedPrimaryOrders.add(PrimaryOrder.SCRBLT);
+		supportedPrimaryOrders.add(PrimaryOrder.LINETO);
 		if (true/*SAVE_DESKTOP*/) {
-			supportedPrimaryOrders.add(PrimaryOrder.SaveBitmap);
+			supportedPrimaryOrders.add(PrimaryOrder.SAVEBITMAP);
 		}
-		supportedPrimaryOrders.add(PrimaryOrder.Mem3Blt);
-		supportedPrimaryOrders.add(PrimaryOrder.Polyline);
-		supportedPrimaryOrders.add(PrimaryOrder.GlyphIndex);
+		supportedPrimaryOrders.add(PrimaryOrder.MEM3BLT);
+		supportedPrimaryOrders.add(PrimaryOrder.POLYLINE);
+		supportedPrimaryOrders.add(PrimaryOrder.GLYPHINDEX);
 		if (options.polygon_ellipse_orders) {
 			// polygon, polygon2, ellipse, ellipse2
 		}
@@ -356,7 +356,7 @@ public class Orders {
 
 	public void resetOrderState() {
 		this.os.reset();
-		os.setOrderType(PrimaryOrder.PatBlt); // Is this correct?
+		os.setOrderType(PrimaryOrder.PATBLT); // Is this correct?
 		return;
 	}
 
@@ -437,34 +437,34 @@ public class Orders {
 
 				logger.debug("Primary order: " + orderType);
 				switch (orderType) {
-				case DstBlt:
+				case DSTBLT:
 					this.processDestBlt(data, os.getDestBlt(), present, delta); break;
 
-				case PatBlt:
+				case PATBLT:
 					this.processPatBlt(data, os.getPatBlt(), present, delta); break;
 
-				case ScrBlt:
+				case SCRBLT:
 					this.processScreenBlt(data, os.getScreenBlt(), present, delta); break;
 
-				case LineTo:
+				case LINETO:
 					this.processLine(data, os.getLine(), present, delta); break;
 
-				case OpaqueRect:
+				case OPAQUERECT:
 					this.processRectangle(data, os.getRectangle(), present, delta); break;
 
-				case SaveBitmap:
+				case SAVEBITMAP:
 					this.processDeskSave(data, os.getDeskSave(), present, delta); break;
 
-				case MemBlt:
+				case MEMBLT:
 					this.processMemBlt(data, os.getMemBlt(), present, delta); break;
 
-				case Mem3Blt:
+				case MEM3BLT:
 					this.processTriBlt(data, os.getTriBlt(), present, delta); break;
 
-				case Polyline:
+				case POLYLINE:
 					this.processPolyLine(data, os.getPolyLine(), present, delta); break;
 
-				case GlyphIndex:
+				case GLYPHINDEX:
 					this.processText2(data, os.getText2(), present, delta); break;
 
 				default:

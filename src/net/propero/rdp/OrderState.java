@@ -44,7 +44,7 @@ import net.propero.rdp.orders.Text2Order;
 import net.propero.rdp.orders.TriBltOrder;
 
 class OrderState {
-	private PrimaryOrder order_type = PrimaryOrder.DstBlt;
+	private PrimaryOrder order_type = PrimaryOrder.DSTBLT;
 
 	private BoundsOrder bounds = null;
 
