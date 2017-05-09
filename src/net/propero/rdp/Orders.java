@@ -353,7 +353,80 @@ public class Orders {
 		}
 	}
 
-	// TODO: AltSec orders
+	/**
+	 * Different alternate secondary orders.
+	 *
+	 * @see [MS-RDPEGDI] 2.2.2.2.1.3.1.1 (orderType)
+	 */
+	public static enum AltSecondaryOrder {
+		/** Switch Surface Alternate Secondary Drawing Order (see section 2.2.2.2.1.3.3). */
+		TS_ALTSEC_SWITCH_SURFACE(0x00),
+		/** Create Offscreen Bitmap Alternate Secondary Drawing Order (see section 2.2.2.2.1.3.2). */
+		TS_ALTSEC_CREATE_OFFSCR_BITMAP(0x01),
+		/** Stream Bitmap First (Revision 1 and 2) Alternate Secondary Drawing Order (see section 2.2.2.2.1.3.5.1). */
+		TS_ALTSEC_STREAM_BITMAP_FIRST(0x02),
+		/** Stream Bitmap Next Alternate Secondary Drawing Order (see section 2.2.2.2.1.3.5.2). */
+		TS_ALTSEC_STREAM_BITMAP_NEXT(0x03),
+		/** Create NineGrid Bitmap Alternate Secondary Drawing Order (see section 2.2.2.2.1.3.4). */
+		TS_ALTSEC_CREATE_NINEGRID_BITMAP(0x04),
+		/** Draw GDI+ First Alternate Secondary Drawing Order (see section 2.2.2.2.1.3.6.2). */
+		TS_ALTSEC_GDIP_FIRST(0x05),
+		/** Draw GDI+ Next Alternate Secondary Drawing Order (see section 2.2.2.2.1.3.6.3). */
+		TS_ALTSEC_GDIP_NEXT(0x06),
+		/** Draw GDI+ End Alternate Secondary Drawing Order (see section 2.2.2.2.1.3.6.4). */
+		TS_ALTSEC_GDIP_END(0x07),
+		/** Draw GDI+ First Alternate Secondary Drawing Order (see section 2.2.2.2.1.3.6.2). */
+		TS_ALTSEC_GDIP_CACHE_FIRST(0x08),
+		/** Draw GDI+ Cache Next Alternate Secondary Drawing Order (see section 2.2.2.2.1.3.6.3). */
+		TS_ALTSEC_GDIP_CACHE_NEXT(0x09),
+		/** Draw GDI+ Cache End Alternate Secondary Drawing Order (see section 2.2.2.2.1.3.6.4). */
+		TS_ALTSEC_GDIP_CACHE_END(0x0A),
+		/** Windowing Alternate Secondary Drawing Order (see [MS-RDPERP] section 2.2.1.3). */
+		TS_ALTSEC_WINDOW(0x0B),
+		/** Desktop Composition Alternate Secondary Drawing Order (see [MS-RDPEDC] section 2.2.1.1). */
+		TS_ALTSEC_COMPDESK_FIRST(0x0C),
+		/** Frame Marker Alternate Secondary Drawing Order (see section 2.2.2.2.1.3.7) */
+		TS_ALTSEC_FRAME_MARKER(0x0D);
+
+		public final int id;
+
+		private AltSecondaryOrder(int id) {
+			this.id = id;
+		}
+
+		@Override
+		public String toString() {
+			return super.toString() + " (id=0x" + Integer.toHexString(id) + ")";
+		}
+
+		/**
+		 * Gets a AltSecondaryOrder with the given ID.
+		 * @param id The ID
+		 * @return The given AltSecondaryOrder (non-null)
+		 * @throws IllegalArgumentException If there is no AltSecondaryOrder with that ID
+		 */
+		public static AltSecondaryOrder forId(int id) {
+			for (AltSecondaryOrder order : values()) {
+				if (order.id == id) {
+					return order;
+				}
+			}
+			throw new IllegalArgumentException("No secondary order with ID " + id);
+		}
+
+		/**
+		 * Gets an AltSecondaryOrder for the given ID in the controlFlags field.
+		 * The ID for an altsec order is in bits 2 to 7.
+		 *
+		 * @param controlFlags
+		 *            The controlFlags field of a packet
+		 * @return The given AltSecondaryOrder (non-null)
+		 * @throws IllegalArgumentException If there is no AltSecondaryOrder with that ID
+		 */
+		public static AltSecondaryOrder forPacketId(int controlFlags) {
+			return forId(controlFlags >> 2);
+		}
+	}
 
 	/**
 	 * All primary orders that are supported 
@@ -1549,7 +1622,8 @@ public class Orders {
 		assert (controlFlags & RDP_ORDER_STANDARD) == 0;
 		assert (controlFlags & RDP_ORDER_SECONDARY) != 0;
 
-		// TODO
+		AltSecondaryOrder order = AltSecondaryOrder.forPacketId(controlFlags);
+		logger.debug("Altsec order: " + order);
 		throw new OrderException("Alternate secondary orders aren't implemented");
 	}
 
