@@ -344,8 +344,7 @@ public class Rdp {
 			logger.warn(msg);
 			options.width = width;
 			options.height = height;
-			throw new RdesktopException("Unimplemented size change: " + msg);
-			// ui_resize_window(); TODO: implement resize thingy
+			this.surface.sizeChanged();
 		}
 	}
 
@@ -1113,12 +1112,10 @@ public class Rdp {
 		data.setLittleEndian16(options.height); /* Desktop height */
 		data.setLittleEndian16(0); /* Pad */
 		data.setLittleEndian16(1); /* Allow resize */
-		data.setLittleEndian16(options.bitmap_compression ? 1 : 0); /*
-																	 * Support
-																	 * compression
-																	 */
-		data.setLittleEndian16(0); /* Unknown */
-		data.setLittleEndian16(1); /* Unknown */
+		data.setLittleEndian16(options.bitmap_compression ? 1 : 0); /* Support compression */
+		data.set8(0); /* highColorFlags */
+		data.set8(0); /* drawingFlags */
+		data.setLittleEndian16(1); /* multipleRectangleSupport */
 		data.setLittleEndian16(0); /* Pad */
 	}
 

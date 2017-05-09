@@ -59,11 +59,11 @@ import org.apache.logging.log4j.Logger;
 // import org.apache.log4j.NDC;
 
 public abstract class RdesktopCanvas extends Canvas {
-	static Logger logger = LogManager.getLogger(RdesktopCanvas.class);
+	protected static Logger logger = LogManager.getLogger(RdesktopCanvas.class);
 
 	private RasterOp rop = null;
 
-	WrappedImage backstore;
+	protected WrappedImage backstore;
 
 	// Graphics backstore_graphics;
 
@@ -1348,5 +1348,18 @@ public abstract class RdesktopCanvas extends Canvas {
 	 */
 	public void triggerReadyToSend() {
 		input.triggerReadyToSend();
+	}
+
+	/**
+	 * Notifies the canvas that the size changed.
+	 */
+	public void sizeChanged() {
+		int oldWidth = this.width;
+		int oldHeight = this.height;
+		this.width = options.width;
+		this.height = options.height;
+		this.setSize(this.width, this.height);
+		// TODO: actually resize the backing image, instead of trashing the old one
+		backstore = new WrappedImage(width, height, BufferedImage.TYPE_INT_RGB);
 	}
 }
