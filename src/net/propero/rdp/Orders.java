@@ -31,6 +31,8 @@ package net.propero.rdp;
 
 import java.awt.image.IndexColorModel;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.EnumSet;
 
 import net.propero.rdp.orders.BoundsOrder;
 import net.propero.rdp.orders.Brush;
@@ -91,41 +93,7 @@ public class Orders {
 
 	private static final int RDP_ORDER_TINY = 0x80;
 
-	/* standard order types */
-	private static final int RDP_ORDER_DESTBLT = 0;
-
-	private static final int RDP_ORDER_PATBLT = 1;
-
-	private static final int RDP_ORDER_SCREENBLT = 2;
-
-	private static final int RDP_ORDER_LINE = 9;
-
-	private static final int RDP_ORDER_RECT = 10;
-
-	private static final int RDP_ORDER_DESKSAVE = 11;
-
-	private static final int RDP_ORDER_MEMBLT = 13;
-
-	private static final int RDP_ORDER_TRIBLT = 14;
-
-	private static final int RDP_ORDER_POLYLINE = 22;
-
-	private static final int RDP_ORDER_TEXT2 = 27;
-
 	private int rect_colour;
-
-	/* secondary order types */
-	private static final int RDP_ORDER_RAW_BMPCACHE = 0;
-
-	private static final int RDP_ORDER_COLCACHE = 1;
-
-	private static final int RDP_ORDER_BMPCACHE = 2;
-
-	private static final int RDP_ORDER_FONTCACHE = 3;
-
-	private static final int RDP_ORDER_RAW_BMPCACHE2 = 4;
-
-	private static final int RDP_ORDER_BMPCACHE2 = 5;
 
 	private static final int MIX_TRANSPARENT = 0;
 
@@ -135,15 +103,260 @@ public class Orders {
 
 	private static final int TEXT2_IMPLICIT_X = 0x20;
 
+	/**
+	 * Different primary drawing orders. All section indications in docs inside are for
+	 * [MS-RDPEGDI] unless otherwise noted.
+	 *
+	 * @see [MS-RDPBCGR] section 2.2.7.1.3
+	 * @see [MS-RDPEGDI] section 2.2.2.2.1.1.2
+	 */
+	public static enum PrimaryOrder {
+		/** DstBlt (section 2.2.2.2.1.1.2.1) Primary Drawing Order. */
+		DstBlt(0x00, 0x00, 5, 1, 9),
+		/** MultiDstBlt (section 2.2.2.2.1.1.2.2) Primary Drawing Order. */
+		MultiDstBlt(0x0F, 0x0F, 7, 1, 395),
+		/** PatBlt (section 2.2.2.2.1.1.2.3) Primary Drawing Order. */
+		PatBlt(0x01, 0x01, 12, 2, 26),
+		/** MultiPatBlt (section 2.2.2.2.1.1.2.4) Primary Drawing Order. */
+		MultiPatBlt(0x10, 0x10, 14, 2, 412),
+		/** OpaqueRect (section 2.2.2.2.1.1.2.5) Primary Drawing Order. */
+		OpaqueRect(0x0A, 0x01, 7, 1, 11), // NOTE: negotiation id 0x01 is registered to both OpaqueRect and PatBlt
+		/** MultiOpaqueRect (section 2.2.2.2.1.1.2.6) Primary Drawing Order. */
+		MultiOpaqueRect(0x12, 0x12, 9, 2, 397),
+		/** ScrBlt (section 2.2.2.2.1.1.2.7) Primary Drawing Order. */
+		ScrBlt(0x02, 0x02, 7, 1, 13),
+		/** MultiScrBlt (section 2.2.2.2.1.1.2.8) Primary Drawing Order. */
+		MultiScrBlt(0x11, 0x11, 9, 2, 399),
+		/** MemBlt (section 2.2.2.2.1.1.2.9) Primary Drawing Order. */
+		MemBlt(0x0D, 0x03, 9, 2, 17),
+		/** Mem3Blt (section 2.2.2.2.1.1.2.10) Primary Drawing Order. */
+		Mem3Blt(0x0E, 0x04, 16, 3, 34),
+		/** LineTo (section 2.2.2.2.1.1.2.11) Primary Drawing Order. */
+		LineTo(0x09, 0x08, 10, 2, 19),
+		/** SaveBitmap (section 2.2.2.2.1.1.2.12) Primary Drawing Order. */
+		SaveBitmap(0x0B, 0x0B, 6, 1, 13),
+		/** GlyphIndex (section 2.2.2.2.1.1.2.13) Primary Drawing Order. */
+		GlyphIndex(0x1B, 0x1B, 22, 3, 297),
+		/** FastIndex (section 2.2.2.2.1.1.2.14) Primary Drawing Order. */
+		FastIndex(0x13, 0x13, 15, 2, 285),
+		/** FastGlyph (section 2.2.2.2.1.1.2.15) Primary Drawing Order. */
+		FastGlyph(0x18, 0x18, 15, 2, 285),
+		/** PolygonSC (section 2.2.2.2.1.1.2.16) Primary Drawing Order. */
+		PolygonSC(0x14, 0x14, 7, 1, 249),
+		/** PolygonCB (section 2.2.2.2.1.1.2.17) Primary Drawing Order. */
+		PolygonCB(0x15, 0x15, 13, 2, 263),
+		/** Polyline (section 2.2.2.2.1.1.2.18) Primary Drawing Order. */
+		Polyline(0x16, 0x16, 7, 1, 148),
+		/** EllipseSC (section 2.2.2.2.1.1.2.19) Primary Drawing Order. */
+		EllipseSC(0x19, 0x19, 7, 1, 13),
+		/** EllipseCB (section 2.2.2.2.1.1.2.20) Primary Drawing Order. */
+		EllipseCB(0x1A, 0x1A, 13, 2, 27),
+		/** DrawNineGrid (section 2.2.2.2.1.1.2.21) Primary Drawing Order. */
+		DrawNineGrid(0x07, 0x07, 5, 1, 10),
+		/** MultiDrawNineGrid (section 2.2.2.2.1.1.2.22) Primary Drawing Order. */
+		MultiDrawNineGrid(0x08, 0x09, 7, 1, 396);
+
+		public final int encodingNumber;
+		public final int negociationNumber;
+		public final int numFields;
+		public final int numFieldBytes;
+		public final int maxLength;
+
+		/**
+		 * Properties based off of the block of text next to each field.
+		 *
+		 * @param encodingNumber
+		 *            Number used for orderType
+		 * @param negociationNumber
+		 *            Index used for orderSupport
+		 * @param numFields
+		 *            Number of fields in the fieldFlags variable-length field
+		 * @param numFieldEncBytes
+		 *            Number of bytes for the fieldFlags variable; must be equal
+		 *            to <code>ceil(((numberOfOrderFields) + 1) / 8)</code>. I'm
+		 *            only including this for testing; maybe it isn't needed.
+		 * @param maxLength
+		 *            Maximum size of the order in bytes
+		 */
+		private PrimaryOrder(int encodingNumber, int negociationNumber, int numFields,
+				int numFieldEncBytes, int maxLength) {
+			if (encodingNumber < 0 || encodingNumber > 31) {
+				// "Soft" because the 31 requirement isn't imposed elsewhere, but we use it for array sizes.
+				// If something needs a larger number, this one can be boosted (others are protocol-required)
+				throw new AssertionError("Invalid encoding number " + numFields + "; must be >= 0 and <= 31 (soft)");
+			}
+			if (negociationNumber < 0 || negociationNumber > 31) {
+				throw new AssertionError("Invalid negociation number " + numFields + "; must be >= 0 and <= 31");
+			}
+			if (numFields < 0 || numFields > 23) {
+				throw new AssertionError("Invalid field count " + numFields + "; must be >= 0 and <= 23");
+			}
+			int expectedFieldCount = (int) Math.ceil((numFields + 1) / 8.0);
+			if (numFieldEncBytes != expectedFieldCount) {
+				throw new AssertionError("Expected the number of field bytes to be " + expectedFieldCount + " but was specified as " + numFieldEncBytes);
+			}
+
+			this.encodingNumber = encodingNumber;
+			this.negociationNumber = negociationNumber;
+			this.numFields = numFields;
+			this.numFieldBytes = numFieldEncBytes;
+			this.maxLength = maxLength;
+		}
+
+		@Override
+		public String toString() {
+			return super.toString() + " (encoding=0x" + Integer.toHexString(this.encodingNumber) + ", negociation=0x" + Integer.toHexString(this.negociationNumber) + ", numFields=" + numFields + ", numFieldBytes=" + numFieldBytes + ", maxLength=" + maxLength + ")";
+		}
+
+		private static final PrimaryOrder[] BY_ENCODING_NUMBER;
+		private static final PrimaryOrder[] BY_NEGOCIATION_NUMBER;
+
+		static {
+			BY_ENCODING_NUMBER = new PrimaryOrder[32]; // This 32 is soft
+			BY_NEGOCIATION_NUMBER = new PrimaryOrder[32]; // This is a hard max
+
+			for (PrimaryOrder order : values()) {
+				if (BY_ENCODING_NUMBER[order.encodingNumber] != null) {
+					throw new AssertionError("Duplicate encoding number!  "
+							+ order.encodingNumber
+							+ " is already registered to "
+							+ BY_ENCODING_NUMBER[order.encodingNumber]
+							+ "; can't register " + order + " over it!");
+				}
+				// Don't check BY_NEGOCIATION_NUMBER, as (sadly) it's registered
+				// twice for some things
+				BY_ENCODING_NUMBER[order.encodingNumber] = order;
+				BY_NEGOCIATION_NUMBER[order.negociationNumber] = order;
+			}
+		}
+
+		/**
+		 * Gets a PrimaryOrder with the given encoding number.
+		 * @param encodingNumber The number
+		 * @return The given PrimaryOrder (non-null)
+		 * @throws IndexOutOfBoundsException When encodingNumber is too small
+		 * @throws IllegalArgumentException If there is no PrimaryOrder with that ID
+		 */
+		public static PrimaryOrder forEncodingNumber(int encodingNumber) {
+			if (encodingNumber < 0) {
+				throw new IndexOutOfBoundsException("Invalid encoding number (<0): " + encodingNumber);
+			}
+			if (encodingNumber >= BY_ENCODING_NUMBER.length || BY_ENCODING_NUMBER[encodingNumber] == null) {
+				throw new IllegalArgumentException("No PrimaryOrder with encoding number " + encodingNumber);
+			}
+			return BY_ENCODING_NUMBER[encodingNumber];
+		}
+
+		/**
+		 * Gets a PrimaryOrder with the given negotiation number.
+		 * @param negociationNumber The number
+		 * @return The given PrimaryOrder (non-null)
+		 * @throws IndexOutOfBoundsException When negociationNumber is too small or too big
+		 * @throws IllegalArgumentException If there is no PrimaryOrder with that ID
+		 */
+		public static PrimaryOrder forNegociationNumber(int negociationNumber) {
+			if (negociationNumber < 0 || negociationNumber > 31) {
+				throw new IndexOutOfBoundsException("Invalid encoding number (<0 or >31): " + negociationNumber);
+			}
+			if (BY_NEGOCIATION_NUMBER[negociationNumber] == null) {
+				throw new IllegalArgumentException("No PrimaryOrder with negociation number " + negociationNumber);
+			}
+			return BY_NEGOCIATION_NUMBER[negociationNumber];
+		}
+	}
+
+	/**
+	 * Different secondary (caching) orders.
+	 *
+	 * @see [MS-RDPEGDI] 2.2.2.2.1.2.1.1 (orderType)
+	 */
+	public static enum SecondaryOrder {
+		/** Cache Bitmap - Revision 1 (section 2.2.2.2.1.2.2) Secondary Drawing Order with an uncompressed bitmap. */
+		BITMAP_UNCOMPRESSED(0x00),
+		/** Cache Color Table (section 2.2.2.2.1.2.4) Secondary Drawing Order. */
+		COLOR_TABLE(0x01),
+		/** Cache Bitmap - Revision 1 (section 2.2.2.2.1.2.2) Secondary Drawing Order with a compressed bitmap. */
+		BITMAP_COMPRESSED(0x02),
+		/** Cache Glyph - Revision 1 (section 2.2.2.2.1.2.5) or Cache Glyph - Revision 2 (section 2.2.2.2.1.2.6) Secondary Drawing Order. The version is indicated by the extraFlags field. */
+		GLYPH(0x03),
+		/** Cache Bitmap - Revision 2 (section 2.2.2.2.1.2.3) Secondary Drawing Order with an uncompressed bitmap. */
+		BITMAP_UNCOMPRESSED_REV2(0x04),
+		/** Cache Bitmap - Revision 2 (section 2.2.2.2.1.2.3) Secondary Drawing Order with a compressed bitmap. */
+		BITMAP_COMPRESSED_REV2(0x05),
+		/** Cache Brush (section 2.2.2.2.1.2.7) Secondary Drawing Order. */
+		BRUSH(0x07),
+		/** Cache Bitmap - Revision 3 (section 2.2.2.2.1.2.8) Secondary Drawing Order with a compressed bitmap. */
+		BITMAP_COMPRESSED_REV3(0x08);
+	
+		public final int id;
+
+		/**
+		 * @param id The numeric ID for this secondary order.
+		 */
+		private SecondaryOrder(int id) {
+			this.id = id;
+		}
+
+		/**
+		 * Gets a SecondaryOrder with the given ID.
+		 * @param id The ID
+		 * @return The given SecondaryOrder (non-null)
+		 * @throws IllegalArgumentException If there is no SecondaryOrder with that ID
+		 */
+		public static SecondaryOrder forId(int id) {
+			for (SecondaryOrder order : values()) {
+				if (order.id == id) {
+					return order;
+				}
+			}
+			throw new IllegalArgumentException("No secondary order with ID " + id);
+		}
+
+		@Override
+		public String toString() {
+			return super.toString() + " (id=0x" + Integer.toHexString(id) + ")";
+		}
+	}
+
+	// TODO: AltSec orders
+
+	/**
+	 * All primary orders that are supported 
+	 */
+	private final EnumSet<PrimaryOrder> supportedPrimaryOrders;
+
 	protected final Options options;
 	public Orders(Options options) {
 		os = new OrderState();
 		this.options = options;
+
+		supportedPrimaryOrders = EnumSet.noneOf(PrimaryOrder.class);
+		supportedPrimaryOrders.add(PrimaryOrder.DstBlt);
+		supportedPrimaryOrders.add(PrimaryOrder.PatBlt);
+		supportedPrimaryOrders.add(PrimaryOrder.OpaqueRect); // Note: same ID as PatBlt
+		if (options.bitmap_caching) {
+			supportedPrimaryOrders.add(PrimaryOrder.MemBlt);
+		}
+		supportedPrimaryOrders.add(PrimaryOrder.ScrBlt);
+		supportedPrimaryOrders.add(PrimaryOrder.LineTo);
+		if (true/*SAVE_DESKTOP*/) {
+			supportedPrimaryOrders.add(PrimaryOrder.SaveBitmap);
+		}
+		supportedPrimaryOrders.add(PrimaryOrder.Mem3Blt);
+		supportedPrimaryOrders.add(PrimaryOrder.Polyline);
+		supportedPrimaryOrders.add(PrimaryOrder.GlyphIndex);
+		if (options.polygon_ellipse_orders) {
+			// polygon, polygon2, ellipse, ellipse2
+		}
+	}
+
+	public Collection<PrimaryOrder> getSupportedPrimaryOrders() {
+		return supportedPrimaryOrders;
 	}
 
 	public void resetOrderState() {
 		this.os.reset();
-		os.setOrderType(RDP_ORDER_PATBLT);
+		os.setOrderType(PrimaryOrder.PatBlt); // Is this correct?
 		return;
 	}
 
@@ -188,14 +401,11 @@ public class Orders {
 			int n_orders) throws OrderException, RdesktopException {
 
 		int present = 0;
-		// int n_orders = 0;
-		int order_flags = 0, order_type = 0;
-		int size = 0, processed = 0;
-		boolean delta;
+		int processed = 0;
 
 		while (processed < n_orders) {
 
-			order_flags = data.get8();
+			int order_flags = data.get8();
 
 			if ((order_flags & RDP_ORDER_STANDARD) == 0) {
 				throw new OrderException("Order parsing failed!");
@@ -206,24 +416,11 @@ public class Orders {
 			} else {
 
 				if ((order_flags & RDP_ORDER_CHANGE) != 0) {
-					os.setOrderType(data.get8());
+					os.setOrderType(PrimaryOrder.forEncodingNumber(data.get8()));
 				}
 
-				switch (os.getOrderType()) {
-				case RDP_ORDER_TRIBLT:
-				case RDP_ORDER_TEXT2:
-					size = 3;
-					break;
-
-				case RDP_ORDER_PATBLT:
-				case RDP_ORDER_MEMBLT:
-				case RDP_ORDER_LINE:
-					size = 2;
-					break;
-
-				default:
-					size = 1;
-				}
+				PrimaryOrder orderType = os.getOrderType();
+				int size = orderType.numFieldBytes;
 
 				present = this.inPresent(data, order_flags, size);
 
@@ -236,67 +433,42 @@ public class Orders {
 					surface.setClip(os.getBounds());
 				}
 
-				delta = ((order_flags & RDP_ORDER_DELTA) != 0);
+				boolean delta = ((order_flags & RDP_ORDER_DELTA) != 0);
 
-				switch (os.getOrderType()) {
-				case RDP_ORDER_DESTBLT:
-					logger.debug("DestBlt Order");
-					this.processDestBlt(data, os.getDestBlt(), present, delta);
-					break;
+				logger.debug("Primary order: " + orderType);
+				switch (orderType) {
+				case DstBlt:
+					this.processDestBlt(data, os.getDestBlt(), present, delta); break;
 
-				case RDP_ORDER_PATBLT:
-					logger.debug("PatBlt Order");
-					this.processPatBlt(data, os.getPatBlt(), present, delta);
-					break;
+				case PatBlt:
+					this.processPatBlt(data, os.getPatBlt(), present, delta); break;
 
-				case RDP_ORDER_SCREENBLT:
-					logger.debug("ScreenBlt Order");
-					this.processScreenBlt(data, os.getScreenBlt(), present,
-							delta);
-					break;
+				case ScrBlt:
+					this.processScreenBlt(data, os.getScreenBlt(), present, delta); break;
 
-				case RDP_ORDER_LINE:
-					logger.debug("Line Order");
-					this.processLine(data, os.getLine(), present, delta);
-					break;
+				case LineTo:
+					this.processLine(data, os.getLine(), present, delta); break;
 
-				case RDP_ORDER_RECT:
-					logger.debug("Rectangle Order");
-					this.processRectangle(data, os.getRectangle(), present,
-							delta);
-					break;
+				case OpaqueRect:
+					this.processRectangle(data, os.getRectangle(), present, delta); break;
 
-				case RDP_ORDER_DESKSAVE:
-					logger.debug("Desksave!");
-					this
-							.processDeskSave(data, os.getDeskSave(), present,
-									delta);
-					break;
+				case SaveBitmap:
+					this.processDeskSave(data, os.getDeskSave(), present, delta); break;
 
-				case RDP_ORDER_MEMBLT:
-					logger.debug("MemBlt Order");
-					this.processMemBlt(data, os.getMemBlt(), present, delta);
-					break;
+				case MemBlt:
+					this.processMemBlt(data, os.getMemBlt(), present, delta); break;
 
-				case RDP_ORDER_TRIBLT:
-					logger.debug("TriBlt Order");
-					this.processTriBlt(data, os.getTriBlt(), present, delta);
-					break;
+				case Mem3Blt:
+					this.processTriBlt(data, os.getTriBlt(), present, delta); break;
 
-				case RDP_ORDER_POLYLINE:
-					logger.debug("Polyline Order");
-					this
-							.processPolyLine(data, os.getPolyLine(), present,
-									delta);
-					break;
+				case Polyline:
+					this.processPolyLine(data, os.getPolyLine(), present, delta); break;
 
-				case RDP_ORDER_TEXT2:
-					logger.debug("Text2 Order");
-					this.processText2(data, os.getText2(), present, delta);
-					break;
+				case GlyphIndex:
+					this.processText2(data, os.getText2(), present, delta); break;
 
 				default:
-					logger.warn("Unimplemented Order type " + order_type);
+					logger.warn("Unimplemented Order type " + orderType);
 					return;
 				}
 
@@ -344,39 +516,34 @@ public class Orders {
 	private void processSecondaryOrders(RdpPacket_Localised data)
 			throws RdesktopException {
 		int length = 0;
-		int type = 0;
 		int flags = 0;
 		int next_order = 0;
 
 		length = data.getLittleEndian16();
 		flags = data.getLittleEndian16();
-		type = data.get8();
+		SecondaryOrder type = SecondaryOrder.forId(data.get8());
 
 		next_order = data.getPosition() + length + 7;
 
+		logger.debug("Secondary order: " + type);
 		switch (type) {
-
-		case RDP_ORDER_RAW_BMPCACHE:
-			logger.debug("Raw BitmapCache Order");
+		case BITMAP_UNCOMPRESSED:
 			this.processRawBitmapCache(data);
 			break;
 
-		case RDP_ORDER_COLCACHE:
-			logger.debug("Colorcache Order");
+		case COLOR_TABLE:
 			this.processColorCache(data);
 			break;
 
-		case RDP_ORDER_BMPCACHE:
-			logger.debug("Bitmapcache Order");
+		case BITMAP_COMPRESSED:
 			this.processBitmapCache(data);
 			break;
 
-		case RDP_ORDER_FONTCACHE:
-			logger.debug("Fontcache Order");
+		case GLYPH:
 			this.processFontCache(data);
 			break;
 
-		case RDP_ORDER_RAW_BMPCACHE2:
+		case BITMAP_UNCOMPRESSED_REV2:
 			try {
 				this.process_bmpcache2(data, flags, false);
 			} catch (IOException e) {
@@ -384,7 +551,7 @@ public class Orders {
 			} /* uncompressed */
 			break;
 
-		case RDP_ORDER_BMPCACHE2:
+		case BITMAP_COMPRESSED_REV2:
 			try {
 				this.process_bmpcache2(data, flags, true);
 			} catch (IOException e) {

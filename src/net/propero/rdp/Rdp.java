@@ -40,6 +40,7 @@ import java.net.InetAddress;
 import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
 
+import net.propero.rdp.Orders.PrimaryOrder;
 import net.propero.rdp.crypto.CryptoException;
 import net.propero.rdp.rdp5.Rdp5;
 import net.propero.rdp.rdp5.VChannels;
@@ -1121,47 +1122,40 @@ public class Rdp {
 
 	private void sendOrderCaps(RdpPacket_Localised data) {
 
-		byte[] order_caps = new byte[32];
-		order_caps[0] = 1; /* dest blt */
-		order_caps[1] = 1; /* pat blt */// nb no rectangle orders if this is 0
-		order_caps[2] = 1; /* screen blt */
-		order_caps[3] = (byte) (options.bitmap_caching ? 1 : 0); /* memblt */
-		order_caps[4] = 0; /* triblt */
-		order_caps[8] = 1; /* line */
-		order_caps[9] = 1; /* line */
-		order_caps[10] = 1; /* rect */
-		order_caps[11] = (SAVE_DESKTOP ? 1 : 0); /* desksave */
-		order_caps[13] = 1; /* memblt */
-		order_caps[14] = 1; /* triblt */
-		order_caps[20] = (byte) (options.polygon_ellipse_orders ? 1 : 0); /* polygon */
-		order_caps[21] = (byte) (options.polygon_ellipse_orders ? 1 : 0); /* polygon2 */
-		order_caps[22] = 1; /* polyline */
-		order_caps[25] = (byte) (options.polygon_ellipse_orders ? 1 : 0); /* ellipse */
-		order_caps[26] = (byte) (options.polygon_ellipse_orders ? 1 : 0); /* ellipse2 */
-		order_caps[27] = 1; /* text2 */
 		sendCapHeader(data, Capset.ORDER);
 
-		data.incrementPosition(20); /* Terminal desc, pad */
+		data.incrementPosition(16); /* Terminal desc */
+		data.incrementPosition(4); /* Pad */
 		data.setLittleEndian16(1); /* Cache X granularity */
 		data.setLittleEndian16(20); /* Cache Y granularity */
 		data.setLittleEndian16(0); /* Pad */
 		data.setLittleEndian16(1); /* Max order level */
 		data.setLittleEndian16(0x147); /* Number of fonts */
-		data.setLittleEndian16(0x2a); /* Capability flags */
-		data.copyFromByteArray(order_caps, 0, data.getPosition(), 32); /*
-																		 * Orders
-																		 * supported
-																		 */
+		int orderFlags = 0x2a;
+		orderFlags |= 0x0002; // NEGOTIATEORDERSUPPORT, required
+		orderFlags |= 0x0008; // ZEROBOUNDSDELTASSUPPORT, required
+		orderFlags |= 0x0020; // COLORINDEXSUPPORT, optional but provided
+		// orderFlags |= 0x0040; // SOLIDPATTERNBRUSHONLY, not supported
+		// orderFlags |= 0x0080; // ORDERFLAGS_EXTRA_FLAGS, Indicates that a previously pad value contains data
+		data.setLittleEndian16(orderFlags); /* Capability flags */
+		byte[] order_caps = new byte[32];
+		for (PrimaryOrder order : orders.getSupportedPrimaryOrders()) {
+			order_caps[order.negociationNumber] = 1;
+		}
+		data.copyFromByteArray(order_caps, 0, data.getPosition(), 32); /* Orders supported */
 		data.incrementPosition(32);
-		data.setLittleEndian16(0x6a1); /* Text capability flags */
-		data.incrementPosition(6); /* Pad */
-		data.setLittleEndian32(SAVE_DESKTOP ? 0x38400 : 0); /*
-																		 * Desktop
-																		 * cache
-																		 * size
-																		 */
-		data.setLittleEndian32(0); /* Unknown */
-		data.setLittleEndian32(0x4e4); /* Unknown */
+		int textFlags = 0x6a1;
+		data.setLittleEndian16(textFlags); /* Text capability flags, ignored (why are we setting this?) */
+		int orderFlagsEx = 0;
+		// orderFlagsEx |= 0x0002; // ORDERFLAGS_EX_CACHE_BITMAP_REV3_SUPPORT, supports bitmap cache v3
+		// orderFlagsEx |= 0x0004; // ORDERFLAGS_EX_ALTSEC_FRAME_MARKER_SUPPORT, supports secondary drawing
+		data.setLittleEndian16(orderFlagsEx); /* More order flags */
+		data.incrementPosition(4); /* Pad */
+		data.setLittleEndian32(SAVE_DESKTOP ? 0x38400 : 0); /* Desktop cache size */
+		data.incrementPosition(4); /* Pad */
+		int textANSICodePage = 0x4e4;
+		data.setLittleEndian16(textANSICodePage); /* textANSICodePage */
+		data.setLittleEndian16(0); /* Pad */
 	}
 
 	private void sendBitmapcacheCaps(RdpPacket_Localised data) {

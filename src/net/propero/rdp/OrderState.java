@@ -30,6 +30,7 @@
  */
 package net.propero.rdp;
 
+import net.propero.rdp.Orders.PrimaryOrder;
 import net.propero.rdp.orders.BoundsOrder;
 import net.propero.rdp.orders.DeskSaveOrder;
 import net.propero.rdp.orders.DestBltOrder;
@@ -43,7 +44,7 @@ import net.propero.rdp.orders.Text2Order;
 import net.propero.rdp.orders.TriBltOrder;
 
 class OrderState {
-	private int order_type = 0;
+	private PrimaryOrder order_type = PrimaryOrder.DstBlt;
 
 	private BoundsOrder bounds = null;
 
@@ -89,7 +90,7 @@ class OrderState {
 	 * 
 	 * @return Order type id
 	 */
-	public int getOrderType() {
+	public PrimaryOrder getOrderType() {
 		return this.order_type;
 	}
 
@@ -97,9 +98,9 @@ class OrderState {
 	 * Set the id of the current order type
 	 * 
 	 * @param order_type
-	 *            Type id to set for current order
+	 *            Type to set for current order
 	 */
-	public void setOrderType(int order_type) {
+	public void setOrderType(PrimaryOrder order_type) {
 		this.order_type = order_type;
 	}
 
