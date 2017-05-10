@@ -1453,7 +1453,7 @@ public class Rdp {
 
 	protected void processBitmapUpdates(RdpPacket_Localised data)
 			throws RdesktopException {
-		// logger.info("processBitmapUpdates");
+		logger.debug("processBitmapUpdates");
 		int n_updates = 0;
 		int left = 0, top = 0, right = 0, bottom = 0, width = 0, height = 0;
 		int cx = 0, cy = 0, bitsperpixel = 0, compression = 0, buffersize = 0, size = 0;
