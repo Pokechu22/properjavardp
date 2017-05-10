@@ -31,8 +31,13 @@ package net.propero.rdp;
 
 import java.awt.image.IndexColorModel;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 
 import net.propero.rdp.orders.BoundsOrder;
 import net.propero.rdp.orders.Brush;
@@ -89,9 +94,10 @@ public class Orders {
 	private static final int RDP_ORDER_STANDARD = 0x01, RDP_ORDER_SECONDARY = 0x02;
 
 	/**
-	 * Control flags that apply to a primary drawing order.
+	 * Flags that are used with primary drawing orders. Not all flags are from
+	 * the same type.
 	 *
-	 * @see [MS-RDPEGDI] 2.2.2.2.1.1.2 controlFlags
+	 * @see [MS-RDPEGDI] 2.2.2.2.1.1.2 controlFlags, bounds
 	 */
 	private static class PrimaryOrderFlags {
 		/**
@@ -126,9 +132,25 @@ public class Orders {
 		 * present, counted from the end of the set of field flag bytes.
 		 */
 		private static final int ZERO_FIELD_BYTE_BIT0 = 0x40, ZERO_FIELD_BYTE_BIT1 = 0x80;
-	}
 
-	private int rect_colour;
+		// --- bounds flags ---
+		/** Indicates that the left bound is present and encoded as a 2-byte, little-endian ordered value. */
+		private static final int BOUND_LEFT = 0x01;
+		/** Indicates that the top bound is present and encoded as a 2-byte, little-endian ordered value. */
+		private static final int BOUND_TOP = 0x02;
+		/** Indicates that the right bound is present and encoded as a 2-byte, little-endian ordered value. */
+		private static final int BOUND_RIGHT = 0x04;
+		/** Indicates that the bottom bound is present and encoded as a 2-byte, little-endian ordered value. */
+		private static final int BOUND_BOTTOM = 0x08;
+		/** Indicates that the left bound is present and encoded as a 1-byte signed value used as an offset (-128 to 127) from the previous value. */
+		private static final int BOUND_DELTA_LEFT = 0x10;
+		/** Indicates that the top bound is present and encoded as a 1-byte signed value used as an offset (-128 to 127) from the previous value. */
+		private static final int BOUND_DELTA_TOP = 0x20;
+		/** Indicates that the right bound is present and encoded as a 1-byte, signed value used as an offset (-128 to 127) from the previous value. */
+		private static final int BOUND_DELTA_RIGHT = 0x40;
+		/** Indicates that the bottom bound is present and encoded as a 1-byte, signed value used as an offset (-128 to 127) from the previous value. */
+		private static final int BOUND_DELTA_BOTTOM = 0x80;
+	}
 
 	private static final int MIX_TRANSPARENT = 0;
 
@@ -469,14 +491,14 @@ public class Orders {
 	}
 
 	/**
-	 * Gets flags for the given primary order.
+	 * Gets the list of present fields for the given primary order.
 	 *
 	 * @param data The packet to read from
 	 * @param controlFlags The controlFlags field for the order
 	 * @param orderType The type of order
-	 * @return A bitmask of different flags.
+	 * @return A bitmask of what fields are present.
 	 */
-	private int getOrderFlags(RdpPacket_Localised data, int controlFlags, PrimaryOrder orderType) {
+	private int getPresentFields(RdpPacket_Localised data, int controlFlags, PrimaryOrder orderType) {
 		int ret = 0;
 		int size = orderType.numFieldBytes;
 
@@ -501,6 +523,12 @@ public class Orders {
 			ret |= (bits << (i * 8));
 		}
 
+		// Sanity check
+		int expectedHighestBit = (1 << (orderType.numFields - 1));
+		int highestBit = Integer.highestOneBit(ret);
+		if (highestBit> expectedHighestBit) {
+			logger.warn("More fields are set than expected; expected at max " + orderType.numFields + " fields but got 0b" + Integer.toBinaryString(ret));
+		}
 		return ret;
 	}
 
@@ -586,62 +614,139 @@ public class Orders {
 		if ((controlFlags & PrimaryOrderFlags.TYPE_CHANGE) != 0) {
 			os.setOrderType(PrimaryOrder.forEncodingNumber(data.get8()));
 		}
-	
+
 		PrimaryOrder orderType = os.getOrderType();
-	
-		int orderFlags = this.getOrderFlags(data, controlFlags, orderType);
-	
+
+		int orderFlags = this.getPresentFields(data, controlFlags, orderType);
+
 		if ((controlFlags & PrimaryOrderFlags.BOUNDS) != 0) {
-	
+
 			if ((controlFlags & PrimaryOrderFlags.ZERO_BOUNDS_DELTAS) == 0) {
 				this.parseBounds(data, os.getBounds());
 			}
-	
+
 			surface.setClip(os.getBounds());
 		}
-	
+
 		boolean delta = ((controlFlags & PrimaryOrderFlags.DELTA_COORDINATES) != 0);
-	
+
 		logger.debug("Primary order: " + orderType);
 		switch (orderType) {
 		case DSTBLT:
 			this.processDestBlt(data, os.getDestBlt(), orderFlags, delta); break;
-	
+
 		case PATBLT:
 			this.processPatBlt(data, os.getPatBlt(), orderFlags, delta); break;
-	
+
 		case SCRBLT:
 			this.processScreenBlt(data, os.getScreenBlt(), orderFlags, delta); break;
-	
+
 		case LINETO:
 			this.processLine(data, os.getLine(), orderFlags, delta); break;
-	
+
 		case OPAQUERECT:
 			this.processRectangle(data, os.getRectangle(), orderFlags, delta); break;
-	
+
 		case SAVEBITMAP:
 			this.processDeskSave(data, os.getDeskSave(), orderFlags, delta); break;
-	
+
 		case MEMBLT:
 			this.processMemBlt(data, os.getMemBlt(), orderFlags, delta); break;
-	
+
 		case MEM3BLT:
 			this.processTriBlt(data, os.getTriBlt(), orderFlags, delta); break;
-	
+
 		case POLYLINE:
 			this.processPolyLine(data, os.getPolyLine(), orderFlags, delta); break;
-	
+
 		case GLYPHINDEX:
 			this.processText2(data, os.getText2(), orderFlags, delta); break;
-	
+
 		default:
 			logger.warn("Unimplemented Order type " + orderType);
 			return;
 		}
-	
+
 		if ((controlFlags & PrimaryOrderFlags.BOUNDS) != 0) {
 			surface.resetClip();
 			logger.debug("Reset clip");
+		}
+	}
+
+	/**
+	 * Reads an optional field, logging info for debug purposes if needed.
+	 *
+	 * @param name The name of the field, for debugging
+	 * @param aggregate Optional place to debug log packet data.  May be null.
+	 * @param id The ID of the field (starting at 0)
+	 * @param present The present fields
+	 * @param setter What to call if the field is present to set it
+	 * @param reader What to call to read the field
+	 */
+	private static void readOptionalField(String name, StringBuilder aggregate, int id, int present, IntConsumer setter, IntSupplier reader) {
+		boolean has = (present & (1 << id)) != 0;
+
+		if (aggregate != null) {
+			if (aggregate.length() > 0) {
+				aggregate.append(", ");
+			}
+			aggregate.append(name);
+		}
+
+		if (has) {
+			int value = reader.getAsInt();
+			setter.accept(value);
+
+			if (aggregate != null) {
+				aggregate.append(" present and now set to ").append(value);
+			}
+		} else {
+			if (aggregate != null) {
+				aggregate.append(" not present");
+			}
+		}
+	}
+
+	/**
+	 * Reads an optional field, logging info for debug purposes if needed.
+	 *
+	 * @param name The name of the field, for debugging
+	 * @param aggregate Optional place to debug log packet data.  May be null.
+	 * @param id The ID of the field (starting at 0)
+	 * @param present The present fields
+	 * @param setter What to call if the field is present to set it
+	 * @param reader What to call to read the field
+	 */
+	private static <T> void readOptionalTypedField(String name, StringBuilder aggregate, int id, int present, Consumer<T> setter, Supplier<T> reader) {
+		boolean has = (present & (1 << id)) != 0;
+
+		if (aggregate != null) {
+			if (aggregate.length() > 0) {
+				aggregate.append(", ");
+			}
+			aggregate.append(name);
+		}
+
+		if (has) {
+			T value = reader.get();
+			setter.accept(value);
+
+			if (aggregate != null) {
+				aggregate.append(" present and now set to ");
+				if (value instanceof Object[]) {
+					aggregate.append(Arrays.deepToString((Object[]) value));
+				} else if (value instanceof int[]) {
+					aggregate.append(Arrays.toString((int[]) value));
+				} else if (value instanceof byte[]) {
+					aggregate.append(Arrays.toString((byte[]) value));
+				} else {
+					aggregate.append(value);
+				}
+			}
+		} else {
+			if (aggregate != null) {
+				aggregate.append(" not present");
+			}
 		}
 	}
 
@@ -660,45 +765,17 @@ public class Orders {
 	 */
 	private void processDestBlt(RdpPacket_Localised data, DestBltOrder destblt,
 			int present, boolean delta) {
-		if ((present & 0x01) != 0)
-			destblt.setX(setCoordinate(data, destblt.getX(), delta));
-		if ((present & 0x02) != 0)
-			destblt.setY(setCoordinate(data, destblt.getY(), delta));
-		if ((present & 0x04) != 0)
-			destblt.setCX(setCoordinate(data, destblt.getCX(), delta));
-		if ((present & 0x08) != 0)
-			destblt.setCY(setCoordinate(data, destblt.getCY(), delta));
-		if ((present & 0x10) != 0)
-			destblt.setOpcode(ROP2_S(data.get8()));
-		// if(logger.isInfoEnabled())
-		// logger.info("opcode="+destblt.getOpcode());
-		surface.drawDestBltOrder(destblt);
-	}
 
-	/**
-	 * Parse data defining a brush and store brush information
-	 * 
-	 * @param data
-	 *            Packet containing brush data
-	 * @param brush
-	 *            Brush object in which to store the brush description
-	 * @param present
-	 *            Flags defining the information available within the packet
-	 */
-	private void parseBrush(RdpPacket_Localised data, Brush brush, int present) {
-		if ((present & 0x01) != 0)
-			brush.setXOrigin(data.get8());
-		if ((present & 0x02) != 0)
-			brush.setXOrigin(data.get8());
-		if ((present & 0x04) != 0)
-			brush.setStyle(data.get8());
-		byte[] pat = brush.getPattern();
-		if ((present & 0x08) != 0)
-			pat[0] = (byte) data.get8();
-		if ((present & 0x10) != 0)
-			for (int i = 1; i < 8; i++)
-				pat[i] = (byte) data.get8();
-		brush.setPattern(pat);
+		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
+		readOptionalField("left", aggregate, 0, present, destblt::setX, coordinateReader(data, destblt.getX(), delta));
+		readOptionalField("top", aggregate, 1, present, destblt::setY, coordinateReader(data, destblt.getY(), delta));
+		readOptionalField("width", aggregate, 2, present, destblt::setCX, coordinateReader(data, destblt.getCX(), delta));
+		readOptionalField("height", aggregate, 3, present, destblt::setCY, coordinateReader(data, destblt.getCY(), delta));
+		readOptionalField("rop", aggregate, 4, present, destblt::setOpcode, () -> ROP2_S(data.get8()));
+
+		logger.debug(aggregate);
+
+		surface.drawDestBltOrder(destblt);
 	}
 
 	/**
@@ -716,22 +793,19 @@ public class Orders {
 	 */
 	private void processPatBlt(RdpPacket_Localised data, PatBltOrder patblt,
 			int present, boolean delta) {
-		if ((present & 0x01) != 0)
-			patblt.setX(setCoordinate(data, patblt.getX(), delta));
-		if ((present & 0x02) != 0)
-			patblt.setY(setCoordinate(data, patblt.getY(), delta));
-		if ((present & 0x04) != 0)
-			patblt.setCX(setCoordinate(data, patblt.getCX(), delta));
-		if ((present & 0x08) != 0)
-			patblt.setCY(setCoordinate(data, patblt.getCY(), delta));
-		if ((present & 0x10) != 0)
-			patblt.setOpcode(ROP2_P(data.get8()));
-		if ((present & 0x20) != 0)
-			patblt.setBackgroundColor(setColor(data));
-		if ((present & 0x40) != 0)
-			patblt.setForegroundColor(setColor(data));
-		parseBrush(data, patblt.getBrush(), present >> 7);
-		// if(logger.isInfoEnabled()) logger.info("opcode="+patblt.getOpcode());
+		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
+
+		readOptionalField("left", aggregate, 0, present, patblt::setX, coordinateReader(data, patblt.getX(), delta));
+		readOptionalField("top", aggregate, 1, present, patblt::setY, coordinateReader(data, patblt.getY(), delta));
+		readOptionalField("width", aggregate, 2, present, patblt::setCX, coordinateReader(data, patblt.getCX(), delta));
+		readOptionalField("height", aggregate, 3, present, patblt::setCY, coordinateReader(data, patblt.getCY(), delta));
+		readOptionalField("rop", aggregate, 4, present, patblt::setOpcode, () -> ROP2_P(data.get8()));
+		readOptionalField("backgroundColor", aggregate, 5, present, patblt::setBackgroundColor, colorReader(data));
+		readOptionalField("foregroundColor", aggregate, 6, present, patblt::setForegroundColor, colorReader(data));
+		parseBrush(data, patblt.getBrush(), 7, present, aggregate);
+
+		logger.debug(aggregate);
+
 		surface.drawPatBltOrder(patblt);
 	}
 
@@ -750,22 +824,18 @@ public class Orders {
 	 */
 	private void processScreenBlt(RdpPacket_Localised data,
 			ScreenBltOrder screenblt, int present, boolean delta) {
-		if ((present & 0x01) != 0)
-			screenblt.setX(setCoordinate(data, screenblt.getX(), delta));
-		if ((present & 0x02) != 0)
-			screenblt.setY(setCoordinate(data, screenblt.getY(), delta));
-		if ((present & 0x04) != 0)
-			screenblt.setCX(setCoordinate(data, screenblt.getCX(), delta));
-		if ((present & 0x08) != 0)
-			screenblt.setCY(setCoordinate(data, screenblt.getCY(), delta));
-		if ((present & 0x10) != 0)
-			screenblt.setOpcode(ROP2_S(data.get8()));
-		if ((present & 0x20) != 0)
-			screenblt.setSrcX(setCoordinate(data, screenblt.getSrcX(), delta));
-		if ((present & 0x40) != 0)
-			screenblt.setSrcY(setCoordinate(data, screenblt.getSrcY(), delta));
-		// if(logger.isInfoEnabled())
-		// logger.info("opcode="+screenblt.getOpcode());
+		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
+
+		readOptionalField("left", aggregate, 0, present, screenblt::setX, coordinateReader(data, screenblt.getX(), delta));
+		readOptionalField("top", aggregate, 1, present, screenblt::setY, coordinateReader(data, screenblt.getY(), delta));
+		readOptionalField("width", aggregate, 2, present, screenblt::setCX, coordinateReader(data, screenblt.getCX(), delta));
+		readOptionalField("height", aggregate, 3, present, screenblt::setCY, coordinateReader(data, screenblt.getCY(), delta));
+		readOptionalField("rop", aggregate, 4, present, screenblt::setOpcode, () -> ROP2_S(data.get8()));
+		readOptionalField("srcX", aggregate, 5, present, screenblt::setSrcX, coordinateReader(data, screenblt.getSrcX(), delta));
+		readOptionalField("srcY", aggregate, 6, present, screenblt::setSrcY, coordinateReader(data, screenblt.getSrcY(), delta));
+
+		logger.debug(aggregate);
+
 		surface.drawScreenBltOrder(screenblt);
 	}
 
@@ -784,33 +854,25 @@ public class Orders {
 	 */
 	private void processLine(RdpPacket_Localised data, LineOrder line,
 			int present, boolean delta) {
-		if ((present & 0x01) != 0)
-			line.setMixmode(data.getLittleEndian16());
-		if ((present & 0x02) != 0)
-			line.setStartX(setCoordinate(data, line.getStartX(), delta));
-		if ((present & 0x04) != 0)
-			line.setStartY(setCoordinate(data, line.getStartY(), delta));
-		if ((present & 0x08) != 0)
-			line.setEndX(setCoordinate(data, line.getEndX(), delta));
-		if ((present & 0x10) != 0)
-			line.setEndY(setCoordinate(data, line.getEndY(), delta));
-		if ((present & 0x20) != 0)
-			line.setBackgroundColor(setColor(data));
-		if ((present & 0x40) != 0)
-			line.setOpcode(data.get8());
+		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
 
-		parsePen(data, line.getPen(), present >> 7);
+		readOptionalField("backgroundMixMode", aggregate, 0, present, line::setMixmode, data::getLittleEndian16);
+		readOptionalField("startX", aggregate, 1, present, line::setStartX, coordinateReader(data, line.getStartX(), delta));
+		readOptionalField("startY", aggregate, 2, present, line::setStartY, coordinateReader(data, line.getStartY(), delta));
+		readOptionalField("endX", aggregate, 3, present, line::setEndX, coordinateReader(data, line.getEndX(), delta));
+		readOptionalField("endY", aggregate, 4, present, line::setEndY, coordinateReader(data, line.getEndY(), delta));
+		readOptionalField("backColor", aggregate, 5, present, line::setBackgroundColor, colorReader(data));
+		readOptionalField("rop2", aggregate, 6, present, line::setOpcode, data::get8);
 
-		// if(logger.isInfoEnabled()) logger.info("Line from
-		// ("+line.getStartX()+","+line.getStartY()+") to
-		// ("+line.getEndX()+","+line.getEndY()+")");
+		parsePen(data, line.getPen(), 7, present, aggregate);
+
+		logger.debug(aggregate);
 
 		if (line.getOpcode() < 0x01 || line.getOpcode() > 0x10) {
-			logger.warn("bad ROP2 0x" + line.getOpcode());
+			logger.warn("bad ROP2 0x" + Integer.toHexString(line.getOpcode()));
 			return;
 		}
 
-		// now draw the line
 		surface.drawLineOrder(line);
 	}
 
@@ -830,24 +892,21 @@ public class Orders {
 	 */
 	private void processRectangle(RdpPacket_Localised data,
 			RectangleOrder rect, int present, boolean delta) {
-		if ((present & 0x01) != 0)
-			rect.setX(setCoordinate(data, rect.getX(), delta));
-		if ((present & 0x02) != 0)
-			rect.setY(setCoordinate(data, rect.getY(), delta));
-		if ((present & 0x04) != 0)
-			rect.setCX(setCoordinate(data, rect.getCX(), delta));
-		if ((present & 0x08) != 0)
-			rect.setCY(setCoordinate(data, rect.getCY(), delta));
-		if ((present & 0x10) != 0)
-			this.rect_colour = (this.rect_colour & 0xffffff00) | data.get8(); // rect.setColor(setColor(data));
-		if ((present & 0x20) != 0)
-			this.rect_colour = (this.rect_colour & 0xffff00ff)
-					| (data.get8() << 8); // rect.setColor(setColor(data));
-		if ((present & 0x40) != 0)
-			this.rect_colour = (this.rect_colour & 0xff00ffff)
-					| (data.get8() << 16);
+		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
 
-		rect.setColor(this.rect_colour);
+		readOptionalField("left", aggregate, 0, present, rect::setX, coordinateReader(data, rect.getX(), delta));
+		readOptionalField("top", aggregate, 1, present, rect::setY, coordinateReader(data, rect.getY(), delta));
+		readOptionalField("width", aggregate, 2, present, rect::setCX, coordinateReader(data, rect.getCX(), delta));
+		readOptionalField("height", aggregate, 3, present, rect::setCY, coordinateReader(data, rect.getCY(), delta));
+
+		// This splits colors into 3 portions
+		// TODO: palette indexes
+		readOptionalField("red", aggregate, 4, present, rect::setR, data::get8);
+		readOptionalField("green", aggregate, 5, present, rect::setG, data::get8);
+		readOptionalField("blue", aggregate, 6, present, rect::setB, data::get8);
+
+		logger.debug(aggregate);
+
 		surface.drawRectangleOrder(rect);
 	}
 
@@ -869,35 +928,20 @@ public class Orders {
 	private void processDeskSave(RdpPacket_Localised data,
 			DeskSaveOrder desksave, int present, boolean delta)
 			throws RdesktopException {
-		int width = 0, height = 0;
+		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
 
-		if ((present & 0x01) != 0) {
-			desksave.setOffset(data.getLittleEndian32());
-		}
+		readOptionalField("savedBitmapPosition", aggregate, 0, present, desksave::setOffset, data::getLittleEndian32);
+		readOptionalField("left", aggregate, 1, present, desksave::setLeft, coordinateReader(data, desksave.getLeft(), delta));
+		readOptionalField("top", aggregate, 2, present, desksave::setTop, coordinateReader(data, desksave.getTop(), delta));
+		readOptionalField("right", aggregate, 3, present, desksave::setRight, coordinateReader(data, desksave.getRight(), delta));
+		readOptionalField("bottom", aggregate, 4, present, desksave::setBottom, coordinateReader(data, desksave.getBottom(), delta));
+		readOptionalField("operation", aggregate, 5, present, desksave::setAction, data::get8);
 
-		if ((present & 0x02) != 0) {
-			desksave.setLeft(setCoordinate(data, desksave.getLeft(), delta));
-		}
+		logger.debug(aggregate);
 
-		if ((present & 0x04) != 0) {
-			desksave.setTop(setCoordinate(data, desksave.getTop(), delta));
-		}
-
-		if ((present & 0x08) != 0) {
-			desksave.setRight(setCoordinate(data, desksave.getRight(), delta));
-		}
-
-		if ((present & 0x10) != 0) {
-			desksave
-					.setBottom(setCoordinate(data, desksave.getBottom(), delta));
-		}
-
-		if ((present & 0x20) != 0) {
-			desksave.setAction(data.get8());
-		}
-
-		width = desksave.getRight() - desksave.getLeft() + 1;
-		height = desksave.getBottom() - desksave.getTop() + 1;
+		// Perform it
+		int width = desksave.getRight() - desksave.getLeft() + 1;
+		int height = desksave.getBottom() - desksave.getTop() + 1;
 
 		if (desksave.getAction() == 0) {
 			int[] pixel = surface.getImage(desksave.getLeft(), desksave
@@ -927,60 +971,22 @@ public class Orders {
 	 */
 	private void processMemBlt(RdpPacket_Localised data, MemBltOrder memblt,
 			int present, boolean delta) {
-		if (logger.isDebugEnabled())
-			logger.debug("memblt delta " + delta + " from " + memblt.getX() + "," + memblt.getY());
-		String info = "";
-		if ((present & 0x0001) != 0) {
-			memblt.setCacheID(data.get8());
-			memblt.setColorTable(data.get8());
-			if (logger.isDebugEnabled())
-				info += "id " + memblt.getCacheID() + " coltab " + memblt.getColorTable() + " ";
-		}
-		if ((present & 0x0002) != 0) {
-			memblt.setX(setCoordinate(data, memblt.getX(), delta));
-			if (logger.isDebugEnabled())
-				info += "x " + memblt.getX() + " ";
-		}
-		if ((present & 0x0004) != 0) {
-			memblt.setY(setCoordinate(data, memblt.getY(), delta));
-			if (logger.isDebugEnabled())
-				info += "y " + memblt.getY() + " ";
-		}
-		if ((present & 0x0008) != 0) {
-			memblt.setCX(setCoordinate(data, memblt.getCX(), delta));
-			if (logger.isDebugEnabled())
-				info += "cx " + memblt.getCX() + " ";
-		}
-		if ((present & 0x0010) != 0) {
-			memblt.setCY(setCoordinate(data, memblt.getCY(), delta));
-			if (logger.isDebugEnabled())
-				info += "cy " + memblt.getCY() + " ";
-		}
-		if ((present & 0x0020) != 0) {
-			memblt.setOpcode(ROP2_S(data.get8()));
-			if (logger.isDebugEnabled())
-				info += "op " + memblt.getOpcode() + " ";
-		}
-		if ((present & 0x0040) != 0) {
-			memblt.setSrcX(setCoordinate(data, memblt.getSrcX(), delta));
-			if (logger.isDebugEnabled())
-				info += "srcx " + memblt.getSrcX() + " ";
-		}
-		if ((present & 0x0080) != 0) {
-			memblt.setSrcY(setCoordinate(data, memblt.getSrcY(), delta));
-			if (logger.isDebugEnabled())
-				info += "srcy " + memblt.getSrcY() + " ";
-		}
-		if ((present & 0x0100) != 0) {
-			memblt.setCacheIDX(data.getLittleEndian16());
-			if (logger.isDebugEnabled())
-				info += "idx " + memblt.getCacheIDX();
-		}
-		if (logger.isDebugEnabled())
-			logger.debug(info);
+		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
 
-		// if(logger.isInfoEnabled()) logger.info("Memblt
-		// opcode="+memblt.getOpcode());
+		// 2 values in the same packet field (with the same ID)
+		readOptionalField("cacheID", aggregate, 0, present, memblt::setCacheID, data::get8);
+		readOptionalField("colorTable", aggregate, 0, present, memblt::setColorTable, data::get8);
+		readOptionalField("left", aggregate, 1, present, memblt::setX, coordinateReader(data, memblt.getX(), delta));
+		readOptionalField("top", aggregate, 2, present, memblt::setY, coordinateReader(data, memblt.getY(), delta));
+		readOptionalField("width", aggregate, 3, present, memblt::setCX, coordinateReader(data, memblt.getCX(), delta));
+		readOptionalField("height", aggregate, 4, present, memblt::setCY, coordinateReader(data, memblt.getCY(), delta));
+		readOptionalField("rop", aggregate, 5, present, memblt::setOpcode, () -> ROP2_S(data.get8()));
+		readOptionalField("srcX", aggregate, 6, present, memblt::setSrcX, coordinateReader(data, memblt.getSrcX(), delta));
+		readOptionalField("srcY", aggregate, 7, present, memblt::setSrcY, coordinateReader(data, memblt.getSrcY(), delta));
+		readOptionalField("cacheIndex", aggregate, 8, present, memblt::setCacheIDX, data::getLittleEndian16);
+
+		logger.debug(aggregate);
+
 		surface.drawMemBltOrder(memblt);
 	}
 
@@ -1000,35 +1006,21 @@ public class Orders {
 	 */
 	private void processTriBlt(RdpPacket_Localised data, TriBltOrder triblt,
 			int present, boolean delta) {
-		if ((present & 0x01) != 0) {
-			triblt.setCacheID(data.get8());
-			triblt.setColorTable(data.get8());
-		}
-		if ((present & 0x02) != 0)
-			triblt.setX(setCoordinate(data, triblt.getX(), delta));
-		if ((present & 0x04) != 0)
-			triblt.setY(setCoordinate(data, triblt.getY(), delta));
-		if ((present & 0x08) != 0)
-			triblt.setCX(setCoordinate(data, triblt.getCX(), delta));
-		if ((present & 0x10) != 0)
-			triblt.setCY(setCoordinate(data, triblt.getCY(), delta));
-		if ((present & 0x20) != 0)
-			triblt.setOpcode(ROP2_S(data.get8()));
-		if ((present & 0x40) != 0)
-			triblt.setSrcX(setCoordinate(data, triblt.getSrcX(), delta));
-		if ((present & 0x80) != 0)
-			triblt.setSrcY(setCoordinate(data, triblt.getSrcY(), delta));
-		if ((present & 0x0100) != 0)
-			triblt.setBackgroundColor(setColor(data));
-		if ((present & 0x0200) != 0)
-			triblt.setForegroundColor(setColor(data));
+		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
 
-		parseBrush(data, triblt.getBrush(), present >> 10);
+		readOptionalField("cacheID", aggregate, 0, present, triblt::setCacheID, data::get8);
+		readOptionalField("colorTable", aggregate, 0, present, triblt::setColorTable, data::get8);
+		readOptionalField("left", aggregate, 1, present, triblt::setX, coordinateReader(data, triblt.getX(), delta));
+		readOptionalField("top", aggregate, 2, present, triblt::setY, coordinateReader(data, triblt.getY(), delta));
+		readOptionalField("width", aggregate, 3, present, triblt::setCX, coordinateReader(data, triblt.getCX(), delta));
+		readOptionalField("height", aggregate, 4, present, triblt::setCY, coordinateReader(data, triblt.getCY(), delta));
+		readOptionalField("rop", aggregate, 5, present, triblt::setOpcode, () -> ROP2_S(data.get8()));
+		readOptionalField("srcX", aggregate, 6, present, triblt::setSrcX, coordinateReader(data, triblt.getSrcX(), delta));
+		readOptionalField("srcY", aggregate, 7, present, triblt::setSrcY, coordinateReader(data, triblt.getSrcY(), delta));
+		parseBrush(data, triblt.getBrush(), 8, present, aggregate);
+		readOptionalField("cacheIndex", aggregate, 15, present, triblt::setCacheIDX, data::getLittleEndian16);
 
-		if ((present & 0x8000) != 0)
-			triblt.setCacheIDX(data.getLittleEndian16());
-		if ((present & 0x10000) != 0)
-			triblt.setUnknown(data.getLittleEndian16());
+		logger.debug(aggregate);
 
 		surface.drawTriBltOrder(triblt);
 	}
@@ -1048,29 +1040,25 @@ public class Orders {
 	 */
 	private void processPolyLine(RdpPacket_Localised data,
 			PolyLineOrder polyline, int present, boolean delta) {
-		if ((present & 0x01) != 0)
-			polyline.setX(setCoordinate(data, polyline.getX(), delta));
-		if ((present & 0x02) != 0)
-			polyline.setY(setCoordinate(data, polyline.getY(), delta));
-		if ((present & 0x04) != 0)
-			polyline.setOpcode(data.get8());
-		if ((present & 0x10) != 0)
-			polyline.setForegroundColor(setColor(data));
-		if ((present & 0x20) != 0)
-			polyline.setLines(data.get8());
-		if ((present & 0x40) != 0) {
-			int datasize = data.get8();
-			polyline.setDataSize(datasize);
-			byte[] databytes = new byte[datasize];
-			for (int i = 0; i < datasize; i++)
+		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
+
+		readOptionalField("x", aggregate, 0, present, polyline::setX, coordinateReader(data, polyline.getY(), delta));
+		readOptionalField("y", aggregate, 1, present, polyline::setY, coordinateReader(data, polyline.getY(), delta));
+		readOptionalField("rop2", aggregate, 2, present, polyline::setOpcode, data::get8);
+		readOptionalField("brushCacheEntry (unused, should be 0)", aggregate, 3, present, n -> { assert n == 0; /* see footnote 3 on [MS-RDPEGDI] */}, data::getLittleEndian16);
+		readOptionalField("penColor", aggregate, 4, present, polyline::setForegroundColor, colorReader(data));
+		readOptionalField("numLines", aggregate, 5, present, polyline::setLines, data::get8);
+		// Multi-byte structure
+		readOptionalField("deltaListSize", aggregate, 6, present, polyline::setDataSize, data::get8);
+		readOptionalTypedField("deltaList", aggregate, 6, present, polyline::setData, () -> {
+			byte[] databytes = new byte[polyline.getDataSize()];
+			for (int i = 0; i < databytes.length; i++)
 				databytes[i] = (byte) data.get8();
-			polyline.setData(databytes);
-		}
-		// logger.info("polyline delta="+delta);
-		// if(logger.isInfoEnabled()) logger.info("Line from
-		// ("+line.getStartX()+","+line.getStartY()+") to
-		// ("+line.getEndX()+","+line.getEndY()+")");
-		// now draw the line
+			return databytes;
+		});
+
+		logger.debug(aggregate);
+
 		surface.drawPolyLineOrder(polyline);
 	}
 
@@ -1089,115 +1077,40 @@ public class Orders {
 	 */
 	private void processText2(RdpPacket_Localised data, Text2Order text2,
 			int present, boolean delta) throws RdesktopException {
+		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
 
-		if ((present & 0x000001) != 0) {
-			text2.setFont(data.get8());
-		}
-		if ((present & 0x000002) != 0) {
-			text2.setFlags(data.get8());
-		}
+		readOptionalField("cacheID", aggregate, 0, present, text2::setFont, data::get8);
+		readOptionalField("accelerationFlags", aggregate, 1, present, text2::setFlags, data::get8);
+		readOptionalField("ulCharInc", aggregate, 2, present, text2::setFixedWidthAdvance, data::get8);
+		// ... because words have meanings ...
+		// whether or not the opaque rectangle is redundant. Redundant, in this
+		// context, means that the text background is transparent.
+		readOptionalField("opaqueRectangleRedundant", aggregate, 3, present, text2::setMixmode, data::get8);
+		readOptionalField("backColor", aggregate, 4, present, text2::setBackgroundColor, colorReader(data));
+		readOptionalField("foreColor", aggregate, 5, present, text2::setForegroundColor, colorReader(data));
+		readOptionalField("leftClip", aggregate, 6, present, text2::setClipLeft, data::getLittleEndian16);
+		readOptionalField("topClip", aggregate, 7, present, text2::setClipTop, data::getLittleEndian16);
+		readOptionalField("rightClip", aggregate, 8, present, text2::setClipRight, data::getLittleEndian16);
+		readOptionalField("bottomClip", aggregate, 9, present, text2::setClipBottom, data::getLittleEndian16);
+		readOptionalField("leftBox", aggregate, 10, present, text2::setBoxLeft, data::getLittleEndian16);
+		readOptionalField("topBox", aggregate, 11, present, text2::setBoxTop, data::getLittleEndian16);
+		readOptionalField("rightBox", aggregate, 12, present, text2::setBoxRight, data::getLittleEndian16);
+		readOptionalField("bottomBox", aggregate, 13, present, text2::setBoxBottom, data::getLittleEndian16);
+		// TODO: handle the brush correctly
+		parseBrush(data, new Brush(), 14, present, aggregate);
+		readOptionalField("x", aggregate, 19, present, text2::setX, data::getLittleEndian16);
+		readOptionalField("y", aggregate, 20, present, text2::setY, data::getLittleEndian16);
 
-		if ((present & 0x000004) != 0) {
-			text2.setOpcode(data.get8()); // setUnknown(data.get8());
-		}
-
-		if ((present & 0x000008) != 0) {
-			text2.setMixmode(data.get8());
-		}
-
-		if ((present & 0x000010) != 0) {
-			text2.setForegroundColor(setColor(data));
-		}
-
-		if ((present & 0x000020) != 0) {
-			text2.setBackgroundColor(setColor(data));
-		}
-
-		if ((present & 0x000040) != 0) {
-			text2.setClipLeft(data.getLittleEndian16());
-		}
-
-		if ((present & 0x000080) != 0) {
-			text2.setClipTop(data.getLittleEndian16());
-		}
-
-		if ((present & 0x000100) != 0) {
-			text2.setClipRight(data.getLittleEndian16());
-		}
-
-		if ((present & 0x000200) != 0) {
-			text2.setClipBottom(data.getLittleEndian16());
-		}
-
-		if ((present & 0x000400) != 0) {
-			text2.setBoxLeft(data.getLittleEndian16());
-		}
-
-		if ((present & 0x000800) != 0) {
-			text2.setBoxTop(data.getLittleEndian16());
-		}
-
-		if ((present & 0x001000) != 0) {
-			text2.setBoxRight(data.getLittleEndian16());
-		}
-
-		if ((present & 0x002000) != 0) {
-			text2.setBoxBottom(data.getLittleEndian16());
-		}
-
-		/*
-		 * Unknown members, seen when connecting to a session that was
-		 * disconnected with mstsc and with wintach's spreadsheet test.
-		 */
-		if ((present & 0x004000) != 0)
-			data.incrementPosition(1);
-
-		if ((present & 0x008000) != 0)
-			data.incrementPosition(1);
-
-		if ((present & 0x010000) != 0) {
-			data.incrementPosition(1); /* guessing the length here */
-			logger
-					.warn("Unknown order state member (0x010000) in text2 order.\n");
-		}
-
-		if ((present & 0x020000) != 0)
-			data.incrementPosition(4);
-
-		if ((present & 0x040000) != 0)
-			data.incrementPosition(4);
-
-		if ((present & 0x080000) != 0) {
-			text2.setX(data.getLittleEndian16());
-		}
-
-		if ((present & 0x100000) != 0) {
-			text2.setY(data.getLittleEndian16());
-		}
-
-		if ((present & 0x200000) != 0) {
-			text2.setLength(data.get8());
-
+		// Multi-byte structure
+		readOptionalField("textLength", aggregate, 21, present, text2::setLength, data::get8);
+		readOptionalTypedField("text", aggregate, 21, present, text2::setText, () -> {
 			byte[] text = new byte[text2.getLength()];
 			data.copyToByteArray(text, 0, data.getPosition(), text.length);
 			data.incrementPosition(text.length);
-			text2.setText(text);
+			return text;
+		});
 
-			/*
-			 * if(logger.isInfoEnabled()) logger.info("X: " + text2.getX() + "
-			 * Y: " + text2.getY() + " Left Clip: " + text2.getClipLeft() + "
-			 * Top Clip: " + text2.getClipTop() + " Right Clip: " +
-			 * text2.getClipRight() + " Bottom Clip: " + text2.getClipBottom() + "
-			 * Left Box: " + text2.getBoxLeft() + " Top Box: " +
-			 * text2.getBoxTop() + " Right Box: " + text2.getBoxRight() + "
-			 * Bottom Box: " + text2.getBoxBottom() + " Foreground Color: " +
-			 * text2.getForegroundColor() + " Background Color: " +
-			 * text2.getBackgroundColor() + " Font: " + text2.getFont() + "
-			 * Flags: " + text2.getFlags() + " Mixmode: " + text2.getMixmode() + "
-			 * Unknown: " + text2.getUnknown() + " Length: " +
-			 * text2.getLength());
-			 */
-		}
+		logger.debug(aggregate);
 
 		this.drawText(text2, text2.getClipRight() - text2.getClipLeft(), text2
 				.getClipBottom()
@@ -1217,32 +1130,65 @@ public class Orders {
 	 */
 	private void parseBounds(RdpPacket_Localised data, BoundsOrder bounds)
 			throws OrderException {
-		int present = 0;
+		int present = data.get8();
 
-		present = data.get8();
+		// From pages 46 and 47 of [MS-RDPEGDI]:
 
-		if ((present & 1) != 0) {
-			bounds.setLeft(setCoordinate(data, bounds.getLeft(), false));
-		} else if ((present & 16) != 0) {
-			bounds.setLeft(setCoordinate(data, bounds.getLeft(), true));
+		// The description byte MUST contain a TS_BOUND_XXX or
+		// TS_BOUND_DELTA_XXX flag to describe each of the encoded bounds that
+		// are present.
+		// If for a given component a TS_BOUND_XXX or TS_BOUND_DELTA_XXX flag is
+		// not present, the component value is the same as the last one used,
+		// and no value is included in the encoded bounds. If both the
+		// TS_BOUND_XXX and TS_BOUND_DELTA_XXX flags are present, the
+		// TS_BOUND_XXX flag is ignored. Hence, to avoid parsing errors, only
+		// one flag MUST be used to describe the format of a given encoded
+		// bound.
+
+		// As such, I reject warn if there's both or neither but make assumptions
+
+		if ((present & PrimaryOrderFlags.BOUND_DELTA_LEFT) != 0) {
+			bounds.setLeft((short) (bounds.getLeft() + (byte) data.get8()));
+			if ((present & PrimaryOrderFlags.BOUND_LEFT) != 0) {
+				logger.warn("Both BOUND_LEFT and BOUND_DELTA_LEFT were set! (0b" + Integer.toBinaryString(present) + ")");
+			}
+		} else if ((present & PrimaryOrderFlags.BOUND_LEFT) != 0) {
+			bounds.setLeft((short) (data.getLittleEndian16()));
+		} else {
+			logger.warn("Neither BOUND_LEFT nor BOUND_DELTA_LEFT were set! (0b" + Integer.toBinaryString(present) + ")");
 		}
 
-		if ((present & 2) != 0) {
-			bounds.setTop(setCoordinate(data, bounds.getTop(), false));
-		} else if ((present & 32) != 0) {
-			bounds.setTop(setCoordinate(data, bounds.getTop(), true));
+		if ((present & PrimaryOrderFlags.BOUND_DELTA_TOP) != 0) {
+			bounds.setTop((short) (bounds.getTop() + (byte) data.get8()));
+			if ((present & PrimaryOrderFlags.BOUND_TOP) != 0) {
+				logger.warn("Both BOUND_TOP and BOUND_DELTA_TOP were set! (0b" + Integer.toBinaryString(present) + ")");
+			}
+		} else if ((present & PrimaryOrderFlags.BOUND_TOP) != 0) {
+			bounds.setTop((short) (data.getLittleEndian16()));
+		} else {
+			logger.warn("Neither BOUND_TOP nor BOUND_DELTA_TOP were set! (0b" + Integer.toBinaryString(present) + ")");
 		}
 
-		if ((present & 4) != 0) {
-			bounds.setRight(setCoordinate(data, bounds.getRight(), false));
-		} else if ((present & 64) != 0) {
-			bounds.setRight(setCoordinate(data, bounds.getRight(), true));
+		if ((present & PrimaryOrderFlags.BOUND_DELTA_RIGHT) != 0) {
+			bounds.setRight((short) (bounds.getRight() + (byte) data.get8()));
+			if ((present & PrimaryOrderFlags.BOUND_RIGHT) != 0) {
+				logger.warn("Both BOUND_RIGHT and BOUND_DELTA_RIGHT were set! (0b" + Integer.toBinaryString(present) + ")");
+			}
+		} else if ((present & PrimaryOrderFlags.BOUND_RIGHT) != 0) {
+			bounds.setRight((short) (data.getLittleEndian16()));
+		} else {
+			logger.warn("Neither BOUND_RIGHT nor BOUND_DELTA_RIGHT were set! (0b" + Integer.toBinaryString(present) + ")");
 		}
 
-		if ((present & 8) != 0) {
-			bounds.setBottom(setCoordinate(data, bounds.getBottom(), false));
-		} else if ((present & 128) != 0) {
-			bounds.setBottom(setCoordinate(data, bounds.getBottom(), true));
+		if ((present & PrimaryOrderFlags.BOUND_DELTA_BOTTOM) != 0) {
+			bounds.setBottom((short) (bounds.getBottom() + (byte) data.get8()));
+			if ((present & PrimaryOrderFlags.BOUND_BOTTOM) != 0) {
+				logger.warn("Both BOUND_BOTTOM and BOUND_DELTA_BOTTOM were set! (0b" + Integer.toBinaryString(present) + ")");
+			}
+		} else if ((present & PrimaryOrderFlags.BOUND_BOTTOM) != 0) {
+			bounds.setBottom((short) (data.getLittleEndian16()));
+		} else {
+			logger.warn("Neither BOUND_BOTTOM nor BOUND_DELTA_BOTTOM were set! (0b" + Integer.toBinaryString(present) + ")");
 		}
 
 		if (data.getPosition() > data.getEnd()) {
@@ -1264,35 +1210,35 @@ public class Orders {
 			throws OrderException, RdesktopException {
 		assert (controlFlags & RDP_ORDER_STANDARD) != 0;
 		assert (controlFlags & RDP_ORDER_SECONDARY) != 0;
-	
+
 		int length = 0;
 		int flags = 0;
 		int next_order = 0;
-	
+
 		length = data.getLittleEndian16();
 		flags = data.getLittleEndian16();
 		SecondaryOrder type = SecondaryOrder.forId(data.get8());
-	
+
 		next_order = data.getPosition() + length + 7;
-	
+
 		logger.debug("Secondary order: " + type);
 		switch (type) {
 		case BITMAP_UNCOMPRESSED:
 			this.processRawBitmapCache(data);
 			break;
-	
+
 		case COLOR_TABLE:
 			this.processColorCache(data);
 			break;
-	
+
 		case BITMAP_COMPRESSED:
 			this.processBitmapCache(data);
 			break;
-	
+
 		case GLYPH:
 			this.processFontCache(data);
 			break;
-	
+
 		case BITMAP_UNCOMPRESSED_REV2:
 			try {
 				this.processBitmapCache2(data, flags, false);
@@ -1300,7 +1246,7 @@ public class Orders {
 				throw new RdesktopException(e.getMessage(), e);
 			} /* uncompressed */
 			break;
-	
+
 		case BITMAP_COMPRESSED_REV2:
 			try {
 				this.processBitmapCache2(data, flags, true);
@@ -1308,11 +1254,11 @@ public class Orders {
 				throw new RdesktopException(e.getMessage(), e);
 			} /* compressed */
 			break;
-	
+
 		default:
 			logger.warn("Unimplemented 2ry Order type " + type);
 		}
-	
+
 		data.setPosition(next_order);
 	}
 
@@ -1626,30 +1572,29 @@ public class Orders {
 	}
 
 	/**
-	 * Retrieve a coordinate from a packet and return as an absolute integer
-	 * coordinate
-	 * 
+	 * Returns a method that retrieves a coordinate from a packet and return as
+	 * an absolute integer coordinate.
+	 *
 	 * @param data
 	 *            Packet containing coordinate at current read position
-	 * @param coordinate
-	 *            Offset coordinate
+	 * @param current
+	 *            Current coordinate
 	 * @param delta
 	 *            True if coordinate being read should be taken as relative to
 	 *            offset coordinate, false if absolute
-	 * @return Integer value of coordinate stored in packet, in absolute form
+	 * @return Callback to the new value
+	 * @see [MS-RDPEGDI] section 2.2.2.2.1.1.1.1
 	 */
-	private static int setCoordinate(RdpPacket_Localised data, int coordinate,
-			boolean delta) {
-		byte change = 0;
-
-		if (delta) {
-			change = (byte) data.get8();
-			coordinate += (int) change;
-			return coordinate;
-		} else {
-			coordinate = data.getLittleEndian16();
-			return coordinate;
-		}
+	private static IntSupplier coordinateReader(final RdpPacket_Localised data,
+			final int current, final boolean delta) {
+		return (() -> {
+			if (delta) {
+				byte change = (byte) data.get8(); // note: cast to byte for sign
+				return (short) (current + change); // note: again, casting for sign
+			} else {
+				return (short) data.getLittleEndian16(); // note: again, casting for sign
+			}
+		});
 	}
 
 	/**
@@ -1657,22 +1602,61 @@ public class Orders {
 	 * 
 	 * @param data
 	 *            Packet containing colour value at current read position
-	 * @return Integer colour value read from packet
+	 * @return Callback to read the int value
 	 */
-	private static int setColor(RdpPacket_Localised data) {
-		int color = 0;
-		int i = 0;
+	private static IntSupplier colorReader(RdpPacket_Localised data) {
+		return (() -> {
+			// TODO: This doesn't handle lower bits per pixels
+			int color;
+			color = data.get8();
+			color |= data.get8() << 8;
+			color |= data.get8() << 16;
+			return color;
+		});
+	}
 
-		i = data.get8(); // in_uint8(s, i);
-		color = i; // *colour = i;
-		i = data.get8(); // in_uint8(s, i);
-		color |= i << 8; // *colour |= i << 8;
-		i = data.get8(); // in_uint8(s, i);
-		color |= i << 16; // *colour |= i << 16;
+	/**
+	 * Parse data defining a brush and store brush information
+	 *
+	 * @param data
+	 *            Packet containing brush data
+	 * @param brush
+	 *            Brush object in which to store the brush description
+	 * @param startAt
+	 *            First flag index to start at within present
+	 * @param present
+	 *            Flags defining the information available within the packet
+	 * @param aggregate
+	 *            Debug log builder
+	 */
+	private static void parseBrush(RdpPacket_Localised data, Brush brush, int startAt, int present, StringBuilder aggregate) {
+		readOptionalField("brushX", aggregate, startAt + 0, present, brush::setXOrigin, data::get8);
+		readOptionalField("brushY", aggregate, startAt + 1, present, brush::setYOrigin, data::get8);
+		readOptionalField("brushStyle", aggregate, startAt + 2, present, brush::setStyle, data::get8);
+		// TODO: cached brushes
+		// This is a bit of a mess, because there's 2 arrays
+		readOptionalField("brushHatch", aggregate, startAt + 3, present, brush::setPatternHatch, data::get8);
+		readOptionalTypedField("brushExtra", aggregate, startAt + 4, present, brush::setPatternExtra, () -> new int[] {data.get8(), data.get8(), data.get8(), data.get8(), data.get8(), data.get8(), data.get8()}); // read 7
+	}
 
-		// color = data.get8();
-		// data.incrementPosition(2);
-		return color;
+	/**
+	 * Parse a pen definition
+	 * 
+	 * @param data
+	 *            Packet containing pen description at current read position
+	 * @param pen
+	 *            Pen object in which to store pen description
+	 * @param startAt
+	 *            First flag index to start at within present
+	 * @param present
+	 *            Flags defining the information available within the packet
+	 * @param aggregate
+	 *            Debug log builder
+	 */
+	private static void parsePen(RdpPacket_Localised data, Pen pen, int startAt, int present, StringBuilder aggregate) {
+		readOptionalField("penStyle", aggregate, startAt + 0, present, pen::setStyle, data::get8);
+		readOptionalField("penWidth", aggregate, startAt + 0, present, pen::setWidth, data::get8);
+		readOptionalField("penColor", aggregate, startAt + 0, present, pen::setColor, colorReader(data));
 	}
 
 	/**
@@ -1683,29 +1667,6 @@ public class Orders {
 	 */
 	public void registerCache(Cache cache) {
 		Orders.cache = cache;
-	}
-
-	/**
-	 * Parse a pen definition
-	 * 
-	 * @param data
-	 *            Packet containing pen description at current read position
-	 * @param pen
-	 *            Pen object in which to store pen description
-	 * @param present
-	 *            Flags defining information available within packet
-	 * @return True if successful
-	 */
-	private static boolean parsePen(RdpPacket_Localised data, Pen pen,
-			int present) {
-		if ((present & 0x01) != 0)
-			pen.setStyle(data.get8());
-		if ((present & 0x02) != 0)
-			pen.setWidth(data.get8());
-		if ((present & 0x04) != 0)
-			pen.setColor(setColor(data));
-
-		return true; // return s_check(s);
 	}
 
 	/**

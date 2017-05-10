@@ -80,6 +80,19 @@ public class RectangleOrder implements Order {
 		this.cy = cy;
 	}
 
+	public void setR(int redOrPlaletteIndex) {
+		this.color &= ~(0xFF << 0);
+		this.color |= (redOrPlaletteIndex & 0xFF) << 0;
+	}
+	public void setG(int green) {
+		this.color &= ~(0xFF << 8);
+		this.color |= (green & 0xFF) << 8;
+	}
+	public void setB(int blue) {
+		this.color &= ~(0xFF << 16);
+		this.color |= (blue & 0xFF) << 16;
+	}
+
 	public void setColor(int color) {
 		this.color = color;
 	}

@@ -70,8 +70,17 @@ public class Brush {
 		this.style = style;
 	}
 
-	public void setPattern(byte[] pattern) {
-		this.pattern = pattern;
+	public void setPatternHatch(int value) {
+		this.pattern[0] = (byte) value;
+	}
+
+	public void setPatternExtra(int... data) {
+		if (data.length != 7) {
+			throw new IllegalArgumentException("must provide 7 values to setPatternExtra; got " + data.length);
+		}
+		for (int i = 0; i < 7; i++) {
+			this.pattern[i + 1] = (byte) data[i];
+		}
 	}
 
 	public void reset() {

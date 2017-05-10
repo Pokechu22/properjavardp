@@ -63,7 +63,7 @@ public class Text2Order implements Order {
 
 	private int boxbottom = 0;
 
-	private int opcode = 0;
+	private int fixedWidthAdvance = 0;
 
 	private int length = 0;
 
@@ -234,15 +234,15 @@ public class Text2Order implements Order {
 		x = 0;
 		y = 0;
 		length = 0;
-		opcode = 0;
+		fixedWidthAdvance = 0;
 		text = new byte[256];
 	}
 
-	public int getOpcode() {
-		return opcode;
+	public int getFixedWidthAdvance() {
+		return fixedWidthAdvance;
 	}
 
-	public void setOpcode(int name) {
-		opcode = name;
+	public void setFixedWidthAdvance(int name) {
+		fixedWidthAdvance = name;
 	}
 }
