@@ -34,7 +34,10 @@ import java.nio.ByteOrder;
 
 public class RdpPacket_Localised extends RdpPacket {
 
-	public static RdpPacket_Localised EMPTY = new RdpPacket_Localised(0);
+	/**
+	 * A packet that contains no data.
+	 */
+	public static final RdpPacket_Localised EMPTY = new RdpPacket_Localised(0);
 
 	private ByteBuffer bb = null;
 
