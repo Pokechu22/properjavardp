@@ -2098,10 +2098,21 @@ public class Bitmap {
 			return result;
 		}
 
+		/**
+		 * Gets the length of the compression order.
+		 *
+		 * @param start The first byte read, including the ID
+		 * @param data The rest
+		 * @return Number of bytes to read
+		 */
+		public int getLength(int start, RdpPacket_Localised data) {
+			return type.getLength(start, data);
+		}
+
 		public static enum Type {
 			REGULAR(0b11100000) {
 				@Override
-				public int getLength(byte start, RdpPacket_Localised data) {
+				public int getLength(int start, RdpPacket_Localised data) {
 					int len = start & REG_MASK;
 					if (len != 0) {
 						logger.trace("Regular - len={}", len);
@@ -2117,7 +2128,7 @@ public class Bitmap {
 			},
 			LITE(0b11110000) {
 				@Override
-				public int getLength(byte start, RdpPacket_Localised data) {
+				public int getLength(int start, RdpPacket_Localised data) {
 					int len = start & LITE_MASK;
 					if (len != 0) {
 						logger.trace("Lite - len={}", len);
@@ -2133,7 +2144,7 @@ public class Bitmap {
 			},
 			MEGA_MEGA(0b11111111) {
 				@Override
-				public int getLength(byte start, RdpPacket_Localised data) {
+				public int getLength(int start, RdpPacket_Localised data) {
 					int value = data.getLittleEndian16();
 					logger.trace("MEGA MEGA - read={}", value);
 					return value;
@@ -2141,14 +2152,14 @@ public class Bitmap {
 			},
 			SINGLE_BYTE(0b11111111) {
 				@Override
-				public int getLength(byte start, RdpPacket_Localised data) {
+				public int getLength(int start, RdpPacket_Localised data) {
 					logger.trace("Single byte");
 					return 0;
 				}
 			},
 			REG_FGBG(0b11100000) {
 				@Override
-				public int getLength(byte start, RdpPacket_Localised data) {
+				public int getLength(int start, RdpPacket_Localised data) {
 					int len = start & REG_MASK;
 					if (len != 0) {
 						int val = len * 8;
@@ -2164,7 +2175,7 @@ public class Bitmap {
 			},
 			LITE_FGBG(0b11110000) {
 				@Override
-				public int getLength(byte start, RdpPacket_Localised data) {
+				public int getLength(int start, RdpPacket_Localised data) {
 					int len = start & LITE_MASK;
 					if (len != 0) {
 						int val = len * 8;
@@ -2188,7 +2199,7 @@ public class Bitmap {
 				this.idMask = idMask;
 			}
 
-			public abstract int getLength(byte start, RdpPacket_Localised data);
+			public abstract int getLength(int start, RdpPacket_Localised data);
 		}
 	}
 }

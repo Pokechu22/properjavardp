@@ -34,12 +34,18 @@ import java.nio.ByteOrder;
 
 public class RdpPacket_Localised extends RdpPacket {
 
+	public static RdpPacket_Localised EMPTY = new RdpPacket_Localised(0);
+
 	private ByteBuffer bb = null;
 
 	private int size = 0;
 
 	public RdpPacket_Localised(int capacity) {
-		bb = ByteBuffer.allocateDirect(capacity);
+		if (capacity == 0) {
+			bb = ByteBuffer.wrap(new byte[0]);
+		} else {
+			bb = ByteBuffer.allocateDirect(capacity);
+		}
 		size = capacity;
 	}
 
