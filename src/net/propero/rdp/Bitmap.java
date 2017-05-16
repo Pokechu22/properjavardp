@@ -295,43 +295,21 @@ public class Bitmap {
 	}
 
 	/**
-	 * Decompress bitmap data from packet and output directly to supplied image
-	 * object
-	 * 
-	 * @param width
-	 *            Width of bitmap to decompress
-	 * @param height
-	 *            Height of bitmap to decompress
-	 * @param size
-	 *            Size of compressed data in bytes
-	 * @param data
-	 *            Packet containing bitmap data
-	 * @param Bpp
-	 *            Bytes per-pixel for bitmap
-	 * @param cm
-	 *            Colour model of bitmap
-	 * @param left
-	 *            X offset for drawing bitmap
-	 * @param top
-	 *            Y offset for drawing bitmap
-	 * @param w
-	 *            Image to draw bitmap to
-	 * @return Original image object, with decompressed bitmap drawn at
-	 *         specified coordinates
+	 * Decompresses a bitmap into the given callback.
+	 *
+	 * @param options Options to use when decompressing.
+	 * @param width Width of the bitmap
+	 * @param height Height of the bitmap
+	 * @param compressedData Existing compressed data
+	 * @param Bpp <b>bytes</b> per pixel
+	 * @param callback Callback to set/get info from
 	 * @throws RdesktopException
 	 */
-	public static WrappedImage decompressImgDirect(Options options, int width, int height,
-			int size, RdpPacket_Localised data, int Bpp, IndexColorModel cm,
-			int left, int top, WrappedImage w) throws RdesktopException {
-
-		// WrappedImage w = null;
-
-		byte[] compressed_pixel = new byte[size];
-		data.copyToByteArray(compressed_pixel, 0, data.getPosition(), size);
-		data.incrementPosition(size);
-
+	public static void decompress(Options options, int width, int height,
+			byte[] compressedData, int Bpp, DecompressionCallback callback)
+					throws RdesktopException {
 		int previous = -1, line = 0, prevY = 0;
-		int input = 0, end = size;
+		int input = 0, end = compressedData.length;
 		int opcode = 0, count = 0, offset = 0, x = width;
 		int lastopcode = -1, fom_mask = 0;
 		int code = 0, color1 = 0, color2 = 0;
@@ -343,7 +321,7 @@ public class Bitmap {
 
 		while (input < end) {
 			fom_mask = 0;
-			code = (compressed_pixel[input++] & 0x000000ff);
+			code = (compressedData[input++] & 0x000000ff);
 			opcode = code >> 4;
 
 			/* Handle different opcode forms */
@@ -359,8 +337,8 @@ public class Bitmap {
 			case 0xf:
 				opcode = code & 0xf;
 				if (opcode < 9) {
-					count = (compressed_pixel[input++] & 0xff);
-					count |= ((compressed_pixel[input++] & 0xff) << 8);
+					count = (compressedData[input++] & 0xff);
+					count |= ((compressedData[input++] & 0xff) << 8);
 				} else {
 					count = (opcode < 0xb) ? 8 : 1;
 				}
@@ -380,9 +358,9 @@ public class Bitmap {
 
 				if (count == 0) {
 					if (isfillormix)
-						count = (compressed_pixel[input++] & 0x000000ff) + 1;
+						count = (compressedData[input++] & 0x000000ff) + 1;
 					else
-						count = (compressed_pixel[input++] & 0x000000ff)
+						count = (compressedData[input++] & 0x000000ff)
 								+ offset;
 				} else if (isfillormix) {
 					count <<= 3;
@@ -396,18 +374,18 @@ public class Bitmap {
 					insertmix = true;
 				break;
 			case 8: /* Bicolor */
-				color1 = cvalx(options, compressed_pixel, input, Bpp);
+				color1 = cvalx(options, compressedData, input, Bpp);
 				// (compressed_pixel[input++]&0x000000ff);
 				input += Bpp;
 			case 3: /* Color */
-				color2 = cvalx(options, compressed_pixel, input, Bpp);
+				color2 = cvalx(options, compressedData, input, Bpp);
 				// color2 = (compressed_pixel[input++]&0x000000ff);
 				input += Bpp;
 				break;
 			case 6: /* SetMix/Mix */
 			case 7: /* SetMix/FillOrMix */
 				// mix = compressed_pixel[input++];
-				mix = cvalx(options, compressed_pixel, input, Bpp);
+				mix = cvalx(options, compressedData, input, Bpp);
 				input += Bpp;
 				opcode -= 5;
 				break;
@@ -447,11 +425,9 @@ public class Bitmap {
 					if (insertmix) {
 						if (previous == -1) {
 							// pixel[line+x] = mix;
-							w.setRGB(left + x, top + height, mix);
+							callback.setPixel(x, height, mix);
 						} else {
-							w.setRGB(left + x, top + height, w.getRGB(left + x,
-									top + prevY)
-									^ mix);
+							callback.setPixel(x, height, callback.getPixel(x, prevY) ^ mix);
 							// pixel[line+x] = (pixel[previous+x] ^ mix);
 						}
 
@@ -464,14 +440,14 @@ public class Bitmap {
 						while (((count & ~0x7) != 0) && ((x + 8) < width)) {
 							for (int i = 0; i < 8; i++) {
 								// pixel[line+x] = 0;
-								w.setRGB(left + x, top + height, 0);
+								callback.setPixel(x, height, 0);
 								count--;
 								x++;
 							}
 						}
 						while ((count > 0) && (x < width)) {
 							// pixel[line+x] = 0;
-							w.setRGB(left + x, top + height, 0);
+							callback.setPixel(x, height, 0);
 							count--;
 							x++;
 						}
@@ -479,16 +455,14 @@ public class Bitmap {
 						while (((count & ~0x7) != 0) && ((x + 8) < width)) {
 							for (int i = 0; i < 8; i++) {
 								// pixel[line + x] = pixel[previous + x];
-								w.setRGB(left + x, top + height, w.getRGB(left
-										+ x, top + prevY));
+								callback.setPixel(x, height, callback.getPixel(x, prevY));
 								count--;
 								x++;
 							}
 						}
 						while ((count > 0) && (x < width)) {
 							// pixel[line + x] = pixel[previous + x];
-							w.setRGB(left + x, top + height, w.getRGB(left + x,
-									top + prevY));
+							callback.setPixel(x, height, callback.getPixel(x, prevY));
 							count--;
 							x++;
 						}
@@ -500,14 +474,14 @@ public class Bitmap {
 						while (((count & ~0x7) != 0) && ((x + 8) < width)) {
 							for (int i = 0; i < 8; i++) {
 								// pixel[line + x] = mix;
-								w.setRGB(left + x, top + height, mix);
+								callback.setPixel(x, height, mix);
 								count--;
 								x++;
 							}
 						}
 						while ((count > 0) && (x < width)) {
 							// pixel[line + x] = mix;
-							w.setRGB(left + x, top + height, mix);
+							callback.setPixel(x, height, mix);
 							count--;
 							x++;
 						}
@@ -516,18 +490,16 @@ public class Bitmap {
 						while (((count & ~0x7) != 0) && ((x + 8) < width)) {
 							for (int i = 0; i < 8; i++) {
 								// pixel[line + x] = pixel[previous + x] ^ mix;
-								w.setRGB(left + x, top + height, w.getRGB(left
-										+ x, top + prevY)
-										^ mix);
+								callback.setPixel(x, height,
+										callback.getPixel(x, prevY) ^ mix);
 								count--;
 								x++;
 							}
 						}
 						while ((count > 0) && (x < width)) {
 							// pixel[line + x] = pixel[previous + x] ^ mix;
-							w.setRGB(left + x, top + height, w.getRGB(left + x,
-									top + prevY)
-									^ mix);
+							callback.setPixel(x, height,
+									callback.getPixel(x, prevY) ^ mix);
 							count--;
 							x++;
 						}
@@ -541,17 +513,16 @@ public class Bitmap {
 								mixmask <<= 1;
 								if (mixmask == 0) {
 									mask = (fom_mask != 0) ? (byte) fom_mask
-											: compressed_pixel[input++];
+											: compressedData[input++];
 									mixmask = 1;
 								}
 								if ((mask & mixmask) != 0) {
 									// pixel[line + x] = (byte) mix;
-									w
-											.setRGB(left + x, top + height,
-													(byte) mix);
+									callback.setPixel(x, height,
+													(byte) mix); // XXX Is this cast right?
 								} else {
 									// pixel[line + x] = 0;
-									w.setRGB(left + x, top + height, 0);
+									callback.setPixel(x, height, 0);
 								}
 								count--;
 								x++;
@@ -561,15 +532,15 @@ public class Bitmap {
 							mixmask <<= 1;
 							if (mixmask == 0) {
 								mask = (fom_mask != 0) ? (byte) fom_mask
-										: compressed_pixel[input++];
+										: compressedData[input++];
 								mixmask = 1;
 							}
 							if ((mask & mixmask) != 0) {
 								// pixel[line + x] = mix;
-								w.setRGB(left + x, top + height, mix);
+								callback.setPixel(x, height, mix);
 							} else {
 								// pixel[line + x] = 0;
-								w.setRGB(left + x, top + height, 0);
+								callback.setPixel(x, height, 0);
 							}
 							count--;
 							x++;
@@ -580,19 +551,18 @@ public class Bitmap {
 								mixmask <<= 1;
 								if (mixmask == 0) {
 									mask = (fom_mask != 0) ? (byte) fom_mask
-											: compressed_pixel[input++];
+											: compressedData[input++];
 									mixmask = 1;
 								}
 								if ((mask & mixmask) != 0) {
 									// pixel[line + x] = (pixel[previous + x] ^
 									// mix);
-									w.setRGB(left + x, top + height, w.getRGB(
-											left + x, prevY + top)
-											^ mix);
+									callback.setPixel(x, height,
+											callback.getPixel(x, prevY) ^ mix);
 								} else {
 									// pixel[line + x] = pixel[previous + x];
-									w.setRGB(left + x, top + height, w.getRGB(
-											left + x, prevY + top));
+									callback.setPixel(x, height,
+											callback.getPixel(x, prevY));
 								}
 								count--;
 								x++;
@@ -602,19 +572,18 @@ public class Bitmap {
 							mixmask <<= 1;
 							if (mixmask == 0) {
 								mask = (fom_mask != 0) ? (byte) fom_mask
-										: compressed_pixel[input++];
+										: compressedData[input++];
 								mixmask = 1;
 							}
 							if ((mask & mixmask) != 0) {
 								// pixel[line + x] = (pixel[previous + x] ^
 								// mix);
-								w.setRGB(left + x, top + height, w.getRGB(left
-										+ x, prevY + top)
-										^ mix);
+								callback.setPixel(x, height,
+										callback.getPixel(x, prevY) ^ mix);
 							} else {
 								// pixel[line + x] = pixel[previous + x];
-								w.setRGB(left + x, top + height, w.getRGB(left
-										+ x, prevY + top));
+								callback.setPixel(x, height,
+										callback.getPixel(x, prevY));
 							}
 							count--;
 							x++;
@@ -627,14 +596,14 @@ public class Bitmap {
 					while (((count & ~0x7) != 0) && ((x + 8) < width)) {
 						for (int i = 0; i < 8; i++) {
 							// pixel[line + x] = color2;
-							w.setRGB(left + x, top + height, color2);
+							callback.setPixel(x, height, color2);
 							count--;
 							x++;
 						}
 					}
 					while ((count > 0) && (x < width)) {
 						// pixel[line + x] = color2;
-						w.setRGB(left + x, top + height, color2);
+						callback.setPixel(x, height, color2);
 						count--;
 						x++;
 					}
@@ -646,8 +615,8 @@ public class Bitmap {
 						for (int i = 0; i < 8; i++) {
 							// pixel[line + x] = cvalx(compressed_pixel, input,
 							// Bpp);
-							w.setRGB(left + x, top + height, cvalx(options,
-									compressed_pixel, input, Bpp));
+							callback.setPixel(x, height,
+									cvalx(options, compressedData, input, Bpp));
 							input += Bpp;
 							count--;
 							x++;
@@ -656,8 +625,8 @@ public class Bitmap {
 					while ((count > 0) && (x < width)) {
 						// pixel[line + x] = cvalx(compressed_pixel, input,
 						// Bpp);
-						w.setRGB(left + x, top + height, cvalx(options,
-								compressed_pixel, input, Bpp));
+						callback.setPixel(x, height,
+								cvalx(options, compressedData, input, Bpp));
 						input += Bpp;
 						count--;
 						x++;
@@ -669,11 +638,11 @@ public class Bitmap {
 						for (int i = 0; i < 8; i++) {
 							if (bicolor) {
 								// pixel[line + x] = color2;
-								w.setRGB(left + x, top + height, color2);
+								callback.setPixel(x, height, color2);
 								bicolor = false;
 							} else {
 								// pixel[line + x] = color1;
-								w.setRGB(left + x, top + height, color1);
+								callback.setPixel(x, height, color1);
 								bicolor = true;
 								count++;
 							}
@@ -684,11 +653,11 @@ public class Bitmap {
 					while ((count > 0) && (x < width)) {
 						if (bicolor) {
 							// pixel[line + x] = color2;
-							w.setRGB(left + x, top + height, color2);
+							callback.setPixel(x, height, color2);
 							bicolor = false;
 						} else {
 							// pixel[line + x] = color1;
-							w.setRGB(left + x, top + height, color1);
+							callback.setPixel(x, height, color1);
 							bicolor = true;
 							count++;
 						}
@@ -702,14 +671,14 @@ public class Bitmap {
 					while (((count & ~0x7) != 0) && ((x + 8) < width)) {
 						for (int i = 0; i < 8; i++) {
 							// pixel[line + x] = 0xffffff;
-							w.setRGB(left + x, top + height, 0xffffff);
+							callback.setPixel(x, height, 0xffffff); // XXX The value of white varies
 							count--;
 							x++;
 						}
 					}
 					while ((count > 0) && (x < width)) {
 						// pixel[line + x] = 0xffffff;
-						w.setRGB(left + x, top + height, 0xffffff);
+						callback.setPixel(x, height, 0xffffff); // XXX
 						count--;
 						x++;
 					}
@@ -719,14 +688,14 @@ public class Bitmap {
 					while (((count & ~0x7) != 0) && ((x + 8) < width)) {
 						for (int i = 0; i < 8; i++) {
 							// pixel[line + x] = 0x00;
-							w.setRGB(left + x, top + height, 0x00);
+							callback.setPixel(x, height, 0x00); // XXX The value of black changes
 							count--;
 							x++;
 						}
 					}
 					while ((count > 0) && (x < width)) {
 						// pixel[line + x] = 0x00;
-						w.setRGB(left + x, top + height, 0x00);
+						callback.setPixel(x, height, 0x00); // XXX
 						count--;
 						x++;
 					}
@@ -738,11 +707,54 @@ public class Bitmap {
 				}
 			}
 		}
+	}
 
-		/*
-		 * if(options.server_bpp == 16){ for(int i = 0; i < pixel.length; i++)
-		 * pixel[i] = Bitmap.convert16to24(pixel[i]); }
-		 */
+	/**
+	 * Decompress bitmap data from packet and output directly to supplied image
+	 * object
+	 * 
+	 * @param width
+	 *            Width of bitmap to decompress
+	 * @param height
+	 *            Height of bitmap to decompress
+	 * @param size
+	 *            Size of compressed data in bytes
+	 * @param data
+	 *            Packet containing bitmap data
+	 * @param Bpp
+	 *            Bytes per-pixel for bitmap
+	 * @param cm
+	 *            Colour model of bitmap
+	 * @param left
+	 *            X offset for drawing bitmap
+	 * @param top
+	 *            Y offset for drawing bitmap
+	 * @param w
+	 *            Image to draw bitmap to
+	 * @return Original image object, with decompressed bitmap drawn at
+	 *         specified coordinates
+	 * @throws RdesktopException
+	 */
+	public static WrappedImage decompressImgDirect(Options options, int width, int height,
+			int size, RdpPacket_Localised data, int Bpp, IndexColorModel cm,
+			int left, int top, WrappedImage w) throws RdesktopException {
+
+		byte[] compressed_pixel = new byte[size];
+		data.copyToByteArray(compressed_pixel, 0, data.getPosition(), size);
+		data.incrementPosition(size);
+
+		decompress(options, width, height, compressed_pixel, Bpp,
+				new DecompressionCallback() {
+					@Override
+					public void setPixel(int x, int y, int color) {
+						w.setRGB(left + x, top + y, color);
+					}
+
+					@Override
+					public int getPixel(int x, int y) {
+						return w.getRGB(left + x, top + y);
+					}
+				});
 
 		return w;
 	}
@@ -2036,6 +2048,29 @@ public class Bitmap {
 		}
 
 		return pixel;
+	}
+
+	/**
+	 * Callback to be used with the decompression methods to add to images.
+	 */
+	public static interface DecompressionCallback {
+		/**
+		 * Gets the value for the given pixel in the original image.
+		 *
+		 * @param x X coordinate in the decompressed bitmap; should be translated
+		 * @param y Y coordinate in the decompressed bitmap; should be translated
+		 * @return color Raw color of the pixel
+		 */
+		public abstract int getPixel(int x, int y);
+
+		/**
+		 * Called for the given pixel in the decompressed image.
+		 *
+		 * @param x X coordinate in the decompressed bitmap
+		 * @param y Y coordinate in the decompressed bitmap
+		 * @param color Raw color of the pixel
+		 */
+		public abstract void setPixel(int x, int y, int color);
 	}
 
 	/**
