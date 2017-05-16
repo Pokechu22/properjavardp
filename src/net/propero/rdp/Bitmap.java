@@ -1220,6 +1220,7 @@ public class Bitmap {
 
 		int[] pixel = new int[width * height];
 		while (input < end) {
+			// See: 2.2.9.1.1.3.1.2.4; 3.1.9
 			fom_mask = 0;
 			code = (compressed_pixel[input++] & 0x000000ff);
 			opcode = code >> 4;
@@ -2035,5 +2036,159 @@ public class Bitmap {
 		}
 
 		return pixel;
+	}
+
+	/**
+	 * Different compression orders within an RLE Compressed Bitmap Stream.
+	 *
+	 * The way these are differentiated is <i>extermely</i> confusing, because
+	 * the ID can also contain the length, but only sometimes.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
+	 */
+	static enum CompressionOrder {
+		REGULAR_BG_RUN        (0b000_00000, Type.REGULAR),
+		MEGA_MEGA_BG_RUN      (0b1111_0000, Type.MEGA_MEGA),
+		REGULAR_FG_RUN        (0b001_00000, Type.REGULAR),
+		MEGA_MEGA_FG_RUN      (0b1111_0001, Type.MEGA_MEGA),
+		LITE_SET_FG_FG_RUN    (0b1100_0000, Type.LITE),
+		MEGA_MEGA_SET_FG_RUN  (0b1111_0110, Type.MEGA_MEGA),
+		LITE_DITHERED_RUN     (0b1110_0000, Type.LITE),
+		MEGA_MEGA_DITHERED_RUN(0b1111_1000, Type.MEGA_MEGA),
+		REGULAR_COLOR_RUN     (0b011_00000, Type.REGULAR),
+		MEGA_MEGA_COLOR_RUN   (0b1111_0011, Type.MEGA_MEGA),
+		REGULAR_FGBG_IMAGE    (0b010_00000, Type.REG_FGBG),
+		MEGA_MEGA_FGBG_IMAGE  (0b1111_0010, Type.MEGA_MEGA),
+		LITE_SET_FG_FGBG_IMAGE(0b1101_0000, Type.LITE),
+		REGULAR_COLOR_IMAGE   (0b100_00000, Type.REGULAR),
+		MEGA_MEGA_COLOR_IMAGE (0b1111_0100, Type.MEGA_MEGA),
+		SPECIAL_FGBG_1        (0b1111_1001, Type.SINGLE_BYTE),
+		SPECIAL_FGBG_2        (0b1111_1010, Type.SINGLE_BYTE),
+		WHITE                 (0b1111_1101, Type.SINGLE_BYTE),
+		BLACK                 (0b1111_1110, Type.SINGLE_BYTE);
+
+		private final int id;
+		private final Type type;
+
+		private CompressionOrder(int id, Type type) {
+			this.id = id;
+			this.type = type;
+		}
+
+		/**
+		 * Attempts to parse the given order header ID into a CompressionOrder.
+		 *
+		 * May return null.
+		 *
+		 * @param id The compression order header byte
+		 * @return The value
+		 */
+		public static CompressionOrder forId(int id) {
+			CompressionOrder result = null;
+			for (CompressionOrder order : values()) {
+				int effId = id & order.type.idMask;
+				if (effId == order.id) {
+					// Got it!
+					if (result != null) {
+						throw new AssertionError("Multiple orders matched " + id + ": " + result + ", " + order);
+					}
+					result = order;
+				}
+			}
+			return result;
+		}
+
+		public static enum Type {
+			REGULAR(0b11100000) {
+				@Override
+				public int getLength(byte start, RdpPacket_Localised data) {
+					int len = start & REG_MASK;
+					if (len != 0) {
+						logger.trace("Regular - len={}", len);
+						return len;
+					} else {
+						// MEGA run; 1 extra byte
+						int num = data.get8();
+						int val = num + REG_COUNT;
+						logger.trace("Regular MEGA - read={} => {}", num, val);
+						return val;
+					}
+				}
+			},
+			LITE(0b11110000) {
+				@Override
+				public int getLength(byte start, RdpPacket_Localised data) {
+					int len = start & LITE_MASK;
+					if (len != 0) {
+						logger.trace("Lite - len={}", len);
+						return len;
+					} else {
+						// MEGA run; 1 extra byte
+						int num = data.get8();
+						int val = num + LITE_COUNT;
+						logger.trace("Lite MEGA - read={} => {}", num, val);
+						return val;
+					}
+				}
+			},
+			MEGA_MEGA(0b11111111) {
+				@Override
+				public int getLength(byte start, RdpPacket_Localised data) {
+					int value = data.getLittleEndian16();
+					logger.trace("MEGA MEGA - read={}", value);
+					return value;
+				}
+			},
+			SINGLE_BYTE(0b11111111) {
+				@Override
+				public int getLength(byte start, RdpPacket_Localised data) {
+					logger.trace("Single byte");
+					return 0;
+				}
+			},
+			REG_FGBG(0b11100000) {
+				@Override
+				public int getLength(byte start, RdpPacket_Localised data) {
+					int len = start & REG_MASK;
+					if (len != 0) {
+						int val = len * 8;
+						logger.trace("Regular FGBG - len={} => {}", len, val);
+						return val;
+					} else {
+						int read = data.get8();
+						int val = read + 1; // Yes, + 1, not another number
+						logger.trace("\"MEGA\" Regular FGBG - read={} => {}", read, val);
+						return val;
+					}
+				}
+			},
+			LITE_FGBG(0b11110000) {
+				@Override
+				public int getLength(byte start, RdpPacket_Localised data) {
+					int len = start & LITE_MASK;
+					if (len != 0) {
+						int val = len * 8;
+						logger.trace("Lite FGBG - len={} => {}", len, val);
+						return val;
+					} else {
+						int read = data.get8();
+						int val = read + 1; // Again, + 1
+						logger.trace("\"MEGA\" Lite  FGBG - read={} => {}", read, val);
+						return val;
+					}
+				}
+			};
+
+			private static final int REG_MASK  = 0b00011111, REG_COUNT  = REG_MASK + 1;
+			private static final int LITE_MASK = 0b00001111, LITE_COUNT = LITE_MASK + 1;
+
+			public final int idMask;
+
+			private Type(int idMask) {
+				this.idMask = idMask;
+			}
+
+			public abstract int getLength(byte start, RdpPacket_Localised data);
+		}
 	}
 }

@@ -16,6 +16,11 @@ sourceSets {
             srcDir "resources"
         }
     }
+    test {
+        java {
+            srcDir 'test'
+        }
+    }
 }
 
 repositories {
@@ -32,5 +37,7 @@ dependencies {
     // old MC version
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.0-beta9'
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.0-beta9'
+
+    testCompile "junit:junit:4.12"
 
 }
