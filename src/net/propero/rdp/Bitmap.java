@@ -136,44 +136,6 @@ public class Bitmap {
 	}
 
 	/**
-	 * 
-	 * @param input
-	 * @param startOffset
-	 * @param offset
-	 * @param Bpp
-	 * @return
-	 */
-	private static int getli(byte[] input, int startOffset, int offset, int Bpp) {
-		int rv = 0;
-
-		int rOffset = startOffset + (offset * Bpp);
-		for (int i = 0; i < Bpp; i++) {
-			rv = rv << 8;
-			rv |= (input[rOffset + (Bpp - i - 1)]) & 0xFF;
-		}
-		return rv;
-	}
-
-	/**
-	 * 
-	 * @param input
-	 * @param startlocation
-	 * @param offset
-	 * @param value
-	 * @param Bpp
-	 */
-	private static void setli(byte[] input, int startlocation, int offset, int value,
-			int Bpp) {
-		int location = startlocation + offset * Bpp;
-
-		input[location] = (byte) (value & 0xFF);
-		if (Bpp > 1)
-			input[location + 1] = (byte) ((value & 0xFF00) >> 8);
-		if (Bpp > 2)
-			input[location + 2] = (byte) ((value & 0xFF0000) >> 16);
-	}
-
-	/**
 	 * Convert byte array representing a bitmap into integer array of pixels
 	 * 
 	 * @param bitmap
@@ -294,6 +256,10 @@ public class Bitmap {
 		return this.y;
 	}
 
+	private static class DecompressionState {
+		
+	}
+
 	/**
 	 * Decompresses a bitmap into the given callback.
 	 *
@@ -304,6 +270,7 @@ public class Bitmap {
 	 * @param Bpp <b>bytes</b> per pixel
 	 * @param callback Callback to set/get info from
 	 * @throws RdesktopException
+	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
 	public static void decompress(Options options, int width, int height,
 			byte[] compressedData, int Bpp, DecompressionCallback callback)
@@ -707,6 +674,149 @@ public class Bitmap {
 				}
 			}
 		}
+	}
+
+	/**
+	 * A Background Run Order encodes a run of pixels where each pixel in the
+	 * run matches the uncompressed pixel on the previous scanline. If there is
+	 * no previous scanline then each pixel in the run MUST be black.
+	 * <p>
+	 * When encountering back-to-back background runs, the decompressor MUST
+	 * write a one-pixel foreground run to the destination buffer before
+	 * processing the second background run if both runs occur on the first
+	 * scanline or after the first scanline (if the first run is on the first
+	 * scanline, and the second run is on the second scanline, then a one-pixel
+	 * foreground run MUST NOT be written to the destination buffer). This
+	 * one-pixel foreground run is counted in the length of the run.
+	 * <p>
+	 * The run length encodes the number of pixels in the run. There is no data
+	 * associated with Background Run Orders.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
+	 */
+	private static void handleBackgroundRun() {
+		
+	}
+
+	/**
+	 * A Foreground Run Order encodes a run of pixels where each pixel in the
+	 * run matches the uncompressed pixel on the previous scanline XOR'd with
+	 * the current foreground color. The initial foreground color MUST be white.
+	 * If there is no previous scanline, then each pixel in the run MUST be set
+	 * to the current foreground color.
+	 * <p>
+	 * The run length encodes the number of pixels in the run.
+	 * <p>
+	 * If the order is a "set" variant, then in addition to encoding a run of
+	 * pixels, the order also encodes a new foreground color (in little-endian
+	 * format) in the bytes following the optional run length. The current
+	 * foreground color MUST be updated with the new value before writing the
+	 * run to the destination buffer.
+	 *
+	 * @param isSet True if this is a set variant
+	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
+	 */
+	private static void handleForegroundRun(boolean isSet) {
+		
+	}
+
+	/**
+	 * A Dithered Run Order encodes a run of pixels which is composed of two
+	 * alternating colors. The two colors are encoded (in little-endian format)
+	 * in the bytes following the optional run length.
+	 * <p>
+	 * The run length encodes the number of pixel-pairs in the run (not pixels).
+	 *
+	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
+	 */
+	private static void handleDitheredRun() {
+		
+	}
+
+	/**
+	 * A Color Run Order encodes a run of pixels where each pixel is the same
+	 * color. The color is encoded (in little-endian format) in the bytes
+	 * following the optional run length.
+	 * <p>
+	 * The run length encodes the number of pixels in the run.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
+	 */
+	private static void handleColorRun() {
+		
+	}
+
+	/**
+	 * A Foreground/Background Image Order encodes a binary image where each
+	 * pixel in the image that is not on the first scanline fulfills exactly one
+	 * of the following two properties:
+	 * <ol type="a">
+	 * <li>The pixel matches the uncompressed pixel on the previous scanline
+	 * XOR'ed with the current foreground color.</li>
+	 * <li>The pixel matches the uncompressed pixel on the previous scanline.</li>
+	 * </ol>
+	 * <p>
+	 * If the pixel is on the first scanline then it fulfills exactly one of the
+	 * following two properties:
+	 * <ol type="a" start="3">
+	 * <li>The pixel is the current foreground color.</li>
+	 * <li>The pixel is black.</li>
+	 * </ol>
+	 * <p>
+	 * The binary image is encoded as a sequence of byte-sized bitmasks which
+	 * follow the optional run length (the last bitmask in the sequence can be
+	 * smaller than one byte in size). If the order is a "set" variant then the
+	 * bitmasks MUST follow the bytes which specify the new foreground color.
+	 * Each bit in the encoded bitmask sequence represents one pixel in the
+	 * image. A bit that has a value of 1 represents a pixel that fulfills
+	 * either property (a) or (c), while a bit that has a value of 0 represents
+	 * a pixel that fulfills either property (b) or (d). The individual bitmasks
+	 * MUST each be processed from the low-order bit to the high-order bit.
+	 * <p>
+	 * The run length encodes the number of pixels in the run.
+	 * <p>
+	 * If the order is a "set" variant, then in addition to encoding a binary
+	 * image, the order also encodes a new foreground color (in little-endian
+	 * format) in the bytes following the optional run length. The current
+	 * foreground color MUST be updated with the new value before writing the
+	 * run to the destination buffer.
+	 *
+	 * @param isSet True if this is a set variant
+	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
+	 */
+	private static void handleFgbgImage(boolean isSet) {
+		
+	}
+
+	/**
+	 * A Color Image Order encodes a run of uncompressed pixels.
+	 * <p>The run length encodes the number of pixels in the run. So, to compute the actual number of bytes which follow the optional run length, the run length MUST be multiplied by the color depth (in bits-per-pixel) of the bitmap data.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
+	 */
+	private static void handleColorImage() {
+		
+	}
+
+	/**
+	 * The compression order encodes a foreground/background image with an 8-bit
+	 * bitmask of (0x03 or 0x05).
+	 *
+	 * @param type2 If true, bitmask is 0x05. If false, bitmask is 0x03.
+	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
+	 */
+	private static void handleSpecialFgbg(boolean type2) {
+		
+	}
+
+	/**
+	 * The compression order encodes a single (white or black) pixel.
+	 *
+	 * @param black True if the pixel is black; false if white
+	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
+	 */
+	private static void handleSinglePixel(boolean black) {
+		
 	}
 
 	/**
