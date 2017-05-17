@@ -149,8 +149,6 @@ public class Options {
 
 	public boolean packet_encryption = true;
 
-	public boolean desktop_save = true;
-
 	public boolean grab_keyboard = true;
 
 	public boolean hide_decorations = false;
