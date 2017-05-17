@@ -1,7 +1,11 @@
 package net.propero.rdp;
 
 import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.*;
+
+import java.util.EnumSet;
+import java.util.Set;
+
 import net.propero.rdp.Bitmap.CompressionOrder;
 import net.propero.rdp.Bitmap.CompressionOrder.Type;
 
@@ -9,10 +13,36 @@ import org.junit.Test;
 
 public class BitmapTest {
 
+	/**
+	 * Verifies that each possible id maps no more than one compression order.
+	 */
 	@Test
 	public void testUniqueCompressionOrders() {
+		Set<CompressionOrder> matching = EnumSet.noneOf(CompressionOrder.class);
 		for (int i = 0; i < 255; i++) {
-			CompressionOrder.forId(i); // Will assert if there's a duplicate
+			matching.clear();
+
+			for (CompressionOrder order : CompressionOrder.values()) {
+				if (order.matches(i)) {
+					matching.add(order);
+				}
+			}
+
+			assertThat("There should only be one order that matches " + i + " ("
+					+ Integer.toBinaryString(i) + ")", matching, either(empty()).or(hasSize(1)));
+		}
+	}
+
+	/**
+	 * Verifies that the IDs given for each compression order map to that order.
+	 */
+	@Test
+	public void testCompressionOrderIds() {
+		for (CompressionOrder order : CompressionOrder.values()) {
+			int id = order.getId();
+			assertThat("Broken mapping for " + id + " (" + Integer.toBinaryString(id)
+					+ ")", CompressionOrder.forId(id), is(order));
+			assertTrue(order.matches(order.getId()));
 		}
 	}
 

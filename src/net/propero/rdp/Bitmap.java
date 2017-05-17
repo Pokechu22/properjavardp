@@ -959,18 +959,41 @@ public class Bitmap {
 		 * @return The value
 		 */
 		public static CompressionOrder forId(int id) {
-			CompressionOrder result = null;
 			for (CompressionOrder order : values()) {
-				int effId = id & order.type.idMask;
-				if (effId == order.id) {
-					// Got it!
-					if (result != null) {
-						throw new AssertionError("Multiple orders matched " + id + ": " + result + ", " + order);
-					}
-					result = order;
+				if (order.matches(id)) {
+					return order;
 				}
 			}
-			return result;
+			return null;
+		}
+
+		/**
+		 * Checks if the given ID matches this order's ID.
+		 * @param id The ID to check
+		 * @return True if it matches
+		 */
+		public boolean matches(int id) {
+			int effId = id & this.type.idMask;
+			return (effId == this.id);
+		}
+
+		/**
+		 * Returns the ID associated with this order, which may be one of
+		 * several accepted values depending on the type.
+		 *
+		 * @return {@link #id}
+		 */
+		public int getId() {
+			return id;
+		}
+
+		/**
+		 * Returns the type of this order.
+		 *
+		 * @return {@link #type}
+		 */
+		public Type getType() {
+			return type;
 		}
 
 		/**
