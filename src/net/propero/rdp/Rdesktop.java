@@ -537,6 +537,7 @@ public class Rdesktop {
 					String msg2 = e.getMessage();
 					logger.fatal(msg1 + ": " + msg2);
 
+					System.out.flush();
 					e.printStackTrace(System.err);
 
 					if (!readytosend) {
