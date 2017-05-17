@@ -1058,7 +1058,7 @@ public class Bitmap {
 					} else {
 						int read = data.get8();
 						int val = read + 1; // Again, + 1
-						logger.trace("\"MEGA\" Lite  FGBG - read={} => {}", read, val);
+						logger.trace("\"MEGA\" Lite FGBG - read={} => {}", read, val);
 						return val;
 					}
 				}
