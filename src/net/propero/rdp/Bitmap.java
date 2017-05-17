@@ -87,55 +87,6 @@ public class Bitmap {
 	}
 
 	/**
-	 * Read integer of a specified byte-length from byte array
-	 * 
-	 * @param data
-	 *            Array to read from
-	 * @param offset
-	 *            Offset in array to read from
-	 * @param Bpp
-	 *            Number of bytes to read
-	 * @return
-	 */
-	private static int cvalx(Options options, byte[] data, int offset, int Bpp) {
-		int rv = 0;
-		if (options.server_bpp == 15) {
-			int lower = data[offset] & 0xFF;
-			int full = (data[offset + 1] & 0xFF) << 8 | lower;
-
-			int r24 = (full >> 7) & 0xF8;
-			r24 |= r24 >> 5;
-			int g24 = (full >> 2) & 0xF8;
-			g24 |= g24 >> 5;
-			int b24 = (lower << 3) & 0xFF;
-			b24 |= b24 >> 5;
-
-			return (r24 << 16) | (g24 << 8) | b24;
-
-		} else if (options.server_bpp == 16) {
-			int lower = data[offset] & 0xFF;
-			int full = (data[offset + 1] & 0xFF) << 8 | lower;
-
-			int r24 = (full >> 8) & 0xF8;
-			r24 |= r24 >> 5;
-			int g24 = (full >> 3) & 0xFC;
-			g24 |= g24 >> 6;
-			int b24 = (lower << 3) & 0xFF;
-			b24 |= b24 >> 5;
-
-			return (r24 << 16) | (g24 << 8) | b24;
-
-		} else {
-			for (int i = (Bpp - 1); i >= 0; i--) {
-				rv = rv << 8;
-				rv |= data[offset + i] & 0xFF;
-			}
-		}
-
-		return rv;
-	}
-
-	/**
 	 * Convert byte array representing a bitmap into integer array of pixels
 	 * 
 	 * @param bitmap
@@ -256,8 +207,125 @@ public class Bitmap {
 		return this.y;
 	}
 
+	/**
+	 * Reads a color from the packet, in the given BPP.
+	 *
+	 * @param options Options to use (for bpp)
+	 * @param Bpp <b>Bytes</b> per pixel.
+	 * @param packet The packet to read from
+	 * @return The color that was read
+	 */
+	private static int readColor(Options options, int Bpp, RdpPacket_Localised packet) {
+		if (options.server_bpp == 15) {
+			int lower = packet.get8();
+			int upper = packet.get8();
+			int full = (upper << 8) | lower;
+
+			int r24 = (full >> 7) & 0xF8;
+			r24 |= r24 >> 5;
+			int g24 = (full >> 2) & 0xF8;
+			g24 |= g24 >> 5;
+			int b24 = (lower << 3) & 0xFF;
+			b24 |= b24 >> 5;
+
+			return (r24 << 16) | (g24 << 8) | b24;
+
+		} else if (options.server_bpp == 16) {
+			int lower = packet.get8();
+			int upper = packet.get8();
+			int full = (upper << 8) | lower;
+
+			int r24 = (full >> 8) & 0xF8;
+			r24 |= r24 >> 5;
+			int g24 = (full >> 3) & 0xFC;
+			g24 |= g24 >> 6;
+			int b24 = (lower << 3) & 0xFF;
+			b24 |= b24 >> 5;
+
+			return (r24 << 16) | (g24 << 8) | b24;
+
+		} else {
+			int[] vals = new int[Bpp];
+			for (int i = 0; i < vals.length; i++) {
+				vals[i] = packet.get8();
+			}
+			int result = 0;
+			for (int i = (Bpp - 1); i >= 0; i--) {
+				result <<= 8;
+				result |= vals[i];
+			}
+
+			return result;
+		}
+	}
+
+	private static final int BLACK = 0, WHITE = 0xFFFFFF;
+
+	/**
+	 * Stores the current state of decompression.
+	 *
+	 * @see [MS-RDPBCGR] 3.1.9 (RleDecompress; see variables at top)
+	 */
 	private static class DecompressionState {
-		
+		public DecompressionState(int width, int height, DecompressionCallback callback, Options options, int Bpp) {
+			this.width = width;
+			this.height = height;
+			this.callback = callback;
+			this.options = options;
+			this.Bpp = Bpp;
+
+			// Per 2.2.9.1.1.3.1.2.2: Uncompressed bitmap data is formatted as a
+			// bottom-up, left-to-right series of pixels.
+			// As such, x = 0, and y = height - 1;
+			this.x = 0;
+			this.y = height - 1;
+		}
+
+		/** Are we still on the "first" line (the bottommost one)? */
+		public boolean onFirstLine = true;
+		/** Do we use the foreground color? */
+		public boolean insertFgColor = false;
+		/** The current foreground color */
+		public int fgColor = WHITE;
+
+		/** Full width of the bitmap */
+		public final int width;
+		/** Full height of the bitmap */
+		public final int height;
+		/** The options to use when reading pixels */
+		public final Options options;
+		/** The number of <b>bytes</b> per pixel */
+		public final int Bpp;
+
+		/** Current x and y coordinates, will be edited as needed */
+		private int x, y;
+
+		private final DecompressionCallback callback;
+
+		/**
+		 * Writes another pixel, and moves up.
+		 */
+		public void writePixel(int color) throws RdesktopException {
+			if (y < 0) {
+				throw new RdesktopException("Can't write a pixel; y is negative!");
+			}
+			callback.setPixel(x, y, color);
+			x++;
+			if (x == width) {
+				x = 0;
+				y--;
+			}
+		}
+
+		/**
+		 * Gets the pixel in previous scanline at the same x coordinate.
+		 */
+		public int readBelowPixel() throws RdesktopException {
+			if (y >= height - 1) {
+				throw new RdesktopException("Can't read pixel on the previous scanline! -- " + onFirstLine);
+			}
+			return callback.getPixel(x, y + 1);
+		}
 	}
 
 	/**
@@ -266,413 +334,102 @@ public class Bitmap {
 	 * @param options Options to use when decompressing.
 	 * @param width Width of the bitmap
 	 * @param height Height of the bitmap
-	 * @param compressedData Existing compressed data
+	 * @param data Packet to read compressed data from
+	 * @param size Size of the data.
 	 * @param Bpp <b>bytes</b> per pixel
 	 * @param callback Callback to set/get info from
 	 * @throws RdesktopException
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
 	public static void decompress(Options options, int width, int height,
-			byte[] compressedData, int Bpp, DecompressionCallback callback)
+			RdpPacket_Localised data, int size, int Bpp,
+			DecompressionCallback callback)
 					throws RdesktopException {
-		int previous = -1, line = 0, prevY = 0;
-		int input = 0, end = compressedData.length;
-		int opcode = 0, count = 0, offset = 0, x = width;
-		int lastopcode = -1, fom_mask = 0;
-		int code = 0, color1 = 0, color2 = 0;
-		byte mixmask = 0;
-		int mask = 0;
-		int mix = 0xffffffff;
+		int end = data.getPosition() + size;
 
-		boolean insertmix = false, bicolor = false, isfillormix = false;
+		DecompressionState state = new DecompressionState(width, height, callback, options, Bpp);
 
-		while (input < end) {
-			fom_mask = 0;
-			code = (compressedData[input++] & 0x000000ff);
-			opcode = code >> 4;
-
-			/* Handle different opcode forms */
-			switch (opcode) {
-			case 0xc:
-			case 0xd:
-			case 0xe:
-				opcode -= 6;
-				count = code & 0xf;
-				offset = 16;
-				break;
-
-			case 0xf:
-				opcode = code & 0xf;
-				if (opcode < 9) {
-					count = (compressedData[input++] & 0xff);
-					count |= ((compressedData[input++] & 0xff) << 8);
-				} else {
-					count = (opcode < 0xb) ? 8 : 1;
-				}
-				offset = 0;
-				break;
-
-			default:
-				opcode >>= 1;
-				count = code & 0x1f;
-				offset = 32;
-				break;
-			}
-
-			/* Handle strange cases for counts */
-			if (offset != 0) {
-				isfillormix = ((opcode == 2) || (opcode == 7));
-
-				if (count == 0) {
-					if (isfillormix)
-						count = (compressedData[input++] & 0x000000ff) + 1;
-					else
-						count = (compressedData[input++] & 0x000000ff)
-								+ offset;
-				} else if (isfillormix) {
-					count <<= 3;
+		while (data.getPosition() < end) {
+			if (state.onFirstLine) {
+				if (state.y < state.height - 1) {
+					// We check this here, rather than in the middle of an order
+					state.onFirstLine = false;
+					state.insertFgColor = false;
 				}
 			}
 
-			switch (opcode) {
-			case 0: /* Fill */
-				if ((lastopcode == opcode)
-						&& !((x == width) && (previous == -1)))
-					insertmix = true;
-				break;
-			case 8: /* Bicolor */
-				color1 = cvalx(options, compressedData, input, Bpp);
-				// (compressed_pixel[input++]&0x000000ff);
-				input += Bpp;
-			case 3: /* Color */
-				color2 = cvalx(options, compressedData, input, Bpp);
-				// color2 = (compressed_pixel[input++]&0x000000ff);
-				input += Bpp;
-				break;
-			case 6: /* SetMix/Mix */
-			case 7: /* SetMix/FillOrMix */
-				// mix = compressed_pixel[input++];
-				mix = cvalx(options, compressedData, input, Bpp);
-				input += Bpp;
-				opcode -= 5;
-				break;
-			case 9: /* FillOrMix_1 */
-				mask = 0x03;
-				opcode = 0x02;
-				fom_mask = 3;
-				break;
-			case 0x0a: /* FillOrMix_2 */
-				mask = 0x05;
-				opcode = 0x02;
-				fom_mask = 5;
-				break;
+			int code = data.get8();
+			CompressionOrder order = CompressionOrder.forId(code);
+			logger.debug("Order: " + order + " (for " + code + ")");
+			if (order == null) {
+				throw new RdesktopException("I don't know what order code " + code + " (" + Integer.toBinaryString(code) + ") means");
+			}
+			int runLength = order.getLength(code, data);
 
+			if (order != CompressionOrder.REGULAR_BG_RUN
+					&& order != CompressionOrder.MEGA_MEGA_BG_RUN) {
+				// Subsequent BG runs need this to remain the same,
+				// but other orders don't
+				state.insertFgColor = false;
 			}
 
-			lastopcode = opcode;
-			mixmask = 0;
-
-			/* Output body */
-			while (count > 0) {
-				if (x >= width) {
-					if (height <= 0)
-						throw new RdesktopException(
-								"Decompressing bitmap failed! Height = "
-										+ height);
-					x = 0;
-					height--;
-
-					previous = line;
-					prevY = previous / width;
-					line = height * width;
-				}
-
-				switch (opcode) {
-				case 0: /* Fill */
-					if (insertmix) {
-						if (previous == -1) {
-							// pixel[line+x] = mix;
-							callback.setPixel(x, height, mix);
-						} else {
-							callback.setPixel(x, height, callback.getPixel(x, prevY) ^ mix);
-							// pixel[line+x] = (pixel[previous+x] ^ mix);
-						}
-
-						insertmix = false;
-						count--;
-						x++;
-					}
-
-					if (previous == -1) {
-						while (((count & ~0x7) != 0) && ((x + 8) < width)) {
-							for (int i = 0; i < 8; i++) {
-								// pixel[line+x] = 0;
-								callback.setPixel(x, height, 0);
-								count--;
-								x++;
-							}
-						}
-						while ((count > 0) && (x < width)) {
-							// pixel[line+x] = 0;
-							callback.setPixel(x, height, 0);
-							count--;
-							x++;
-						}
-					} else {
-						while (((count & ~0x7) != 0) && ((x + 8) < width)) {
-							for (int i = 0; i < 8; i++) {
-								// pixel[line + x] = pixel[previous + x];
-								callback.setPixel(x, height, callback.getPixel(x, prevY));
-								count--;
-								x++;
-							}
-						}
-						while ((count > 0) && (x < width)) {
-							// pixel[line + x] = pixel[previous + x];
-							callback.setPixel(x, height, callback.getPixel(x, prevY));
-							count--;
-							x++;
-						}
-					}
-					break;
-
-				case 1: /* Mix */
-					if (previous == -1) {
-						while (((count & ~0x7) != 0) && ((x + 8) < width)) {
-							for (int i = 0; i < 8; i++) {
-								// pixel[line + x] = mix;
-								callback.setPixel(x, height, mix);
-								count--;
-								x++;
-							}
-						}
-						while ((count > 0) && (x < width)) {
-							// pixel[line + x] = mix;
-							callback.setPixel(x, height, mix);
-							count--;
-							x++;
-						}
-					} else {
-
-						while (((count & ~0x7) != 0) && ((x + 8) < width)) {
-							for (int i = 0; i < 8; i++) {
-								// pixel[line + x] = pixel[previous + x] ^ mix;
-								callback.setPixel(x, height,
-										callback.getPixel(x, prevY) ^ mix);
-								count--;
-								x++;
-							}
-						}
-						while ((count > 0) && (x < width)) {
-							// pixel[line + x] = pixel[previous + x] ^ mix;
-							callback.setPixel(x, height,
-									callback.getPixel(x, prevY) ^ mix);
-							count--;
-							x++;
-						}
-
-					}
-					break;
-				case 2: /* Fill or Mix */
-					if (previous == -1) {
-						while (((count & ~0x7) != 0) && ((x + 8) < width)) {
-							for (int i = 0; i < 8; i++) {
-								mixmask <<= 1;
-								if (mixmask == 0) {
-									mask = (fom_mask != 0) ? (byte) fom_mask
-											: compressedData[input++];
-									mixmask = 1;
-								}
-								if ((mask & mixmask) != 0) {
-									// pixel[line + x] = (byte) mix;
-									callback.setPixel(x, height,
-													(byte) mix); // XXX Is this cast right?
-								} else {
-									// pixel[line + x] = 0;
-									callback.setPixel(x, height, 0);
-								}
-								count--;
-								x++;
-							}
-						}
-						while ((count > 0) && (x < width)) {
-							mixmask <<= 1;
-							if (mixmask == 0) {
-								mask = (fom_mask != 0) ? (byte) fom_mask
-										: compressedData[input++];
-								mixmask = 1;
-							}
-							if ((mask & mixmask) != 0) {
-								// pixel[line + x] = mix;
-								callback.setPixel(x, height, mix);
-							} else {
-								// pixel[line + x] = 0;
-								callback.setPixel(x, height, 0);
-							}
-							count--;
-							x++;
-						}
-					} else {
-						while (((count & ~0x7) != 0) && ((x + 8) < width)) {
-							for (int i = 0; i < 8; i++) {
-								mixmask <<= 1;
-								if (mixmask == 0) {
-									mask = (fom_mask != 0) ? (byte) fom_mask
-											: compressedData[input++];
-									mixmask = 1;
-								}
-								if ((mask & mixmask) != 0) {
-									// pixel[line + x] = (pixel[previous + x] ^
-									// mix);
-									callback.setPixel(x, height,
-											callback.getPixel(x, prevY) ^ mix);
-								} else {
-									// pixel[line + x] = pixel[previous + x];
-									callback.setPixel(x, height,
-											callback.getPixel(x, prevY));
-								}
-								count--;
-								x++;
-							}
-						}
-						while ((count > 0) && (x < width)) {
-							mixmask <<= 1;
-							if (mixmask == 0) {
-								mask = (fom_mask != 0) ? (byte) fom_mask
-										: compressedData[input++];
-								mixmask = 1;
-							}
-							if ((mask & mixmask) != 0) {
-								// pixel[line + x] = (pixel[previous + x] ^
-								// mix);
-								callback.setPixel(x, height,
-										callback.getPixel(x, prevY) ^ mix);
-							} else {
-								// pixel[line + x] = pixel[previous + x];
-								callback.setPixel(x, height,
-										callback.getPixel(x, prevY));
-							}
-							count--;
-							x++;
-						}
-
-					}
-					break;
-
-				case 3: /* Color */
-					while (((count & ~0x7) != 0) && ((x + 8) < width)) {
-						for (int i = 0; i < 8; i++) {
-							// pixel[line + x] = color2;
-							callback.setPixel(x, height, color2);
-							count--;
-							x++;
-						}
-					}
-					while ((count > 0) && (x < width)) {
-						// pixel[line + x] = color2;
-						callback.setPixel(x, height, color2);
-						count--;
-						x++;
-					}
-
-					break;
-
-				case 4: /* Copy */
-					while (((count & ~0x7) != 0) && ((x + 8) < width)) {
-						for (int i = 0; i < 8; i++) {
-							// pixel[line + x] = cvalx(compressed_pixel, input,
-							// Bpp);
-							callback.setPixel(x, height,
-									cvalx(options, compressedData, input, Bpp));
-							input += Bpp;
-							count--;
-							x++;
-						}
-					}
-					while ((count > 0) && (x < width)) {
-						// pixel[line + x] = cvalx(compressed_pixel, input,
-						// Bpp);
-						callback.setPixel(x, height,
-								cvalx(options, compressedData, input, Bpp));
-						input += Bpp;
-						count--;
-						x++;
-					}
-					break;
-
-				case 8: /* Bicolor */
-					while (((count & ~0x7) != 0) && ((x + 8) < width)) {
-						for (int i = 0; i < 8; i++) {
-							if (bicolor) {
-								// pixel[line + x] = color2;
-								callback.setPixel(x, height, color2);
-								bicolor = false;
-							} else {
-								// pixel[line + x] = color1;
-								callback.setPixel(x, height, color1);
-								bicolor = true;
-								count++;
-							}
-							count--;
-							x++;
-						}
-					}
-					while ((count > 0) && (x < width)) {
-						if (bicolor) {
-							// pixel[line + x] = color2;
-							callback.setPixel(x, height, color2);
-							bicolor = false;
-						} else {
-							// pixel[line + x] = color1;
-							callback.setPixel(x, height, color1);
-							bicolor = true;
-							count++;
-						}
-						count--;
-						x++;
-					}
-
-					break;
-
-				case 0xd: /* White */
-					while (((count & ~0x7) != 0) && ((x + 8) < width)) {
-						for (int i = 0; i < 8; i++) {
-							// pixel[line + x] = 0xffffff;
-							callback.setPixel(x, height, 0xffffff); // XXX The value of white varies
-							count--;
-							x++;
-						}
-					}
-					while ((count > 0) && (x < width)) {
-						// pixel[line + x] = 0xffffff;
-						callback.setPixel(x, height, 0xffffff); // XXX
-						count--;
-						x++;
-					}
-					break;
-
-				case 0xe: /* Black */
-					while (((count & ~0x7) != 0) && ((x + 8) < width)) {
-						for (int i = 0; i < 8; i++) {
-							// pixel[line + x] = 0x00;
-							callback.setPixel(x, height, 0x00); // XXX The value of black changes
-							count--;
-							x++;
-						}
-					}
-					while ((count > 0) && (x < width)) {
-						// pixel[line + x] = 0x00;
-						callback.setPixel(x, height, 0x00); // XXX
-						count--;
-						x++;
-					}
-
-					break;
-				default:
-					throw new RdesktopException(
-							"Unimplemented decompress opcode " + opcode);// ;
-				}
+			switch (order) {
+			case REGULAR_BG_RUN:
+			case MEGA_MEGA_BG_RUN: {
+				handleBackgroundRun(state, runLength, data);
+				break;
 			}
+			case REGULAR_FG_RUN:
+			case MEGA_MEGA_FG_RUN:
+			case LITE_SET_FG_FG_RUN:
+			case MEGA_MEGA_SET_FG_RUN: {
+				boolean isSet = (order == CompressionOrder.LITE_SET_FG_FG_RUN
+						|| order == CompressionOrder.MEGA_MEGA_SET_FG_RUN);
+				handleForegroundRun(state, runLength, data, isSet);
+				break;
+			}
+			case LITE_DITHERED_RUN:
+			case MEGA_MEGA_DITHERED_RUN: {
+				handleDitheredRun(state, runLength, data);
+				break;
+			}
+			case REGULAR_COLOR_RUN:
+			case MEGA_MEGA_COLOR_RUN: {
+				handleColorRun(state, runLength, data);
+				break;
+			}
+			case REGULAR_FGBG_IMAGE:
+			case MEGA_MEGA_FGBG_IMAGE:
+			case LITE_SET_FG_FGBG_IMAGE:
+			case MEGA_MEGA_SET_FGBG_IMAGE: {
+				boolean isSet = (order == CompressionOrder.LITE_SET_FG_FGBG_IMAGE
+						|| order == CompressionOrder.MEGA_MEGA_SET_FGBG_IMAGE);
+
+				handleFgbgImage(state, runLength, data, isSet);
+				break;
+			}
+			case REGULAR_COLOR_IMAGE:
+			case MEGA_MEGA_COLOR_IMAGE: {
+				handleColorImage(state, runLength, data);
+				break;
+			}
+			case SPECIAL_FGBG_1:
+			case SPECIAL_FGBG_2: {
+				handleSpecialFgbg(state, data, order == CompressionOrder.SPECIAL_FGBG_2);
+				break;
+			}
+			case WHITE:
+			case BLACK: {
+				handleSinglePixel(state, data, order == CompressionOrder.BLACK);
+				break;
+			}
+			}
+		}
+
+		if (data.getPosition() != end) {
+			throw new RdesktopException(
+					"Read too far into compressed bitmap - expected to be at "
+							+ end + " but was at " + data.getPosition());
 		}
 	}
 
@@ -692,10 +449,33 @@ public class Bitmap {
 	 * The run length encodes the number of pixels in the run. There is no data
 	 * associated with Background Run Orders.
 	 *
+	 * @param state The current state of decompression
+	 * @param runLength The length of the run
+	 * @param data Packet to read compressed data from
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
-	private static void handleBackgroundRun() {
-		
+	private static void handleBackgroundRun(DecompressionState state, int runLength, RdpPacket_Localised data) throws RdesktopException {
+		if (state.onFirstLine) {
+			if (state.insertFgColor) {
+				state.writePixel(state.fgColor);
+				runLength--;
+			}
+			while (runLength > 0) {
+				state.writePixel(BLACK);
+				runLength--;
+			}
+		} else {
+			if (state.insertFgColor) {
+				state.writePixel(state.readBelowPixel() ^ state.fgColor);
+			}
+			while (runLength > 0) {
+				state.writePixel(state.readBelowPixel());
+				runLength--;
+			}
+		}
+		// "A follow-on background run order will need a foreground pel inserted."
+		// (whatever that means), as per [MS-RDPBCGR] 3.1.9
+		state.insertFgColor = true;
 	}
 
 	/**
@@ -713,11 +493,27 @@ public class Bitmap {
 	 * foreground color MUST be updated with the new value before writing the
 	 * run to the destination buffer.
 	 *
+	 * @param state The current state of decompression
+	 * @param runLength The length of the run
+	 * @param data Packet to read compressed data from
 	 * @param isSet True if this is a set variant
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
-	private static void handleForegroundRun(boolean isSet) {
-		
+	private static void handleForegroundRun(DecompressionState state, int runLength, RdpPacket_Localised data, boolean isSet) throws RdesktopException {
+		if (isSet) {
+			state.fgColor = readColor(state.options, state.Bpp, data);
+		}
+		if (state.onFirstLine) {
+			while (runLength > 0) {
+				state.writePixel(state.readBelowPixel());
+				runLength--;
+			}
+		} else {
+			while (runLength > 0) {
+				state.writePixel(state.readBelowPixel() ^ state.fgColor);
+				runLength--;
+			}
+		}
 	}
 
 	/**
@@ -727,10 +523,20 @@ public class Bitmap {
 	 * <p>
 	 * The run length encodes the number of pixel-pairs in the run (not pixels).
 	 *
+	 * @param state The current state of decompression
+	 * @param runLength The length of the run
+	 * @param data Packet to read compressed data from
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
-	private static void handleDitheredRun() {
-		
+	private static void handleDitheredRun(DecompressionState state, int runLength, RdpPacket_Localised data) throws RdesktopException {
+		int colorA = readColor(state.options, state.Bpp, data);
+		int colorB = readColor(state.options, state.Bpp, data);
+
+		while (runLength > 0) {
+			state.writePixel(colorA);
+			state.writePixel(colorB);
+			runLength--;
+		}
 	}
 
 	/**
@@ -740,10 +546,18 @@ public class Bitmap {
 	 * <p>
 	 * The run length encodes the number of pixels in the run.
 	 *
+	 * @param state The current state of decompression
+	 * @param runLength The length of the run
+	 * @param data Packet to read compressed data from
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
-	private static void handleColorRun() {
-		
+	private static void handleColorRun(DecompressionState state, int runLength, RdpPacket_Localised data) throws RdesktopException {
+		int color = readColor(state.options, state.Bpp, data);
+
+		while (runLength > 0) {
+			state.writePixel(color);
+			runLength--;
+		}
 	}
 
 	/**
@@ -781,42 +595,109 @@ public class Bitmap {
 	 * foreground color MUST be updated with the new value before writing the
 	 * run to the destination buffer.
 	 *
+	 * @param state The current state of decompression
+	 * @param runLength The length of the run
+	 * @param data Packet to read compressed data from
 	 * @param isSet True if this is a set variant
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
-	private static void handleFgbgImage(boolean isSet) {
-		
+	private static void handleFgbgImage(DecompressionState state, int runLength, RdpPacket_Localised data, boolean isSet) throws RdesktopException {
+		if (isSet) {
+			state.fgColor = readColor(state.options, state.Bpp, data);
+		}
+
+		while (runLength > 8) {
+			int bitmask = data.get8();
+			if (state.onFirstLine) {
+				writeFirstLineFgbg(state, bitmask, 8);
+			} else {
+				writeNormalFgbg(state, bitmask, 8);
+			}
+		}
+		// Remaining bits
+		if (runLength > 0) {
+			int bitmask = data.get8();
+			if (state.onFirstLine) {
+				writeFirstLineFgbg(state, bitmask, runLength);
+			} else {
+				writeNormalFgbg(state, bitmask, runLength);
+			}
+		}
 	}
 
 	/**
 	 * A Color Image Order encodes a run of uncompressed pixels.
 	 * <p>The run length encodes the number of pixels in the run. So, to compute the actual number of bytes which follow the optional run length, the run length MUST be multiplied by the color depth (in bits-per-pixel) of the bitmap data.
 	 *
+	 * @param state The current state of decompression
+	 * @param runLength The length of the run
+	 * @param data Packet to read compressed data from
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
-	private static void handleColorImage() {
-		
+	private static void handleColorImage(DecompressionState state, int runLength, RdpPacket_Localised data) throws RdesktopException {
+		while (runLength > 0) {
+			state.writePixel(readColor(state.options, state.Bpp, data));
+			runLength--;
+		}
 	}
 
+	/**
+	 * Masks used by the special FGBG packets.
+	 */
+	private static final int SPECIAL_FGBG_MASK_1 = 0x03, SPECIAL_FGBG_MASK_2 = 0x05;
 	/**
 	 * The compression order encodes a foreground/background image with an 8-bit
 	 * bitmask of (0x03 or 0x05).
 	 *
-	 * @param type2 If true, bitmask is 0x05. If false, bitmask is 0x03.
+	 * @param state The current state of decompression
+	 * @param data Packet to read compressed data from
+	 * @param type2 If true, bitmask is {@value #SPECIAL_FGBG_MASK_2}. If false, bitmask is {@value #SPECIAL_FGBG_MASK_1}.
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
-	private static void handleSpecialFgbg(boolean type2) {
-		
+	private static void handleSpecialFgbg(DecompressionState state, RdpPacket_Localised data, boolean type2) throws RdesktopException {
+		if (state.onFirstLine) {
+			writeFirstLineFgbg(state, type2 ? SPECIAL_FGBG_MASK_2 : SPECIAL_FGBG_MASK_1, 8);
+		} else {
+			writeNormalFgbg(state, type2 ? SPECIAL_FGBG_MASK_2 : SPECIAL_FGBG_MASK_1, 8);
+		}
 	}
 
 	/**
 	 * The compression order encodes a single (white or black) pixel.
 	 *
+	 * @param state The current state of decompression
+	 * @param data Packet to read compressed data from
 	 * @param black True if the pixel is black; false if white
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
-	private static void handleSinglePixel(boolean black) {
-		
+	private static void handleSinglePixel(DecompressionState state, RdpPacket_Localised data, boolean black) throws RdesktopException {
+		state.writePixel(black ? BLACK : WHITE);
+	}
+
+	/** Helper for FGBG images */
+	private static void writeNormalFgbg(DecompressionState state, int bitmask, int numBits) throws RdesktopException {
+		for (int i = 0; i < numBits; i++) {
+			boolean mode = (bitmask & 1) == 1;
+			if (mode) {
+				state.writePixel(state.readBelowPixel() ^ state.fgColor);
+			} else {
+				state.writePixel(state.readBelowPixel());
+			}
+			bitmask >>= 1;
+		}
+	}
+
+	/** Helper for FGBG images */
+	private static void writeFirstLineFgbg(DecompressionState state, int bitmask, int numBits) throws RdesktopException {
+		for (int i = 0; i < numBits; i++) {
+			boolean mode = (bitmask & 1) == 1;
+			if (mode) {
+				state.writePixel(state.fgColor);
+			} else {
+				state.writePixel(BLACK);
+			}
+			bitmask >>= 1;
+		}
 	}
 
 	/**
@@ -849,11 +730,7 @@ public class Bitmap {
 			int size, RdpPacket_Localised data, int Bpp, IndexColorModel cm,
 			int left, int top, WrappedImage w) throws RdesktopException {
 
-		byte[] compressed_pixel = new byte[size];
-		data.copyToByteArray(compressed_pixel, 0, data.getPosition(), size);
-		data.incrementPosition(size);
-
-		decompress(options, width, height, compressed_pixel, Bpp,
+		decompress(options, width, height, data, size, Bpp,
 				new DecompressionCallback() {
 					@Override
 					public void setPixel(int x, int y, int color) {
@@ -893,16 +770,12 @@ public class Bitmap {
 
 		WrappedImage w;
 
-		byte[] compressed_pixel = new byte[size];
-		data.copyToByteArray(compressed_pixel, 0, data.getPosition(), size);
-		data.incrementPosition(size);
-
 		if (cm == null)
 			w = new WrappedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		else
 			w = new WrappedImage(width, height, BufferedImage.TYPE_INT_RGB, cm);
 
-		decompress(options, width, height, compressed_pixel, Bpp,
+		decompress(options, width, height, data, size, Bpp,
 				new DecompressionCallback() {
 					@Override
 					public void setPixel(int x, int y, int color) {
@@ -937,13 +810,9 @@ public class Bitmap {
 	public static int[] decompressInt(Options options, int width, int height, int size,
 			RdpPacket_Localised data, int Bpp) throws RdesktopException {
 
-		byte[] compressed_pixel = new byte[size];
-		data.copyToByteArray(compressed_pixel, 0, data.getPosition(), size);
-		data.incrementPosition(size);
-
 		int[] pixel = new int[width * height];
 
-		decompress(options, width, height, compressed_pixel, Bpp,
+		decompress(options, width, height, data, size, Bpp,
 				new DecompressionCallback() {
 					@Override
 					public void setPixel(int x, int y, int color) {
@@ -978,13 +847,9 @@ public class Bitmap {
 	public static byte[] decompress(Options options, int width, int height, int size,
 			RdpPacket_Localised data, int Bpp) throws RdesktopException {
 
-		byte[] compressed_pixel = new byte[size];
-		data.copyToByteArray(compressed_pixel, 0, data.getPosition(), size);
-		data.incrementPosition(size);
-
 		byte[] pixel = new byte[width * height];
 
-		decompress(options, width, height, compressed_pixel, Bpp,
+		decompress(options, width, height, data, size, Bpp,
 				new DecompressionCallback() {
 					@Override
 					public void setPixel(int x, int y, int color) {
@@ -1032,25 +897,26 @@ public class Bitmap {
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
 	static enum CompressionOrder {
-		REGULAR_BG_RUN        (0b000_00000, Type.REGULAR),
-		MEGA_MEGA_BG_RUN      (0b1111_0000, Type.MEGA_MEGA),
-		REGULAR_FG_RUN        (0b001_00000, Type.REGULAR),
-		MEGA_MEGA_FG_RUN      (0b1111_0001, Type.MEGA_MEGA),
-		LITE_SET_FG_FG_RUN    (0b1100_0000, Type.LITE),
-		MEGA_MEGA_SET_FG_RUN  (0b1111_0110, Type.MEGA_MEGA),
-		LITE_DITHERED_RUN     (0b1110_0000, Type.LITE),
-		MEGA_MEGA_DITHERED_RUN(0b1111_1000, Type.MEGA_MEGA),
-		REGULAR_COLOR_RUN     (0b011_00000, Type.REGULAR),
-		MEGA_MEGA_COLOR_RUN   (0b1111_0011, Type.MEGA_MEGA),
-		REGULAR_FGBG_IMAGE    (0b010_00000, Type.REG_FGBG),
-		MEGA_MEGA_FGBG_IMAGE  (0b1111_0010, Type.MEGA_MEGA),
-		LITE_SET_FG_FGBG_IMAGE(0b1101_0000, Type.LITE),
-		REGULAR_COLOR_IMAGE   (0b100_00000, Type.REGULAR),
-		MEGA_MEGA_COLOR_IMAGE (0b1111_0100, Type.MEGA_MEGA),
-		SPECIAL_FGBG_1        (0b1111_1001, Type.SINGLE_BYTE),
-		SPECIAL_FGBG_2        (0b1111_1010, Type.SINGLE_BYTE),
-		WHITE                 (0b1111_1101, Type.SINGLE_BYTE),
-		BLACK                 (0b1111_1110, Type.SINGLE_BYTE);
+		REGULAR_BG_RUN          (0b000_00000, Type.REGULAR),
+		MEGA_MEGA_BG_RUN        (0b1111_0000, Type.MEGA_MEGA),
+		REGULAR_FG_RUN          (0b001_00000, Type.REGULAR),
+		MEGA_MEGA_FG_RUN        (0b1111_0001, Type.MEGA_MEGA),
+		LITE_SET_FG_FG_RUN      (0b1100_0000, Type.LITE),
+		MEGA_MEGA_SET_FG_RUN    (0b1111_0110, Type.MEGA_MEGA),
+		LITE_DITHERED_RUN       (0b1110_0000, Type.LITE),
+		MEGA_MEGA_DITHERED_RUN  (0b1111_1000, Type.MEGA_MEGA),
+		REGULAR_COLOR_RUN       (0b011_00000, Type.REGULAR),
+		MEGA_MEGA_COLOR_RUN     (0b1111_0011, Type.MEGA_MEGA),
+		REGULAR_FGBG_IMAGE      (0b010_00000, Type.REG_FGBG),
+		MEGA_MEGA_FGBG_IMAGE    (0b1111_0010, Type.MEGA_MEGA),
+		LITE_SET_FG_FGBG_IMAGE  (0b1101_0000, Type.LITE),
+		MEGA_MEGA_SET_FGBG_IMAGE(0b1111_0111, Type.MEGA_MEGA),
+		REGULAR_COLOR_IMAGE     (0b100_00000, Type.REGULAR),
+		MEGA_MEGA_COLOR_IMAGE   (0b1111_0100, Type.MEGA_MEGA),
+		SPECIAL_FGBG_1          (0b1111_1001, Type.SINGLE_BYTE),
+		SPECIAL_FGBG_2          (0b1111_1010, Type.SINGLE_BYTE),
+		WHITE                   (0b1111_1101, Type.SINGLE_BYTE),
+		BLACK                   (0b1111_1110, Type.SINGLE_BYTE);
 
 		private final int id;
 		private final Type type;
