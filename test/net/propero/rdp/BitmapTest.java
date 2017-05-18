@@ -110,13 +110,75 @@ public class BitmapTest {
 	}
 
 	@Test
-	public void testFgbg() throws Exception {
-		Options options = new Options();
-		options.server_bpp = 8;
-		options.Bpp = 1;
-		int[][] data = new int[4][4];
+	public void testColorRun() throws RdesktopException {
+		byte[] data = {
+			(byte) 0b011_00100, // REGULAR_COLOR_RUN, 4 items
+			(byte) 'A', // A color
 
-		byte[] compressedData = {
+			(byte) 0b011_00010, // REGULAR_COLOR_RUN, 2 pixels
+			(byte) 'B', // A second color
+
+			(byte) 0b011_00110, // REGULAR_COLOR_RUN, 6 pixels (wraps around!)
+			(byte) 'C', // A third color
+
+			(byte) 0b011_00001, // REGULAR_COLOR_RUN, 1 pixel
+			(byte) 'D', // A forth color
+
+			(byte) 0b011_00010, // REGULAR_COLOR_RUN, 2 pixels
+			(byte) 'E', // A fifth color
+
+			(byte) 0b011_00001, // REGULAR_COLOR_RUN, 1 pixel
+			(byte) 'F', // A sixth color
+		};
+
+		int[][] image = decompress(data);
+
+		assertThat("Row 3", image[3], is(new int[] { 'A', 'A', 'A', 'A' }));
+		assertThat("Row 2", image[2], is(new int[] { 'B', 'B', 'C', 'C' }));
+		assertThat("Row 1", image[1], is(new int[] { 'C', 'C', 'C', 'C' }));
+		assertThat("Row 0", image[0], is(new int[] { 'D', 'E', 'E', 'F' }));
+	}
+
+	@Test
+	public void testColorImage() throws RdesktopException {
+		byte[] data = {
+			(byte) 0b100_10000, // REGULAR_COLOR_IMAGE, length 16
+			'A', 'A', 'B', 'B',
+			'A', 'A', 'B', 'C',
+			'C', 'A', 'C', 'C',
+			'D', 'C', 'C', 'C'
+		};
+
+		int[][] image = decompress(data);
+
+		assertThat("Row 3", image[3], is(new int[] { 'A', 'A', 'B', 'B' }));
+		assertThat("Row 2", image[2], is(new int[] { 'A', 'A', 'B', 'C' }));
+		assertThat("Row 1", image[1], is(new int[] { 'C', 'A', 'C', 'C' }));
+		assertThat("Row 0", image[0], is(new int[] { 'D', 'C', 'C', 'C' }));
+	}
+
+	@Test
+	public void testDitheredRun() throws RdesktopException {
+		byte[] data = {
+			(byte) 0b1110_0100, // LITE_DITHERED_RUN, 4 pairs = 8 pixels
+			'A', 'B', // Colors
+			(byte) 0b1110_0001, // LITE_DITHERED_RUN, 1 pair = 2 pixels
+			'C' ,'D',
+			(byte) 0b1110_0011, // LITE_DITHERED_RUN, 3 pairs = 6 pixels
+			'E', 'F'
+		};
+
+		int[][] image = decompress(data);
+
+		assertThat("Row 3", image[3], is(new int[] { 'A', 'B', 'A', 'B' }));
+		assertThat("Row 2", image[2], is(new int[] { 'A', 'B', 'A', 'B' }));
+		assertThat("Row 1", image[1], is(new int[] { 'C', 'D', 'E', 'F' }));
+		assertThat("Row 0", image[0], is(new int[] { 'E', 'F', 'E', 'F' }));
+	}
+
+	@Test
+	public void testFgbg() throws RdesktopException {
+		byte[] data = {
 			(byte) 0b1101_0000, // LITE_SET_FG_FGBG_IMAGE
 			3, // 4 items (note: incremented)
 			(byte) 0b00001111, // One color
@@ -137,28 +199,44 @@ public class BitmapTest {
 			(byte) 0b11111111, // A last color
 			(byte) 0b0000_1111, // Mask: forexor forexor forexor forexor
 		};
-		RdpPacket_Localised packet = new RdpPacket_Localised(compressedData.length);
-		for (byte b : compressedData) {
-			packet.set8(b & 0xFF);
-		}
-		packet.setPosition(0);
 
-		Bitmap.decompress(options, 4, 4, packet, compressedData.length, options.Bpp, new DecompressionCallback() {
+		int[][] image = decompress(data);
+
+		assertThat("Row 3", image[3], is(new int[] { 0b00001111, 0b00000000, 0b00001111, 0b00000000 }));
+		assertThat("Row 2", image[2], is(new int[] { 0b00110011, 0b00111100, 0b00001111, 0b00000000 }));
+		assertThat("Row 1", image[1], is(new int[] { 0b00110011, 0b00111100, 0b00001111, 0b00000000 }));
+		assertThat("Row 0", image[0], is(new int[] { 0b11001100, 0b11000011, 0b11110000, 0b11111111 }));
+	}
+
+	/**
+	 * Helper that decompresses a 4x4, 1 byte per pixel bitmap
+	 *
+	 * @param data Bytes to decompress
+	 * @return The decompressed image ([y][x])
+	 * @throws RdesktopException
+	 */
+	private static int[][] decompress(byte[] data) throws RdesktopException {
+		Options options = new Options();
+		options.server_bpp = 8;
+		options.Bpp = 1;
+
+		int[][] result = new int[4][4];
+
+		RdpPacket_Localised packet = packet(data);
+
+		Bitmap.decompress(options, 4, 4, packet, data.length, options.Bpp, new DecompressionCallback() {
 			@Override
 			public void setPixel(int x, int y, int color) {
-				data[y][x] = color;
+				result[y][x] = color;
 			}
 
 			@Override
 			public int getPixel(int x, int y) {
-				return data[y][x];
+				return result[y][x];
 			}
 		});
 
-		assertThat("Row 3", data[3], is(new int[] { 0b00001111, 0b00000000, 0b00001111, 0b00000000 }));
-		assertThat("Row 2", data[2], is(new int[] { 0b00110011, 0b00111100, 0b00001111, 0b00000000 }));
-		assertThat("Row 1", data[1], is(new int[] { 0b00110011, 0b00111100, 0b00001111, 0b00000000 }));
-		assertThat("Row 0", data[0], is(new int[] { 0b11001100, 0b11000011, 0b11110000, 0b11111111 }));
+		return result;
 	}
 
 	/**
@@ -175,6 +253,17 @@ public class BitmapTest {
 		packet.set8(first);
 		for (int val : rest) {
 			packet.set8(val);
+		}
+		packet.setPosition(0);
+		return packet;
+	}
+	/**
+	 * Creates a packet containing the given (unsigned) bytes
+	 */
+	private static RdpPacket_Localised packet(byte[] data) {
+		RdpPacket_Localised packet = new RdpPacket_Localised(data.length);
+		for (byte val : data) {
+			packet.set8(val & 0xFF);
 		}
 		packet.setPosition(0);
 		return packet;
