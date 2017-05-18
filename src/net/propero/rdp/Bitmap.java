@@ -322,11 +322,11 @@ public class Bitmap {
 		 */
 		public int readBelowPixel() throws RdesktopException {
 			if (y >= height - 1) {
-				// XXX This is incorrect behavior and goes against the spec
-				logger.warn("Requested reading a pixel on the previous scanline, "
-						+ "but there is no previous scanline!  "
-						+ "(known: {}; current x={}, y={})", onFirstLine, x, y);
-				return WHITE;
+				throw new RdesktopException(
+						"Requested reading a pixel on the previous scanline, "
+								+ "but there is no previous scanline!  "
+								+ "(known: " + onFirstLine + "; current x=" + x
+								+ ", y=" + y + ")");
 			}
 			return callback.getPixel(x, y + 1);
 		}
@@ -510,7 +510,7 @@ public class Bitmap {
 		}
 		if (state.onFirstLine) {
 			while (runLength > 0) {
-				state.writePixel(state.readBelowPixel());
+				state.writePixel(state.fgColor);
 				runLength--;
 			}
 		} else {
