@@ -1145,7 +1145,8 @@ public class Orders {
 		// one flag MUST be used to describe the format of a given encoded
 		// bound.
 
-		// As such, I reject warn if there's both or neither but make assumptions
+		// As such, I warn if there's both, and do nothing if there's neither (as
+		// that is a valid condition)
 
 		if ((present & PrimaryOrderFlags.BOUND_DELTA_LEFT) != 0) {
 			bounds.setLeft((short) (bounds.getLeft() + (byte) data.get8()));
@@ -1154,8 +1155,6 @@ public class Orders {
 			}
 		} else if ((present & PrimaryOrderFlags.BOUND_LEFT) != 0) {
 			bounds.setLeft((short) (data.getLittleEndian16()));
-		} else {
-			logger.warn("Neither BOUND_LEFT nor BOUND_DELTA_LEFT were set! (0b" + Integer.toBinaryString(present) + ")");
 		}
 
 		if ((present & PrimaryOrderFlags.BOUND_DELTA_TOP) != 0) {
@@ -1165,8 +1164,6 @@ public class Orders {
 			}
 		} else if ((present & PrimaryOrderFlags.BOUND_TOP) != 0) {
 			bounds.setTop((short) (data.getLittleEndian16()));
-		} else {
-			logger.warn("Neither BOUND_TOP nor BOUND_DELTA_TOP were set! (0b" + Integer.toBinaryString(present) + ")");
 		}
 
 		if ((present & PrimaryOrderFlags.BOUND_DELTA_RIGHT) != 0) {
@@ -1176,8 +1173,6 @@ public class Orders {
 			}
 		} else if ((present & PrimaryOrderFlags.BOUND_RIGHT) != 0) {
 			bounds.setRight((short) (data.getLittleEndian16()));
-		} else {
-			logger.warn("Neither BOUND_RIGHT nor BOUND_DELTA_RIGHT were set! (0b" + Integer.toBinaryString(present) + ")");
 		}
 
 		if ((present & PrimaryOrderFlags.BOUND_DELTA_BOTTOM) != 0) {
@@ -1187,8 +1182,6 @@ public class Orders {
 			}
 		} else if ((present & PrimaryOrderFlags.BOUND_BOTTOM) != 0) {
 			bounds.setBottom((short) (data.getLittleEndian16()));
-		} else {
-			logger.warn("Neither BOUND_BOTTOM nor BOUND_DELTA_BOTTOM were set! (0b" + Integer.toBinaryString(present) + ")");
 		}
 
 		if (data.getPosition() > data.getEnd()) {
