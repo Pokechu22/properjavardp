@@ -322,7 +322,11 @@ public class Bitmap {
 		 */
 		public int readBelowPixel() throws RdesktopException {
 			if (y >= height - 1) {
-				throw new RdesktopException("Can't read pixel on the previous scanline! -- " + onFirstLine);
+				// XXX This is incorrect behavior and goes against the spec
+				logger.warn("Requested reading a pixel on the previous scanline, "
+						+ "but there is no previous scanline!  "
+						+ "(known: {}; current x={}, y={})", onFirstLine, x, y);
+				return WHITE;
 			}
 			return callback.getPixel(x, y + 1);
 		}
@@ -360,11 +364,12 @@ public class Bitmap {
 
 			int code = data.get8();
 			CompressionOrder order = CompressionOrder.forId(code);
-			logger.debug("Order: " + order + " (for " + code + ")");
+			logger.debug("Order: {} (for {})", order, code);
 			if (order == null) {
 				throw new RdesktopException("I don't know what order code " + code + " (" + Integer.toBinaryString(code) + ") means");
 			}
 			int runLength = order.getLength(code, data);
+			logger.debug("Length is {}; currently at x={}, y={}", runLength, state.x, state.y);
 
 			if (order != CompressionOrder.REGULAR_BG_RUN
 					&& order != CompressionOrder.MEGA_MEGA_BG_RUN) {
@@ -613,6 +618,7 @@ public class Bitmap {
 			} else {
 				writeNormalFgbg(state, bitmask, 8);
 			}
+			runLength -= 8;
 		}
 		// Remaining bits
 		if (runLength > 0) {
