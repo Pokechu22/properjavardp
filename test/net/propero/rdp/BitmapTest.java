@@ -8,6 +8,7 @@ import java.util.Set;
 
 import net.propero.rdp.Bitmap.CompressionOrder;
 import net.propero.rdp.Bitmap.CompressionOrder.Type;
+import net.propero.rdp.Bitmap.DecompressionCallback;
 
 import org.junit.Test;
 
@@ -106,6 +107,58 @@ public class BitmapTest {
 		assertThat(Type.LITE_FGBG.getLength(0, packet(0)), is(1));
 		assertThat(Type.LITE_FGBG.getLength(0, packet(1)), is(2));
 		assertThat(Type.LITE_FGBG.getLength(0, packet(16)), is(17));
+	}
+
+	@Test
+	public void testFgbg() throws Exception {
+		Options options = new Options();
+		options.server_bpp = 8;
+		options.Bpp = 1;
+		int[][] data = new int[4][4];
+
+		byte[] compressedData = {
+			(byte) 0b1101_0000, // LITE_SET_FG_FGBG_IMAGE
+			3, // 4 items (note: incremented)
+			(byte) 0b00001111, // One color
+			(byte) 0b0000_0101, // Mask (from first to last): fore black fore black
+
+			(byte) 0b1101_0000, // LITE_SET_FG_FGBG_IMAGE
+			3, // 4 items (note: incremented)
+			(byte) 0b00111100, // Another color
+			(byte) 0b0000_0011, // Mask: forexor forexor prev prev
+
+			(byte) 0b1101_0000, // LITE_SET_FG_FGBG_IMAGE, 4 items
+			3, // 4 items (note: incremented)
+			(byte) 0b10101010, // A third color
+			(byte) 0b0000_0000, // Mask: prev prev prev prev
+
+			(byte) 0b1101_0000, // LITE_SET_FG_FGBG_IMAGE, 4 items
+			3, // 4 items (note: incremented)
+			(byte) 0b11111111, // A last color
+			(byte) 0b0000_1111, // Mask: forexor forexor forexor forexor
+		};
+		RdpPacket_Localised packet = new RdpPacket_Localised(compressedData.length);
+		for (byte b : compressedData) {
+			packet.set8(b & 0xFF);
+		}
+		packet.setPosition(0);
+
+		Bitmap.decompress(options, 4, 4, packet, compressedData.length, options.Bpp, new DecompressionCallback() {
+			@Override
+			public void setPixel(int x, int y, int color) {
+				data[y][x] = color;
+			}
+
+			@Override
+			public int getPixel(int x, int y) {
+				return data[y][x];
+			}
+		});
+
+		assertThat("Row 3", data[3], is(new int[] { 0b00001111, 0b00000000, 0b00001111, 0b00000000 }));
+		assertThat("Row 2", data[2], is(new int[] { 0b00110011, 0b00111100, 0b00001111, 0b00000000 }));
+		assertThat("Row 1", data[1], is(new int[] { 0b00110011, 0b00111100, 0b00001111, 0b00000000 }));
+		assertThat("Row 0", data[0], is(new int[] { 0b11001100, 0b11000011, 0b11110000, 0b11111111 }));
 	}
 
 	/**
