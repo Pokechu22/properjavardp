@@ -69,7 +69,7 @@ public class RdesktopCanvas_Localised extends RdesktopCanvas {
 			options.imgCount++;
 			ImageIO.write(img, "jpg", file);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.warn("Failed to save image", e);
 		}
 
 		g.dispose();

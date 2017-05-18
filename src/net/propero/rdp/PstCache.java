@@ -78,7 +78,7 @@ class PstCache {
 			// one???
 
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.warn("Failed to touch bitmap (" + cache_id + "/" + cache_idx + "/" + stamp + ")", e);
 			return;
 		}
 	}
@@ -257,7 +257,7 @@ class PstCache {
 				return false;
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.warn("Failed to create cache file!", e);
 			return false;
 		}
 

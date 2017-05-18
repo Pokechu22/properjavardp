@@ -33,11 +33,15 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.propero.rdp.RdpPacket;
 import net.propero.rdp.RdpPacket_Localised;
 import net.propero.rdp.Utilities_Localised;
 
 public class UnicodeHandler extends TypeHandler {
+	private static final Logger logger = LogManager.getLogger();
 
 	public boolean formatValid(int format) {
 		return (format == CF_UNICODETEXT);
@@ -73,7 +77,7 @@ public class UnicodeHandler extends TypeHandler {
 				s = (String) (in.getTransferData(DataFlavor.stringFlavor));
 			} catch (Exception e) {
 				s = e.toString(); // TODO: Is this right?
-				e.printStackTrace();
+				logger.warn("Failed to read unicode clipboard content", e);
 			}
 
 			// TODO: think of a better way of fixing this

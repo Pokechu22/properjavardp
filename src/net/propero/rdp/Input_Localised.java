@@ -120,7 +120,7 @@ public class Input_Localised extends Input {
 			}
 		} catch (Exception e) {
 			options.useLockingKeyState = false;
-			e.printStackTrace();
+			logger.warn("Failed to handle key locking; disabling key locking!", e);
 		}
 	}
 

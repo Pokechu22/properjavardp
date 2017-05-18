@@ -177,8 +177,7 @@ public abstract class Input {
 		try {
 			newKeyMapper = new KeyCode_FileBased_Localised(options, keymapFile);
 		} catch (KeyMapException kmEx) {
-			System.err.println(kmEx.getMessage());
-			kmEx.printStackTrace();
+			logger.fatal("Failed to load keymaps!", kmEx);
 			if (!options.noSystemExit)
 				System.exit(-1);
 		}
@@ -245,7 +244,7 @@ public abstract class Input {
 			if (pressSequence.length() > 0)
 				logger.debug(debugString);
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			logger.warn("Failed to send key press sequence " + pressSequence, ex);
 			return;
 		}
 	}

@@ -109,8 +109,8 @@ public class ClipBMP extends Component {
 			fo = new ByteArrayOutputStream();
 			save(parImage, parWidth, parHeight);
 			fo.close();
-		} catch (Exception saveEx) {
-			saveEx.printStackTrace();
+		} catch (Exception ex) {
+			logger.warn("Failed to get clipboard bitmap content", ex);
 		}
 		return ((ByteArrayOutputStream) fo).toByteArray();
 	}
@@ -122,7 +122,7 @@ public class ClipBMP extends Component {
 			save(parImage, parWidth, parHeight);
 			fo.close();
 		} catch (Exception saveEx) {
-			saveEx.printStackTrace();
+			logger.warn("Failed to save clipboard bitmap", saveEx);
 		}
 	}
 
@@ -141,7 +141,7 @@ public class ClipBMP extends Component {
 			writeBitmapInfoHeader();
 			writeBitmap();
 		} catch (Exception saveEx) {
-			saveEx.printStackTrace();
+			logger.warn("Failed to save clipboard bitmap", saveEx);
 		}
 	}
 
@@ -158,7 +158,7 @@ public class ClipBMP extends Component {
 		try {
 			pg.grabPixels();
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			logger.warn("InterrupedException", e);
 			return (false);
 		}
 		pad = (4 - ((parWidth * 3) % 4)) * parHeight;
@@ -217,7 +217,7 @@ public class ClipBMP extends Component {
 			bfSize += padCount - pad;
 			biSizeImage += padCount - pad;
 		} catch (Exception wb) {
-			wb.printStackTrace();
+			logger.warn("Failed to write bitmap", wb);
 		}
 	}
 
@@ -256,7 +256,7 @@ public class ClipBMP extends Component {
 			fo.write(intToDWord(biClrUsed));
 			fo.write(intToDWord(biClrImportant));
 		} catch (Exception wbih) {
-			wbih.printStackTrace();
+			logger.warn("Failed to write bitmap header", wbih);
 		}
 	}
 
@@ -608,9 +608,7 @@ public class ClipBMP extends Component {
 			fs.close();
 			return image;
 		} catch (Exception e) {
-			System.out.println("\nCaught exception in loadbitmap: " +
-			e.getMessage() + " " + e.getClass().getName());
-			e.printStackTrace();
+			logger.warn("Failed to load bitmap: " + e.getMessage() + " " + e.getClass().getName(), e);
 		}
 		return (Image) null;
 	}

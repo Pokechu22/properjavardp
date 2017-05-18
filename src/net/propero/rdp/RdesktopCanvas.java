@@ -797,7 +797,7 @@ public abstract class RdesktopCanvas extends Canvas {
 
 			this.repaint(x, y, cx, cy);
 		} catch (RdesktopException e) {
-			e.printStackTrace();
+			logger.warn("Exception drawing memblt", e);
 		}
 	}
 
@@ -988,7 +988,7 @@ public abstract class RdesktopCanvas extends Canvas {
 						bitmap.getBitmapData(), bitmap.getWidth(), srcx, srcy);
 			}
 		} catch (RdesktopException e) {
-			e.printStackTrace();
+			logger.warn("Exception drawing triblt", e);
 		}
 	}
 

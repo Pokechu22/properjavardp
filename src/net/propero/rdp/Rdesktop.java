@@ -416,9 +416,9 @@ public class Rdesktop {
 				istr.close();
 			options.keylayout = keyMap.getMapCode();
 		} catch (Exception kmEx) {
+			logger.warn("Unexpected keymap exception: ", kmEx);
 			String[] msg = { (kmEx.getClass() + ": " + kmEx.getMessage()) };
 			window.showErrorDialog(msg);
-			kmEx.printStackTrace();
 			Rdesktop.exit(0, null, null, true);
 		}
 
@@ -518,27 +518,25 @@ public class Rdesktop {
 					// End
 
 				} catch (ConnectionException e) {
+					logger.warn("Connection exception", e);
 					String msg[] = { "Connection Exception", e.getMessage() };
-					e.printStackTrace();
 					window.showErrorDialog(msg);
 					Rdesktop.exit(0, RdpLayer, window, true);
 				} catch (UnknownHostException e) {
+					logger.warn("Unknown host exception", e);
 					error(e, RdpLayer, window, true);
 				} catch (SocketException s) {
+					logger.warn("Socket exception", s);
 					if (RdpLayer.isConnected()) {
 						logger.fatal(s.getClass().getName() + " "
 								+ s.getMessage());
-						s.printStackTrace();
 						error(s, RdpLayer, window, true);
 						Rdesktop.exit(0, RdpLayer, window, true);
 					}
 				} catch (RdesktopException e) {
 					String msg1 = e.getClass().getName();
 					String msg2 = e.getMessage();
-					logger.fatal(msg1 + ": " + msg2);
-
-					System.out.flush();
-					e.printStackTrace(System.err);
+					logger.fatal(msg1 + ": " + msg2, e);
 
 					if (!readytosend) {
 						// maybe the licence server was having a comms
@@ -567,8 +565,7 @@ public class Rdesktop {
 						Rdesktop.exit(0, RdpLayer, window, true);
 					}
 				} catch (Exception e) {
-					logger.warn(e.getClass().getName() + " " + e.getMessage());
-					e.printStackTrace();
+					logger.warn("Other unhandled exception: " + e.getClass().getName() + " " + e.getMessage(), e);
 					error(e, RdpLayer, window, true);
 				}
 			} else { // closing bracket to if(!rdp==null)

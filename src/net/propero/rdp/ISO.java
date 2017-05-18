@@ -358,7 +358,7 @@ public abstract class ISO {
 			if (rdpsock != null)
 				rdpsock.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.warn("ISO: Failed to disconnect", e);
 			in = null;
 			out = null;
 			rdpsock = null;

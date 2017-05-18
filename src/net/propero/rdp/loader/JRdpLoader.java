@@ -34,11 +34,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.propero.rdp.Rdesktop;
 import net.propero.rdp.RdesktopException;
 import net.propero.rdp.Utilities_Localised;
 
 public class JRdpLoader {
+
+	private static final Logger logger = LogManager.getLogger();
 
 	// Set of identifiers to be found within the launch file
 	private static String[] identifiers = { "--user", "--password", "--domain",
@@ -106,15 +111,14 @@ public class JRdpLoader {
 			}
 
 		} catch (IOException ioe) {
-			System.err.println("Launch file could not be read: "
-					+ ioe.getMessage());
-			ioe.printStackTrace();
+			logger.fatal("Launch file could not be read: "
+					+ ioe.getMessage(), ioe);
 			System.exit(-1);
 		} catch (RdesktopException e) {
-			e.printStackTrace();
+			logger.fatal("RdesktopException", e);
 			System.exit(-1);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.fatal("Unexpected Exception", e);
 			System.exit(-1);
 		}
 	}

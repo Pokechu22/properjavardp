@@ -620,7 +620,7 @@ public class Rdp {
 				if (data == null)
 					return new DisconnectInfo(false, "No data?");
 			} catch (EOFException e) {
-				e.printStackTrace();
+				logger.warn("Unexpected EOF", e);
 				return new DisconnectInfo(false, "EOF?");
 			}
 
@@ -1351,7 +1351,7 @@ public class Rdp {
 		try {
 			data = this.initData(16);
 		} catch (RdesktopException e) {
-			e.printStackTrace();
+			logger.warn("Error preping input packet", e);
 			this.callback.error(e, this);
 		}
 
@@ -1371,13 +1371,13 @@ public class Rdp {
 		try {
 			this.sendData(data, RDP_DATA_PDU_INPUT);
 		} catch (RdesktopException r) {
-			r.printStackTrace();
+			logger.warn("Error sending input packet", r);
 			this.callback.error(r, this);
 		} catch (CryptoException c) {
-			c.printStackTrace();
+			logger.warn("Unexpected CryptoException", c);
 			this.callback.error(c, this);
 		} catch (IOException i) {
-			i.printStackTrace();
+			logger.warn("Unexpected IOException", i);
 			this.callback.error(i, this);
 		}
 	}

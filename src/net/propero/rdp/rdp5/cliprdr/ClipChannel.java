@@ -177,14 +177,11 @@ public class ClipChannel extends VChannel implements ClipInterface,
 		try {
 			this.send_packet(s);
 		} catch (RdesktopException e) {
-			System.err.println(e.getMessage());
-			e.printStackTrace();
+			logger.warn("Failed to nullify clipboard data", e);
 		} catch (IOException e) {
-			System.err.println(e.getMessage());
-			e.printStackTrace();
+			logger.warn("Failed to nullify clipboard data", e);
 		} catch (CryptoException e) {
-			System.err.println(e.getMessage());
-			e.printStackTrace();
+			logger.warn("Failed to nullify clipboard data", e);
 		}
 	}
 
@@ -302,18 +299,15 @@ public class ClipChannel extends VChannel implements ClipInterface,
 		try {
 			this.send_packet(all);
 		} catch (RdesktopException e) {
-			System.err.println(e.getMessage());
-			e.printStackTrace();
+			logger.warn("Failed to send clipboard data", e);
 			if (!options.noSystemExit)
 				System.exit(-1);
 		} catch (IOException e) {
-			System.err.println(e.getMessage());
-			e.printStackTrace();
+			logger.warn("Failed to send clipboard data", e);
 			if (!options.noSystemExit)
 				System.exit(-1);
 		} catch (CryptoException e) {
-			System.err.println(e.getMessage());
-			e.printStackTrace();
+			logger.warn("Failed to send clipboard data", e);
 			if (!options.noSystemExit)
 				System.exit(-1);
 		}
@@ -329,7 +323,7 @@ public class ClipChannel extends VChannel implements ClipInterface,
 			try {
 				send_format_announce();
 			} catch (Exception e) {
-				e.printStackTrace();
+				logger.warn("Failed to announce clipboard formats", e);
 			}
 		}
 	}

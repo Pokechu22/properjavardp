@@ -153,7 +153,7 @@ public class Rdp5 extends Rdp {
 			try {
 				channel.process(s);
 			} catch (Exception e) {
-				e.printStackTrace();
+				logger.warn("Failed to process channel #" + channelno, e);
 			}
 		}
 	}

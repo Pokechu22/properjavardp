@@ -194,8 +194,7 @@ public abstract class KeyCode_FileBased {
 			throw new KeyMapException("Error parsing keymap file: "
 					+ kmEx.getMessage() + " at line " + lineNum, kmEx);
 		} catch (Exception e) {
-			logger.error(e.getClass().getName() + ": " + e.getMessage());
-			e.printStackTrace();
+			logger.warn("Unexpected exception reading keymap file: " + e.getClass().getName() + ": " + e.getMessage(), e);
 			throw new KeyMapException(e.getClass().getName() + ": "
 					+ e.getMessage(), e);
 		}
@@ -357,8 +356,7 @@ public abstract class KeyCode_FileBased {
 			p.close();
 
 		} catch (Exception e) {
-			System.err.println("Error writing to file: " + e.getMessage());
-			e.printStackTrace();
+			logger.warn("Error writing keymap to file: " + e.getMessage(), e);
 		}
 	}
 

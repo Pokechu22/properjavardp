@@ -146,7 +146,8 @@ public class RDPClientChooser {
 				try {
 					options.port = Integer.parseInt(arg);
 				} catch (Exception e) {
-					e.printStackTrace();
+					// Should we actually be catching this, or should we yell at the user?
+					logger.warn("Failed to parse port", e);
 				}
 				break;
 

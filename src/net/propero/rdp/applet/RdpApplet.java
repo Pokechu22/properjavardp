@@ -44,6 +44,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.StringTokenizer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.propero.rdp.Common;
 import net.propero.rdp.Rdesktop;
 import net.propero.rdp.RdesktopException;
@@ -183,7 +186,7 @@ public class RdpApplet extends Applet {
 }
 
 class RdpThread extends Thread {
-
+	private static final Logger logger = LogManager.getLogger(); 
 	String[] args;
 
 	String redirect = null;
@@ -206,12 +209,9 @@ class RdpThread extends Thread {
 				parentApplet.getAppletContext().showDocument(u);
 			}
 		} catch (RdesktopException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.warn("Exception", e);
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			System.err.println(e.getClass().getName() + ": " + e.getMessage());
-			e.printStackTrace();
+			logger.warn("Unexpected MalformedURLException", e);
 		}
 		Common.underApplet = false; // TODO
 	}
