@@ -56,7 +56,7 @@ public class JRdpLoader {
 	public static void main(String args[]) {
 
 		if (args.length <= 0) {
-			System.err.println("Expected usage: JRdpLoader launchFile");
+			logger.fatal("Expected usage: JRdpLoader launchFile");
 			System.exit(-1);
 		}
 
@@ -106,8 +106,8 @@ public class JRdpLoader {
 				Rdesktop.main(finArgs);
 				in.close();
 			} else {
-				System.err.println("No server name provided");
-				System.exit(0);
+				logger.fatal("No server name provided");
+				System.exit(-1);
 			}
 
 		} catch (IOException ioe) {

@@ -87,7 +87,7 @@ public class DIBHandler extends TypeHandler implements ImageObserver {
 				try {
 					mediaTracker.waitForID(0);
 				} catch (InterruptedException ie) {
-					System.err.println(ie);
+					logger.warn("Unexpected InterruptedException", ie);
 					if (!c.getOptions().noSystemExit)
 						System.exit(1);
 				}

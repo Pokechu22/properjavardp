@@ -82,48 +82,35 @@ public class Rdesktop {
 	 * 
 	 */
 	public static void usage() {
-		System.err.println("properJavaRDP version " + Version.version);
-		System.err
-				.println("Usage: java net.propero.rdp.Rdesktop [options] server[:port]");
-		System.err
-				.println("	-b 							bandwidth saving (good for 56k modem, but higher latency");
-		System.err.println("	-c DIR						working directory");
-		System.err.println("	-d DOMAIN					logon domain");
-		System.err
-				.println("	-f[l]						full-screen mode [with Linux KDE optimization]");
-		System.err.println("	-g WxH						desktop geometry");
-		System.err
-				.println("	-m MAPFILE					keyboard mapping file for terminal server");
-		System.err
-				.println("	-l LEVEL					logging level {DEBUG, INFO, WARN, ERROR, FATAL}");
-		System.err.println("	-n HOSTNAME					client hostname");
-		System.err.println("	-p PASSWORD					password");
-		System.err.println("	-s SHELL					shell");
-		System.err.println("	-t NUM						RDP port (default 3389)");
-		System.err.println("	-T TITLE					window title");
-		System.err.println("	-u USERNAME					user name");
-		System.err.println("	-o BPP						bits-per-pixel for display");
-		System.err
-				.println("    -r path                     path to load licence from (requests and saves licence from server if not found)");
-		System.err
-				.println("    --save_licence              request and save licence from server");
-		System.err
-				.println("    --load_licence              load licence from file");
-		System.err
-				.println("    --console                   connect to console");
-		System.err
-				.println("	--debug_key 				show scancodes sent for each keypress etc");
-		System.err.println("	--debug_hex 				show bytes sent and received");
-		System.err.println("	--no_remap_hash 			disable hash remapping");
-		System.err.println("	--quiet_alt 				enable quiet alt fix");
-		System.err
-				.println("	--no_encryption				disable encryption from client to server");
-		System.err.println("	--use_rdp4					use RDP version 4");
-		// System.err.println(" --enable_menu enable menu bar");
-		System.err
-				.println("	--log4j_config=FILE			use FILE for log4j configuration");
-		System.err
-				.println("Example: java net.propero.rdp.Rdesktop -g 800x600 -l WARN m52.propero.int");
+		logger.info("properJavaRDP version " + Version.version);
+		logger.info("Usage: java net.propero.rdp.Rdesktop [options] server[:port]");
+		logger.info("	-b 							bandwidth saving (good for 56k modem, but higher latency");
+		logger.info("	-c DIR						working directory");
+		logger.info("	-d DOMAIN					logon domain");
+		logger.info("	-f[l]						full-screen mode [with Linux KDE optimization]");
+		logger.info("	-g WxH						desktop geometry");
+		logger.info("	-m MAPFILE					keyboard mapping file for terminal server");
+		logger.info("	-l LEVEL					logging level {DEBUG, INFO, WARN, ERROR, FATAL}");
+		logger.info("	-n HOSTNAME					client hostname");
+		logger.info("	-p PASSWORD					password");
+		logger.info("	-s SHELL					shell");
+		logger.info("	-t NUM						RDP port (default 3389)");
+		logger.info("	-T TITLE					window title");
+		logger.info("	-u USERNAME					user name");
+		logger.info("	-o BPP						bits-per-pixel for display");
+		logger.info("	-r path						path to load licence from (requests and saves licence from server if not found)");
+		logger.info("	--save_licence				request and save licence from server");
+		logger.info("	--load_licence				load licence from file");
+		logger.info("	--console					connect to console");
+		logger.info("	--debug_key 				show scancodes sent for each keypress etc");
+		logger.info("	--debug_hex 				show bytes sent and received");
+		logger.info("	--no_remap_hash 			disable hash remapping");
+		logger.info("	--quiet_alt 				enable quiet alt fix");
+		logger.info("	--no_encryption				disable encryption from client to server");
+		logger.info("	--use_rdp4					use RDP version 4");
+		// logger.info("	--enable_menu				enable menu bar");
+		logger.info("	--log4j_config=FILE			use FILE for log4j configuration");
+		logger.info("Example: java net.propero.rdp.Rdesktop -g 800x600 -l WARN m52.propero.int");
 		Rdesktop.exit(0, null, null, true);
 	}
 
@@ -270,7 +257,7 @@ public class Rdesktop {
 					if (arg.charAt(0) == 'l')
 						fKdeHack = true;
 					else {
-						System.err.println(progname
+						logger.fatal(progname
 								+ ": Invalid fullscreen option '" + arg + "'");
 						usage();
 					}
@@ -280,7 +267,7 @@ public class Rdesktop {
 				arg = g.getOptarg();
 				int cut = arg.indexOf("x", 0);
 				if (cut == -1) {
-					System.err.println(progname + ": Invalid geometry: " + arg);
+					logger.fatal(progname + ": Invalid geometry: " + arg);
 					usage();
 				}
 				options.width = Integer.parseInt(arg.substring(0, cut)) & ~3;
@@ -290,7 +277,7 @@ public class Rdesktop {
 				arg = g.getOptarg();
 				// options.keylayout = KeyLayout.strToCode(arg);
 				if (options.keylayout == -1) {
-					System.err.println(progname + ": Invalid key layout: "
+					logger.fatal(progname + ": Invalid key layout: "
 							+ arg);
 					usage();
 				}
@@ -315,7 +302,7 @@ public class Rdesktop {
 				try {
 					options.port = Integer.parseInt(arg);
 				} catch (NumberFormatException nex) {
-					System.err.println(progname + ": Invalid port number: "
+					logger.fatal(progname + ": Invalid port number: "
 							+ arg);
 					usage();
 				}
@@ -351,7 +338,7 @@ public class Rdesktop {
 						.substring(colonat + 1));
 			}
 		} else {
-			System.err.println(progname + ": A server name is required!");
+			logger.fatal(progname + ": A server name is required!");
 			usage();
 		}
 
@@ -656,12 +643,10 @@ public class Rdesktop {
 			String msg1 = e.getClass().getName();
 			String msg2 = e.getMessage();
 
-			logger.fatal(msg1 + ": " + msg2);
+			logger.fatal(msg1 + ": " + msg2, e);
 
 			String[] msg = { msg1, msg2 };
 			window.showErrorDialog(msg);
-
-			e.printStackTrace(System.err);
 		} catch (Exception ex) {
 			logger.warn("Exception in Rdesktop.error: "
 					+ ex.getClass().getName() + ": " + ex.getMessage(), ex);

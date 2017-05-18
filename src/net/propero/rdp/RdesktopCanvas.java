@@ -859,9 +859,9 @@ public abstract class RdesktopCanvas extends Canvas {
 
 			break;
 
-		case 2: // hatch
-			System.out.println("hatch");
-			break;
+		/*case 2: // hatch
+			// TODO
+			break;*/
 
 		case 3: // pattern
 			int brushx = brush.getXOrigin();

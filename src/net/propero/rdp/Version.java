@@ -33,11 +33,16 @@ package net.propero.rdp;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * Records the current version information of properJavaRDP
  */
 
 public class Version {
+	private static final Logger logger = LogManager.getLogger();
+
 	public static String version = "1.1";
 
 	/**
@@ -46,10 +51,10 @@ public class Version {
 	public static void main(String[] argv) {
 		try {
 			if (argv.length == 0) {
-				System.out.println(version);
+				logger.info(version);
 			} else {
 				String filename = argv[0];
-				System.out.println("Writing version information to: "
+				logger.info("Writing version information to: "
 						+ filename);
 				PrintWriter file = new PrintWriter(new FileOutputStream(
 						filename), true);
@@ -58,8 +63,7 @@ public class Version {
 				file.close();
 			}
 		} catch (Exception e) {
-			System.err.println("Problem writing version information: " + e);
-			e.printStackTrace(System.err);
+			logger.fatal("Problem writing version information", e);
 		}
 	}
 }
