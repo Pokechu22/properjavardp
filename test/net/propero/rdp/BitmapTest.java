@@ -177,7 +177,105 @@ public class BitmapTest {
 	}
 
 	@Test
-	public void testFgbg() throws RdesktopException {
+	public void testBgRun() throws RdesktopException {
+		// Simple test
+		byte[] data = {
+			(byte) 0b000_10000, // REGULAR_BG_RUN, 16 pixels
+		};
+
+		int[][] image = decompress(data);
+
+		assertThat("Row 3", image[3], is(new int[] { 0, 0, 0, 0 }));
+		assertThat("Row 2", image[2], is(new int[] { 0, 0, 0, 0 }));
+		assertThat("Row 1", image[1], is(new int[] { 0, 0, 0, 0 }));
+		assertThat("Row 0", image[0], is(new int[] { 0, 0, 0, 0 }));
+
+		// Copying
+		data = new byte[] {
+			(byte) 0b100_00100, // REGULAR_COLOR_IMAGE, length 4
+			'A', 'B', 'C', 'D',
+			(byte) 0b000_01100, // REGULAR_BG_RUN, 12 pixels
+		};
+
+		image = decompress(data);
+
+		assertThat("Row 3", image[3], is(new int[] { 'A', 'B', 'C', 'D' }));
+		assertThat("Row 2", image[2], is(new int[] { 'A', 'B', 'C', 'D' }));
+		assertThat("Row 1", image[1], is(new int[] { 'A', 'B', 'C', 'D' }));
+		assertThat("Row 0", image[0], is(new int[] { 'A', 'B', 'C', 'D' }));
+	}
+
+	@Test
+	public void testMultilineBgRun() throws RdesktopException {
+		// Per the section on Background Run Orders ([MS-RDPBCGR] 2.2.9.1.1.3.1.2.4):
+
+		// When encountering back-to-back background runs, the decompressor MUST
+		// write a one-pixel foreground run to the destination buffer before
+		// processing the second background run if both runs occur on the first
+		// scanline or after the first scanline (if the first run is on the
+		// first scanline, and the second run is on the second scanline, then a
+		// one-pixel foreground run MUST NOT be written to the destination
+		// buffer). This one-pixel foreground run is counted in the length of
+		// the run.
+
+		// So: This does _NOT_ trigger it (one on the first line, and the rest on the next):
+		byte[] data = {
+			(byte) 0b000_00100, // REGULAR_BG_RUN, 4 pixels
+			(byte) 0b000_01100, // REGULAR_BG_RUN, 12 pixels
+		};
+
+		int[][] image = decompress(data);
+
+		assertThat("Row 3", image[3], is(new int[] { 0, 0, 0, 0 }));
+		assertThat("Row 2", image[2], is(new int[] { 0, 0, 0, 0 }));
+		assertThat("Row 1", image[1], is(new int[] { 0, 0, 0, 0 }));
+		assertThat("Row 0", image[0], is(new int[] { 0, 0, 0, 0 }));
+
+		// This does, on the first row:
+		data = new byte[] {
+			(byte) 0b000_00010, // REGULAR_BG_RUN, 2 pixels
+			(byte) 0b000_00010, // REGULAR_BG_RUN, 2 pixels
+			(byte) 0b000_01100, // REGULAR_BG_RUN, 12 pixels
+		};
+
+		image = decompress(data);
+
+		assertThat("Row 3", image[3], is(new int[] { 0, 0, Bitmap.WHITE, 0 }));
+		assertThat("Row 2", image[2], is(new int[] { 0, 0, Bitmap.WHITE, 0 })); // Copied
+		assertThat("Row 1", image[1], is(new int[] { 0, 0, Bitmap.WHITE, 0 }));
+		assertThat("Row 0", image[0], is(new int[] { 0, 0, Bitmap.WHITE, 0 }));
+
+		// This also doesn't trigger it (on first line -> not on first line)
+		data = new byte[] {
+			(byte) 0b000_01000, // REGULAR_BG_RUN, 8 pixels
+			(byte) 0b000_01000, // REGULAR_BG_RUN, 8 pixels
+		};
+
+		image = decompress(data);
+
+		assertThat("Row 3", image[3], is(new int[] { 0, 0, 0, 0 }));
+		assertThat("Row 2", image[2], is(new int[] { 0, 0, 0, 0 }));
+		assertThat("Row 1", image[1], is(new int[] { 0, 0, 0, 0 }));
+		assertThat("Row 0", image[0], is(new int[] { 0, 0, 0, 0 }));
+
+		// This also does (length of 1):
+		data = new byte[] {
+			(byte) 0b000_00010, // REGULAR_BG_RUN, 2 pixels
+			(byte) 0b000_00001, // REGULAR_BG_RUN, 1 pixel
+			(byte) 0b000_00001, // REGULAR_BG_RUN, 1 pixel
+			(byte) 0b000_01100, // REGULAR_BG_RUN, 12 pixels
+		};
+
+		image = decompress(data);
+
+		assertThat("Row 3", image[3], is(new int[] { 0, 0, Bitmap.WHITE, Bitmap.WHITE }));
+		assertThat("Row 2", image[2], is(new int[] { 0, 0, Bitmap.WHITE, Bitmap.WHITE })); // Copied
+		assertThat("Row 1", image[1], is(new int[] { 0, 0, Bitmap.WHITE, Bitmap.WHITE }));
+		assertThat("Row 0", image[0], is(new int[] { 0, 0, Bitmap.WHITE, Bitmap.WHITE }));
+	}
+
+	@Test
+	public void testFgbgImage() throws RdesktopException {
 		byte[] data = {
 			(byte) 0b1101_0000, // LITE_SET_FG_FGBG_IMAGE
 			3, // 4 items (note: incremented)
