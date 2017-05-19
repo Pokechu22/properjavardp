@@ -259,7 +259,7 @@ public class Bitmap {
 		}
 	}
 
-	private static final int BLACK = 0, WHITE = 0xFFFFFF;
+	static final int BLACK = 0, WHITE = 0xFFFFFF;
 
 	/**
 	 * Stores the current state of decompression.
@@ -472,6 +472,7 @@ public class Bitmap {
 		} else {
 			if (state.insertFgColor) {
 				state.writePixel(state.readBelowPixel() ^ state.fgColor);
+				runLength--;
 			}
 			while (runLength > 0) {
 				state.writePixel(state.readBelowPixel());
