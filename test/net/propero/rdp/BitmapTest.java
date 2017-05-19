@@ -272,6 +272,67 @@ public class BitmapTest {
 		assertThat("Row 2", image[2], is(new int[] { 0, 0, Bitmap.WHITE, Bitmap.WHITE })); // Copied
 		assertThat("Row 1", image[1], is(new int[] { 0, 0, Bitmap.WHITE, Bitmap.WHITE }));
 		assertThat("Row 0", image[0], is(new int[] { 0, 0, Bitmap.WHITE, Bitmap.WHITE }));
+
+		// The non-triggering rule ONLY applies on the first scanline:
+		data = new byte[] {
+			(byte) 0b000_00100, // REGULAR_BG_RUN, 4 pixels
+			(byte) 0b000_00100, // REGULAR_BG_RUN, 4 pixels
+			(byte) 0b000_00100, // REGULAR_BG_RUN, 4 pixels
+			(byte) 0b000_00100, // REGULAR_BG_RUN, 4 pixels
+		};
+
+		image = decompress(data);
+
+		assertThat("Row 3", image[3], is(new int[] { 0, 0, 0, 0 }));
+		assertThat("Row 2", image[2], is(new int[] { 0, 0, 0, 0 }));
+		assertThat("Row 1", image[1], is(new int[] { Bitmap.WHITE, 0, 0, 0 }));
+		assertThat("Row 0", image[0], is(new int[] { 0, 0, 0, 0 })); // This is 0 because it was xor'd twice
+
+		// ... even if the first scanline goes on multiple scanlines.
+		data = new byte[] {
+			(byte) 0b000_01000, // REGULAR_BG_RUN, 8 pixels
+			(byte) 0b000_00100, // REGULAR_BG_RUN, 4 pixels
+			(byte) 0b000_00100, // REGULAR_BG_RUN, 4 pixels
+		};
+
+		image = decompress(data);
+
+		assertThat("Row 3", image[3], is(new int[] { 0, 0, 0, 0 }));
+		assertThat("Row 2", image[2], is(new int[] { 0, 0, 0, 0 }));
+		assertThat("Row 1", image[1], is(new int[] { 0, 0, 0, 0 })); // Does not trigger
+		assertThat("Row 0", image[0], is(new int[] { Bitmap.WHITE, 0, 0, 0 })); // Tirggers
+
+		// And even if it triggered on the first scanline, it doesn't happen again on the second one
+		data = new byte[] {
+			(byte) 0b000_00011, // REGULAR_BG_RUN, 3 pixels
+			(byte) 0b000_00001, // REGULAR_BG_RUN, 1 pixel
+			(byte) 0b000_00100, // REGULAR_BG_RUN, 4 pixels
+			(byte) 0b000_00100, // REGULAR_BG_RUN, 4 pixels
+			(byte) 0b000_00100, // REGULAR_BG_RUN, 4 pixels
+		};
+
+		image = decompress(data);
+
+		assertThat("Row 3", image[3], is(new int[] { 0, 0, 0, Bitmap.WHITE }));
+		assertThat("Row 2", image[2], is(new int[] { 0, 0, 0, Bitmap.WHITE })); // Does not trigger on first pixel
+		assertThat("Row 1", image[1], is(new int[] { Bitmap.WHITE, 0, 0, Bitmap.WHITE }));
+		assertThat("Row 0", image[0], is(new int[] { 0, 0, 0, Bitmap.WHITE })); // Xor'd twice for firts
+
+		// Inserting another order also resets it
+		data = new byte[] {
+			(byte) 0b000_00100, // REGULAR_BG_RUN, 4 pixels
+			(byte) 0b000_00011, // REGULAR_BG_RUN, 3 pixels
+			(byte) 0b11111110, // BLACK (1 pixel)
+			(byte) 0b000_00100, // REGULAR_BG_RUN, 4 pixels
+			(byte) 0b000_00100, // REGULAR_BG_RUN, 4 pixels
+		};
+
+		image = decompress(data);
+
+		assertThat("Row 3", image[3], is(new int[] { 0, 0, 0, 0 }));
+		assertThat("Row 2", image[2], is(new int[] { 0, 0, 0, 0 }));
+		assertThat("Row 1", image[1], is(new int[] { 0, 0, 0, 0 })); // Not triggered
+		assertThat("Row 0", image[0], is(new int[] { Bitmap.WHITE, 0, 0, 0 })); // Triggered
 	}
 
 	@Test
