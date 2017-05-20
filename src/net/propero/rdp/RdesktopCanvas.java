@@ -719,28 +719,22 @@ public abstract class RdesktopCanvas extends Canvas {
 		int srcy = memblt.getSrcY();
 
 		// Perform standard clipping checks, x-axis
-		boolean clippedX = false;
 		int clipright = x + cx - 1;
 		if (clipright > this.right) {
 			clipright = this.right;
-			clippedX = true;
 		}
 		if (x < this.left) {
 			x = this.left;
-			clippedX = true;
 		}
 		cx = clipright - x + 1;
 
 		// Perform standard clipping checks, y-axis
-		boolean clippedY = false;
 		int clipbottom = y + cy - 1;
 		if (clipbottom > this.bottom) {
 			clipbottom = this.bottom;
-			clippedY = true;
 		}
 		if (y < this.top) {
 			y = this.top;
-			clippedY = true;
 		}
 		cy = clipbottom - y + 1;
 
@@ -757,39 +751,6 @@ public abstract class RdesktopCanvas extends Canvas {
 			Bitmap bitmap = cache.getBitmap(memblt.getCacheID(), memblt
 					.getCacheIDX());
 			int bitmapWidth = bitmap.getWidth();
-			int bitmapHeight = bitmap.getHeight();
-			String info = "";
-			if (logger.isDebugEnabled())
-				info = "self=" + this.width + "x" + this.height
-						+ " bmp=" + bitmap.getWidth() + "x" + bitmapHeight;
-			if (cx < bitmapWidth) {
-				int xoffset = bitmapWidth - cx;
-				int nx = x - xoffset;
-				int ncx = bitmapWidth;
-				if (logger.isDebugEnabled())
-					info += " xoffset=" + xoffset + " x->" + nx + " cx->" + ncx;
-				if (!clippedX) {
-					x = nx;
-					cx = ncx;
-				} else if (logger.isDebugEnabled()) {
-					info += " but not really, as clipped";
-				}
-			}
-			if (cy < bitmapHeight) {
-				int yoffset = bitmapWidth - cx;
-				int ny = y - yoffset;
-				int ncy = bitmapHeight;
-				if (logger.isDebugEnabled())
-					info += " yoffset=" + yoffset + " y->" + ny + " cy->" + ncy;
-				if (!clippedY) {
-					y = ny;
-					cy = ncy;
-				} else if (logger.isDebugEnabled()) {
-					info += " but not really, as clipped";
-				}
-			}
-			if (logger.isDebugEnabled())
-				logger.debug(info);
 			// IndexColorModel cm = cache.get_colourmap(memblt.getColorTable());
 			// should use the colormap, but requires high color backstore...
 			rop.do_array(memblt.getOpcode(), backstore, this.width, x, y, cx,
