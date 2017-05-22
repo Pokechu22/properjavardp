@@ -131,18 +131,7 @@ public class Rdesktop {
 		keyMapLocation = "";
 		toolFrame = null;
 
-		// Attempt to run a native RDP Client
-
 		Options options = new Options();
-
-		RDPClientChooser Chooser = new RDPClientChooser(options);
-
-		if (Chooser.RunNativeRDPClient(args)) {
-			if (!options.noSystemExit)
-				System.exit(0);
-		}
-
-		// Failed to run native client, drop back to Java client instead.
 
 		// parse arguments
 
