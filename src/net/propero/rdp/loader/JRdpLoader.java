@@ -39,7 +39,6 @@ import org.apache.logging.log4j.Logger;
 
 import net.propero.rdp.Rdesktop;
 import net.propero.rdp.RdesktopException;
-import net.propero.rdp.Utilities_Localised;
 
 public class JRdpLoader {
 
@@ -100,8 +99,7 @@ public class JRdpLoader {
 				if (port != null && port != "")
 					outArgs += ":" + port;
 
-				// String[] finArgs = outArgs.split(" ");
-				String[] finArgs = Utilities_Localised.split(outArgs, " ");
+				String[] finArgs = outArgs.split(" ");
 
 				Rdesktop.main(finArgs);
 				in.close();

@@ -35,8 +35,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 
-import net.propero.rdp.Utilities_Localised;
-
 public class ImageSelection implements Transferable {
 	// the Image object which will be housed by the ImageSelection
 	private Image image;
@@ -47,18 +45,18 @@ public class ImageSelection implements Transferable {
 
 	// Returns the supported flavors of our implementation
 	public DataFlavor[] getTransferDataFlavors() {
-		return new DataFlavor[] { Utilities_Localised.imageFlavor };
+		return new DataFlavor[] { DataFlavor.imageFlavor };
 	}
 
 	// Returns true if flavor is supported
 	public boolean isDataFlavorSupported(DataFlavor flavor) {
-		return Utilities_Localised.imageFlavor.equals(flavor);
+		return DataFlavor.imageFlavor.equals(flavor);
 	}
 
 	// Returns Image object housed by Transferable object
 	public Object getTransferData(DataFlavor flavor)
 			throws UnsupportedFlavorException, IOException {
-		if (!Utilities_Localised.imageFlavor.equals(flavor)) {
+		if (!DataFlavor.imageFlavor.equals(flavor)) {
 			throw new UnsupportedFlavorException(flavor);
 		}
 		// else return the payload

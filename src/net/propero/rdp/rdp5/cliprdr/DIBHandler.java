@@ -32,6 +32,7 @@ package net.propero.rdp.rdp5.cliprdr;
 import java.awt.Frame;
 import java.awt.Image;
 import java.awt.MediaTracker;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.ImageObserver;
@@ -39,7 +40,6 @@ import java.io.IOException;
 
 import net.propero.rdp.Input;
 import net.propero.rdp.RdpPacket;
-import net.propero.rdp.Utilities_Localised;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -76,9 +76,9 @@ public class DIBHandler extends TypeHandler implements ImageObserver {
 		try {
 			if (in != null
 					&& in
-							.isDataFlavorSupported(Utilities_Localised.imageFlavor)) {
+							.isDataFlavorSupported(DataFlavor.imageFlavor)) {
 				Image img = (Image) in
-						.getTransferData(Utilities_Localised.imageFlavor);
+						.getTransferData(DataFlavor.imageFlavor);
 				ClipBMP b = new ClipBMP();
 
 				MediaTracker mediaTracker = new MediaTracker(new Frame());
