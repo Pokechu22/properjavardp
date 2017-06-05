@@ -215,7 +215,7 @@ public class Bitmap {
 	 * @param packet The packet to read from
 	 * @return The color that was read
 	 */
-	private static int readColor(Options options, int Bpp, RdpPacket_Localised packet) {
+	private static int readColor(Options options, int Bpp, RdpPacket packet) {
 		if (options.server_bpp == 15) {
 			int lower = packet.get8();
 			int upper = packet.get8();
@@ -346,7 +346,7 @@ public class Bitmap {
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
 	public static void decompress(Options options, int width, int height,
-			RdpPacket_Localised data, int size, int Bpp,
+			RdpPacket data, int size, int Bpp,
 			DecompressionCallback callback)
 					throws RdesktopException {
 		int end = data.getPosition() + size;
@@ -459,7 +459,7 @@ public class Bitmap {
 	 * @param data Packet to read compressed data from
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
-	private static void handleBackgroundRun(DecompressionState state, int runLength, RdpPacket_Localised data) throws RdesktopException {
+	private static void handleBackgroundRun(DecompressionState state, int runLength, RdpPacket data) throws RdesktopException {
 		if (state.onFirstLine) {
 			if (state.insertFgColor) {
 				state.writePixel(state.fgColor);
@@ -505,7 +505,7 @@ public class Bitmap {
 	 * @param isSet True if this is a set variant
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
-	private static void handleForegroundRun(DecompressionState state, int runLength, RdpPacket_Localised data, boolean isSet) throws RdesktopException {
+	private static void handleForegroundRun(DecompressionState state, int runLength, RdpPacket data, boolean isSet) throws RdesktopException {
 		if (isSet) {
 			state.fgColor = readColor(state.options, state.Bpp, data);
 		}
@@ -534,7 +534,7 @@ public class Bitmap {
 	 * @param data Packet to read compressed data from
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
-	private static void handleDitheredRun(DecompressionState state, int runLength, RdpPacket_Localised data) throws RdesktopException {
+	private static void handleDitheredRun(DecompressionState state, int runLength, RdpPacket data) throws RdesktopException {
 		int colorA = readColor(state.options, state.Bpp, data);
 		int colorB = readColor(state.options, state.Bpp, data);
 
@@ -557,7 +557,7 @@ public class Bitmap {
 	 * @param data Packet to read compressed data from
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
-	private static void handleColorRun(DecompressionState state, int runLength, RdpPacket_Localised data) throws RdesktopException {
+	private static void handleColorRun(DecompressionState state, int runLength, RdpPacket data) throws RdesktopException {
 		int color = readColor(state.options, state.Bpp, data);
 
 		while (runLength > 0) {
@@ -607,7 +607,7 @@ public class Bitmap {
 	 * @param isSet True if this is a set variant
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
-	private static void handleFgbgImage(DecompressionState state, int runLength, RdpPacket_Localised data, boolean isSet) throws RdesktopException {
+	private static void handleFgbgImage(DecompressionState state, int runLength, RdpPacket data, boolean isSet) throws RdesktopException {
 		if (isSet) {
 			state.fgColor = readColor(state.options, state.Bpp, data);
 		}
@@ -641,7 +641,7 @@ public class Bitmap {
 	 * @param data Packet to read compressed data from
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
-	private static void handleColorImage(DecompressionState state, int runLength, RdpPacket_Localised data) throws RdesktopException {
+	private static void handleColorImage(DecompressionState state, int runLength, RdpPacket data) throws RdesktopException {
 		while (runLength > 0) {
 			state.writePixel(readColor(state.options, state.Bpp, data));
 			runLength--;
@@ -661,7 +661,7 @@ public class Bitmap {
 	 * @param type2 If true, bitmask is {@value #SPECIAL_FGBG_MASK_2}. If false, bitmask is {@value #SPECIAL_FGBG_MASK_1}.
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
-	private static void handleSpecialFgbg(DecompressionState state, RdpPacket_Localised data, boolean type2) throws RdesktopException {
+	private static void handleSpecialFgbg(DecompressionState state, RdpPacket data, boolean type2) throws RdesktopException {
 		if (state.onFirstLine) {
 			writeFirstLineFgbg(state, type2 ? SPECIAL_FGBG_MASK_2 : SPECIAL_FGBG_MASK_1, 8);
 		} else {
@@ -677,7 +677,7 @@ public class Bitmap {
 	 * @param black True if the pixel is black; false if white
 	 * @see [MS-RDPBCGR] 2.2.9.1.1.3.1.2.4
 	 */
-	private static void handleSinglePixel(DecompressionState state, RdpPacket_Localised data, boolean black) throws RdesktopException {
+	private static void handleSinglePixel(DecompressionState state, RdpPacket data, boolean black) throws RdesktopException {
 		state.writePixel(black ? BLACK : WHITE);
 	}
 
@@ -734,7 +734,7 @@ public class Bitmap {
 	 * @throws RdesktopException
 	 */
 	public static WrappedImage decompressImgDirect(Options options, int width, int height,
-			int size, RdpPacket_Localised data, int Bpp, IndexColorModel cm,
+			int size, RdpPacket data, int Bpp, IndexColorModel cm,
 			int left, int top, WrappedImage w) throws RdesktopException {
 
 		decompress(options, width, height, data, size, Bpp,
@@ -772,7 +772,7 @@ public class Bitmap {
 	 * @throws RdesktopException
 	 */
 	public static Image decompressImg(Options options, int width, int height, int size,
-			RdpPacket_Localised data, int Bpp, IndexColorModel cm)
+			RdpPacket data, int Bpp, IndexColorModel cm)
 					throws RdesktopException {
 
 		WrappedImage w;
@@ -816,7 +816,7 @@ public class Bitmap {
 	 * @throws RdesktopException
 	 */
 	public static int[] decompressInt(Options options, int width, int height, int size,
-			RdpPacket_Localised data, int Bpp) throws RdesktopException {
+			RdpPacket data, int Bpp) throws RdesktopException {
 
 		int[] pixel = new int[width * height];
 
@@ -853,7 +853,7 @@ public class Bitmap {
 	 * @throws RdesktopException
 	 */
 	public static byte[] decompress(Options options, int width, int height, int size,
-			RdpPacket_Localised data, int Bpp) throws RdesktopException {
+			RdpPacket data, int Bpp) throws RdesktopException {
 
 		byte[] pixel = new byte[width * height];
 
@@ -987,14 +987,14 @@ public class Bitmap {
 		 * @param data The rest
 		 * @return Number of bytes to read
 		 */
-		public int getLength(int start, RdpPacket_Localised data) {
+		public int getLength(int start, RdpPacket data) {
 			return type.getLength(start, data);
 		}
 
 		public static enum Type {
 			REGULAR(0b11100000) {
 				@Override
-				public int getLength(int start, RdpPacket_Localised data) {
+				public int getLength(int start, RdpPacket data) {
 					int len = start & REG_MASK;
 					if (len != 0) {
 						logger.trace("Regular - len={}", len);
@@ -1010,7 +1010,7 @@ public class Bitmap {
 			},
 			LITE(0b11110000) {
 				@Override
-				public int getLength(int start, RdpPacket_Localised data) {
+				public int getLength(int start, RdpPacket data) {
 					int len = start & LITE_MASK;
 					if (len != 0) {
 						logger.trace("Lite - len={}", len);
@@ -1026,7 +1026,7 @@ public class Bitmap {
 			},
 			MEGA_MEGA(0b11111111) {
 				@Override
-				public int getLength(int start, RdpPacket_Localised data) {
+				public int getLength(int start, RdpPacket data) {
 					int value = data.getLittleEndian16();
 					logger.trace("MEGA MEGA - read={}", value);
 					return value;
@@ -1034,14 +1034,14 @@ public class Bitmap {
 			},
 			SINGLE_BYTE(0b11111111) {
 				@Override
-				public int getLength(int start, RdpPacket_Localised data) {
+				public int getLength(int start, RdpPacket data) {
 					logger.trace("Single byte");
 					return 0;
 				}
 			},
 			REG_FGBG(0b11100000) {
 				@Override
-				public int getLength(int start, RdpPacket_Localised data) {
+				public int getLength(int start, RdpPacket data) {
 					int len = start & REG_MASK;
 					if (len != 0) {
 						int val = len * 8;
@@ -1057,7 +1057,7 @@ public class Bitmap {
 			},
 			LITE_FGBG(0b11110000) {
 				@Override
-				public int getLength(int start, RdpPacket_Localised data) {
+				public int getLength(int start, RdpPacket data) {
 					int len = start & LITE_MASK;
 					if (len != 0) {
 						int val = len * 8;
@@ -1081,7 +1081,7 @@ public class Bitmap {
 				this.idMask = idMask;
 			}
 
-			public abstract int getLength(int start, RdpPacket_Localised data);
+			public abstract int getLength(int start, RdpPacket data);
 		}
 	}
 }

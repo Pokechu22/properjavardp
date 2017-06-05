@@ -288,7 +288,7 @@ public class Rdp {
 
 	private boolean connected = false;
 
-	private RdpPacket_Localised stream = null;
+	private RdpPacket stream = null;
 
 	protected final Options options;
 
@@ -302,7 +302,7 @@ public class Rdp {
 	 * @param data
 	 *            Packet containing capability set data at current read position
 	 */
-	private void processGeneralCaps(RdpPacket_Localised data) throws RdesktopException {
+	private void processGeneralCaps(RdpPacket data) throws RdesktopException {
 		int pad2octetsB; /* rdp5 flags? */
 
 		data.incrementPosition(10); // in_uint8s(s, 10);
@@ -319,7 +319,7 @@ public class Rdp {
 	 * @param data
 	 *            Packet containing capability set data at current read position
 	 */
-	private void processBitmapCaps(RdpPacket_Localised data) throws RdesktopException {
+	private void processBitmapCaps(RdpPacket data) throws RdesktopException {
 		int width, height, bpp;
 
 		bpp = data.getLittleEndian16(); // in_uint16_le(s, bpp);
@@ -356,7 +356,7 @@ public class Rdp {
 	 * @param data
 	 *            Packet containing capability set data at current read position
 	 */
-	private void processServerCaps(RdpPacket_Localised data, int length) throws RdesktopException {
+	private void processServerCaps(RdpPacket data, int length) throws RdesktopException {
 		int n;
 		int next, start;
 		int ncapsets, capset_type, capset_length;
@@ -409,7 +409,7 @@ public class Rdp {
 	 *            Packet containing disconnect PDU at current read position
 	 * @return Code specifying the reason for disconnection
 	 */
-	protected int processDisconnectPdu(RdpPacket_Localised data) {
+	protected int processDisconnectPdu(RdpPacket data) {
 		logger.debug("Received disconnect PDU");
 		return data.getLittleEndian32();
 	}
@@ -436,8 +436,8 @@ public class Rdp {
 	 * @return Packet initialised for RDP
 	 * @throws RdesktopException
 	 */
-	private RdpPacket_Localised initData(int size) throws RdesktopException {
-		RdpPacket_Localised buffer = null;
+	private RdpPacket initData(int size) throws RdesktopException {
+		RdpPacket buffer = null;
 
 		buffer = SecureLayer.init(
 				options.encryption ? Secure.SEC_ENCRYPT : 0, size + 18);
@@ -458,7 +458,7 @@ public class Rdp {
 	 * @throws RdesktopException
 	 * @throws IOException
 	 */
-	private void sendData(RdpPacket_Localised data, int data_pdu_type)
+	private void sendData(RdpPacket data, int data_pdu_type)
 			throws RdesktopException, IOException {
 
 		synchronized (this.SecureLayer) {
@@ -493,7 +493,7 @@ public class Rdp {
 	 * @throws RdesktopException
 	 * @throws OrderException
 	 */
-	private RdpPacket_Localised receive(int[] type) throws IOException,
+	private RdpPacket receive(int[] type) throws IOException,
 	RdesktopException, OrderException {
 		int length = 0;
 
@@ -607,7 +607,7 @@ public class Rdp {
 			throws IOException, RdesktopException, OrderException {
 		int[] type = new int[1];
 
-		RdpPacket_Localised data = null;
+		RdpPacket data = null;
 
 		boolean cleanDisconnect = false;
 
@@ -702,7 +702,7 @@ public class Rdp {
 		int commandlen = 2 * command.length();
 		int dirlen = 2 * directory.length();
 
-		RdpPacket_Localised data;
+		RdpPacket data;
 
 		if (!options.use_rdp5 || 1 == options.server_rdp_version) {
 			logger.debug("Sending RDP4-style Logon packet");
@@ -881,7 +881,7 @@ public class Rdp {
 	 * @throws IOException
 	 * @throws OrderException
 	 */
-	private void processDemandActive(RdpPacket_Localised data)
+	private void processDemandActive(RdpPacket data)
 			throws RdesktopException, IOException,
 			OrderException {
 		int type[] = new int[1];
@@ -928,7 +928,7 @@ public class Rdp {
 	 * @throws RdesktopException
 	 * @throws OrderException
 	 */
-	private Integer processData(RdpPacket_Localised data)
+	private Integer processData(RdpPacket data)
 			throws RdesktopException, OrderException {
 		int data_type, ctype, clen, len, roff, rlen;
 		data_type = 0;
@@ -984,7 +984,7 @@ public class Rdp {
 		return null;
 	}
 
-	private void processUpdate(RdpPacket_Localised data) throws OrderException,
+	private void processUpdate(RdpPacket data) throws OrderException,
 	RdesktopException {
 		int update_type = 0;
 
@@ -1022,7 +1022,7 @@ public class Rdp {
 		int sec_flags = options.encryption ? (RDP5_FLAG | Secure.SEC_ENCRYPT)
 				: RDP5_FLAG;
 
-		RdpPacket_Localised data = SecureLayer.init(sec_flags, 6 + 14 + caplen
+		RdpPacket data = SecureLayer.init(sec_flags, 6 + 14 + caplen
 				+ RDP_SOURCE.length);
 
 		// RdpPacket_Localised data = this.init(14 + caplen +
@@ -1072,12 +1072,12 @@ public class Rdp {
 		this.SecureLayer.send(data, sec_flags);
 	}
 
-	private void sendCapHeader(RdpPacket_Localised data, Capset capset) {
+	private void sendCapHeader(RdpPacket data, Capset capset) {
 		data.setLittleEndian16(capset.id);
 		data.setLittleEndian16(capset.getLength());
 	}
 
-	private void sendGeneralCaps(RdpPacket_Localised data) {
+	private void sendGeneralCaps(RdpPacket data) {
 
 		sendCapHeader(data, Capset.GENERAL);
 
@@ -1100,7 +1100,7 @@ public class Rdp {
 		data.setLittleEndian16(0); /* Pad */
 	}
 
-	private void sendBitmapCaps(RdpPacket_Localised data) {
+	private void sendBitmapCaps(RdpPacket data) {
 
 		sendCapHeader(data, Capset.BITMAP);
 
@@ -1119,7 +1119,7 @@ public class Rdp {
 		data.setLittleEndian16(0); /* Pad */
 	}
 
-	private void sendOrderCaps(RdpPacket_Localised data) {
+	private void sendOrderCaps(RdpPacket data) {
 
 		sendCapHeader(data, Capset.ORDER);
 
@@ -1157,7 +1157,7 @@ public class Rdp {
 		data.setLittleEndian16(0); /* Pad */
 	}
 
-	private void sendBitmapcacheCaps(RdpPacket_Localised data) {
+	private void sendBitmapcacheCaps(RdpPacket data) {
 
 		sendCapHeader(data, Capset.BITMAPCACHE);
 
@@ -1171,7 +1171,7 @@ public class Rdp {
 	}
 
 	/* Output bitmap cache v2 capability set */
-	private void sendBitmapcache2Caps(RdpPacket_Localised data) {
+	private void sendBitmapcache2Caps(RdpPacket data) {
 		sendCapHeader(data, Capset.BITMAPCACHE_REV2);
 
 		data.setLittleEndian16(options.persistent_bitmap_caching ? 2 : 0); /* version */
@@ -1200,7 +1200,7 @@ public class Rdp {
 		// not used */
 	}
 
-	private void sendColorcacheCaps(RdpPacket_Localised data) {
+	private void sendColorcacheCaps(RdpPacket data) {
 
 		sendCapHeader(data, Capset.COLORCACHE);
 
@@ -1208,7 +1208,7 @@ public class Rdp {
 		data.setLittleEndian16(0); /* pad */
 	}
 
-	private void sendActivateCaps(RdpPacket_Localised data) {
+	private void sendActivateCaps(RdpPacket data) {
 
 		sendCapHeader(data, Capset.ACTIVATION);
 
@@ -1218,7 +1218,7 @@ public class Rdp {
 		data.setLittleEndian16(0); /* Window activate */
 	}
 
-	private void sendControlCaps(RdpPacket_Localised data) {
+	private void sendControlCaps(RdpPacket data) {
 
 		sendCapHeader(data, Capset.CONTROL);
 
@@ -1228,7 +1228,7 @@ public class Rdp {
 		data.setLittleEndian16(2); /* Detach interest */
 	}
 
-	private void sendPointerCaps(RdpPacket_Localised data) {
+	private void sendPointerCaps(RdpPacket data) {
 
 		sendCapHeader(data, Capset.POINTER);
 
@@ -1236,7 +1236,7 @@ public class Rdp {
 		data.setLittleEndian16(20); /* Cache size */
 	}
 
-	private void sendShareCaps(RdpPacket_Localised data) {
+	private void sendShareCaps(RdpPacket data) {
 
 		sendCapHeader(data, Capset.SHARE);
 
@@ -1244,7 +1244,7 @@ public class Rdp {
 		data.setLittleEndian16(0); /* pad */
 	}
 
-	private void sendSoundCaps(RdpPacket_Localised data) {
+	private void sendSoundCaps(RdpPacket data) {
 		sendCapHeader(data, Capset.SOUND);
 
 		int flags = 0;
@@ -1253,7 +1253,7 @@ public class Rdp {
 		data.setLittleEndian16(0); /* pad */
 	}
 
-	private void sendInputCaps(RdpPacket_Localised data) {
+	private void sendInputCaps(RdpPacket data) {
 		sendCapHeader(data, Capset.INPUT);
 
 		int flags = 0;
@@ -1269,7 +1269,7 @@ public class Rdp {
 		data.incrementPosition(64); // 64 null bytes, for the file name
 	}
 
-	private void sendFontCaps(RdpPacket_Localised data) {
+	private void sendFontCaps(RdpPacket data) {
 		sendCapHeader(data, Capset.FONT);
 
 		int flags = 0;
@@ -1278,7 +1278,7 @@ public class Rdp {
 		data.setLittleEndian16(0);  // Pad
 	}
 
-	private void sendGlyphCacheCaps(RdpPacket_Localised data) {
+	private void sendGlyphCacheCaps(RdpPacket data) {
 		sendCapHeader(data, Capset.GLYPHCACHE);
 
 		// These are the definitions that were previously sent - no clue if
@@ -1300,14 +1300,14 @@ public class Rdp {
 	}
 
 	/** Writes a TS_CACHE_DEFINITION */
-	private void writeCacheDefinition(RdpPacket_Localised data, int entries, int cellSize) {
+	private void writeCacheDefinition(RdpPacket data, int entries, int cellSize) {
 		assert entries <= 254;
 		assert cellSize <= 2048;
 		data.setLittleEndian16(entries);
 		data.setLittleEndian16(cellSize);
 	}
 
-	private void sendUnknownCaps(RdpPacket_Localised data, int id, int length,
+	private void sendUnknownCaps(RdpPacket data, int id, int length,
 			byte[] caps) {
 
 		data.setLittleEndian16(id /* RDP_CAPSET_UNKNOWN */);
@@ -1319,7 +1319,7 @@ public class Rdp {
 	}
 
 	private void sendSynchronize() throws RdesktopException, IOException {
-		RdpPacket_Localised data = this.initData(4);
+		RdpPacket data = this.initData(4);
 
 		data.setLittleEndian16(1); // type
 		data.setLittleEndian16(1002);
@@ -1331,7 +1331,7 @@ public class Rdp {
 
 	private void sendControl(int action) throws RdesktopException, IOException {
 
-		RdpPacket_Localised data = this.initData(8);
+		RdpPacket data = this.initData(8);
 
 		data.setLittleEndian16(action);
 		data.setLittleEndian16(0); // userid
@@ -1344,7 +1344,7 @@ public class Rdp {
 
 	public void sendInput(int time, int message_type, int device_flags,
 			int param1, int param2) {
-		RdpPacket_Localised data = null;
+		RdpPacket data = null;
 		try {
 			data = this.initData(16);
 		} catch (RdesktopException e) {
@@ -1378,7 +1378,7 @@ public class Rdp {
 
 	private void sendFonts(int seq) throws RdesktopException, IOException {
 
-		RdpPacket_Localised data = this.initData(8);
+		RdpPacket data = this.initData(8);
 
 		data.setLittleEndian16(0); /* number of fonts */
 		data.setLittleEndian16(0x3e); /* unknown */
@@ -1390,7 +1390,7 @@ public class Rdp {
 		this.sendData(data, RDP_DATA_PDU_FONT2);
 	}
 
-	private void processPointer(RdpPacket_Localised data)
+	private void processPointer(RdpPacket data)
 			throws RdesktopException {
 		int message_type = 0;
 		int x = 0, y = 0;
@@ -1426,7 +1426,7 @@ public class Rdp {
 		}
 	}
 
-	private void process_system_pointer_pdu(RdpPacket_Localised data) {
+	private void process_system_pointer_pdu(RdpPacket data) {
 		int system_pointer_type = 0;
 
 		data.getLittleEndian16(system_pointer_type); // in_uint16(s,
@@ -1444,7 +1444,7 @@ public class Rdp {
 		}
 	}
 
-	protected void processBitmapUpdates(RdpPacket_Localised data)
+	protected void processBitmapUpdates(RdpPacket data)
 			throws RdesktopException {
 		logger.debug("processBitmapUpdates");
 		int n_updates = 0;
@@ -1558,7 +1558,7 @@ public class Rdp {
 		surface.repaint(minX, minY, maxX - minX + 1, maxY - minY + 1);
 	}
 
-	protected void processPalette(RdpPacket_Localised data) {
+	protected void processPalette(RdpPacket data) {
 		int n_colors = 0;
 		IndexColorModel cm = null;
 		byte[] palette = null;
@@ -1595,14 +1595,14 @@ public class Rdp {
 	}
 
 	/* Process a null system pointer PDU */
-	protected void process_null_system_pointer_pdu(RdpPacket_Localised s)
+	protected void process_null_system_pointer_pdu(RdpPacket s)
 			throws RdesktopException {
 		// FIXME: We should probably set another cursor here,
 		// like the X window system base cursor or something.
 		surface.setCursor(cache.getCursor(0));
 	}
 
-	protected void process_colour_pointer_pdu(RdpPacket_Localised data)
+	protected void process_colour_pointer_pdu(RdpPacket data)
 			throws RdesktopException {
 		logger.debug("Rdp.RDP_POINTER_COLOR");
 		int x = 0, y = 0, width = 0, height = 0, cache_idx = 0, masklen = 0, datalen = 0;
@@ -1629,7 +1629,7 @@ public class Rdp {
 		cache.putCursor(cache_idx, cursor);
 	}
 
-	protected void process_cached_pointer_pdu(RdpPacket_Localised data)
+	protected void process_cached_pointer_pdu(RdpPacket data)
 			throws RdesktopException {
 		logger.debug("Rdp.RDP_POINTER_CACHED");
 		int cache_idx = data.getLittleEndian16();

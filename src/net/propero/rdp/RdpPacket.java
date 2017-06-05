@@ -23,6 +23,9 @@
  */
 package net.propero.rdp;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,8 +33,8 @@ import org.apache.logging.log4j.Logger;
  * Encapsulates data from a single received packet. Provides methods for reading
  * from and writing to an individual packet at all relevant levels.
  */
-public abstract class RdpPacket {
-	static Logger logger = LogManager.getLogger(RdpPacket.class);
+public class RdpPacket {
+	private static Logger logger = LogManager.getLogger(RdpPacket.class);
 
 	/* constants for Packet */
 	public static final int MCS_HEADER = 1;
@@ -55,12 +58,47 @@ public abstract class RdpPacket {
 	protected int end = -1;
 
 	/**
+	 * A packet that contains no data.
+	 */
+	public static final RdpPacket EMPTY = new RdpPacket(0);
+
+	private ByteBuffer bb;
+	private int size = 0;
+
+	public RdpPacket(int capacity) {
+		if (capacity == 0) {
+			bb = ByteBuffer.wrap(new byte[0]);
+		} else {
+			bb = ByteBuffer.allocateDirect(capacity);
+		}
+		size = capacity;
+	}
+
+	public void reset(int length) {
+		// logger.info("RdpPacket_Localised.reset(" + length + "), capacity = "
+		// + bb.capacity());
+		this.end = 0;
+		this.start = 0;
+		if (bb.capacity() < length) {
+			bb = ByteBuffer.allocateDirect(length);
+		}
+		size = length;
+		bb.clear();
+	}
+
+	/**
 	 * Read an 8-bit integer value from the packet (at current read/write
 	 * position)
 	 *
 	 * @return Value read from packet
 	 */
-	public abstract int get8();
+	public int get8() {
+		if (bb.position() >= bb.capacity()) {
+			throw new ArrayIndexOutOfBoundsException(
+					"memory accessed out of Range!");
+		}
+		return bb.get() & 0xff; // treat as unsigned byte
+	}
 
 	/**
 	 * Read an 8-bit integer value from a specified offset in the packet
@@ -69,7 +107,13 @@ public abstract class RdpPacket {
 	 *            Offset to read location
 	 * @return Value read from packet
 	 */
-	public abstract int get8(int where);
+	public int get8(int where) {
+		if (where < 0 || where >= bb.capacity()) {
+			throw new ArrayIndexOutOfBoundsException(
+					"memory accessed out of Range!");
+		}
+		return bb.get(where) & 0xff; // treat as unsigned byte
+	}
 
 	/**
 	 * Write 8-bit value to packet at current read/write position
@@ -77,7 +121,13 @@ public abstract class RdpPacket {
 	 * @param what
 	 *            Value to write to packet
 	 */
-	public abstract void set8(int what);
+	public void set8(int what) {
+		if (bb.position() >= bb.capacity()) {
+			throw new ArrayIndexOutOfBoundsException(
+					"memory accessed out of Range!");
+		}
+		bb.put((byte) what);
+	}
 
 	/**
 	 * Write 8-bit value to packet at specified offset
@@ -87,7 +137,13 @@ public abstract class RdpPacket {
 	 * @param what
 	 *            Value to write to packet
 	 */
-	public abstract void set8(int where, int what);
+	public void set8(int where, int what) {
+		if (where < 0 || where >= bb.capacity()) {
+			throw new ArrayIndexOutOfBoundsException(
+					"memory accessed out of Range!");
+		}
+		bb.put(where, (byte) what);
+	}
 
 	/**
 	 * Read a 2-byte, little-endian integer value from the packet (at current
@@ -95,7 +151,10 @@ public abstract class RdpPacket {
 	 *
 	 * @return Value read from packet
 	 */
-	public abstract int getLittleEndian16();
+	public int getLittleEndian16() {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		return bb.getShort();
+	}
 
 	/**
 	 * Read a 2-byte, little-endian integer value from a specified offset in the
@@ -105,7 +164,10 @@ public abstract class RdpPacket {
 	 *            Offset to read location
 	 * @return Value read from packet
 	 */
-	public abstract int getLittleEndian16(int where);
+	public int getLittleEndian16(int where) {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		return bb.getShort(where);
+	}
 
 	/**
 	 * Write a 2-byte, little-endian integer value to packet at current
@@ -114,7 +176,10 @@ public abstract class RdpPacket {
 	 * @param what
 	 *            Value to write to packet
 	 */
-	public abstract void setLittleEndian16(int what);
+	public void setLittleEndian16(int what) {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		bb.putShort((short) what);
+	}
 
 	/**
 	 * Write a 2-byte, little-endian integer value to packet at specified offset
@@ -124,7 +189,10 @@ public abstract class RdpPacket {
 	 * @param what
 	 *            Value to write to packet
 	 */
-	public abstract void setLittleEndian16(int where, int what);
+	public void setLittleEndian16(int where, int what) {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		bb.putShort(where, (short) what);
+	}
 
 	/**
 	 * Read a 2-byte, big-endian integer value from the packet (at current
@@ -132,7 +200,10 @@ public abstract class RdpPacket {
 	 *
 	 * @return Value read from packet
 	 */
-	public abstract int getBigEndian16();
+	public int getBigEndian16() {
+		bb.order(ByteOrder.BIG_ENDIAN);
+		return bb.getShort();
+	}
 
 	/**
 	 * Read a 2-byte, big-endian integer value from a specified offset in the
@@ -142,7 +213,10 @@ public abstract class RdpPacket {
 	 *            Offset to read location
 	 * @return Value read from packet
 	 */
-	public abstract int getBigEndian16(int where);
+	public int getBigEndian16(int where) {
+		bb.order(ByteOrder.BIG_ENDIAN);
+		return bb.getShort(where);
+	}
 
 	/**
 	 * Write a 2-byte, big-endian integer value to packet at current read/write
@@ -151,7 +225,10 @@ public abstract class RdpPacket {
 	 * @param what
 	 *            Value to write to packet
 	 */
-	public abstract void setBigEndian16(int what);
+	public void setBigEndian16(int what) {
+		bb.order(ByteOrder.BIG_ENDIAN);
+		bb.putShort((short) what);
+	}
 
 	/**
 	 * Write a 2-byte, big-endian integer value to packet at specified offset
@@ -161,81 +238,108 @@ public abstract class RdpPacket {
 	 * @param what
 	 *            Value to write to packet
 	 */
-	public abstract void setBigEndian16(int where, int what);
+	public void setBigEndian16(int where, int what) {
+		bb.order(ByteOrder.BIG_ENDIAN);
+		bb.putShort(where, (short) what);
+	}
 
 	/**
-	 * Read a 3-byte, little-endian integer value from the packet (at current
+	 * Read a 4-byte, little-endian integer value from the packet (at current
 	 * read position)
 	 *
 	 * @return Value read from packet
 	 */
-	public abstract int getLittleEndian32();
+	public int getLittleEndian32() {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		return bb.getInt();
+	}
 
 	/**
-	 * Read a 3-byte, little-endian integer value from a specified offset in the
+	 * Read a 4-byte, little-endian integer value from a specified offset in the
 	 * packet
 	 *
 	 * @param where
 	 *            Offset to read location
 	 * @return Value read from packet
 	 */
-	public abstract int getLittleEndian32(int where);
+	public int getLittleEndian32(int where) {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		return bb.getInt(where);
+	}
 
 	/**
-	 * Write a 3-byte, little-endian integer value to packet at current
+	 * Write a 4-byte, little-endian integer value to packet at current
 	 * read/write position
 	 *
 	 * @param what
 	 *            Value to write to packet
 	 */
-	public abstract void setLittleEndian32(int what);
+	public void setLittleEndian32(int what) {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		bb.putInt(what);
+	}
 
 	/**
-	 * Write a 3-byte, little-endian integer value to packet at specified offset
+	 * Write a 4-byte, little-endian integer value to packet at specified offset
 	 *
 	 * @param where
 	 *            Offset in packet to write location
 	 * @param what
 	 *            Value to write to packet
 	 */
-	public abstract void setLittleEndian32(int where, int what);
+	public void setLittleEndian32(int where, int what) {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		bb.putInt(where, what);
+	}
 
 	/**
-	 * Read a 3-byte, big-endian integer value from the packet (at current
+	 * Read a 4-byte, big-endian integer value from the packet (at current
 	 * read/write position)
 	 *
 	 * @return Value read from packet
 	 */
-	public abstract int getBigEndian32();
+	public int getBigEndian32() {
+		bb.order(ByteOrder.BIG_ENDIAN);
+		return bb.getInt();
+	}
 
 	/**
-	 * Read a 3-byte, big-endian integer value from a specified offset in the
+	 * Read a 4-byte, big-endian integer value from a specified offset in the
 	 * packet
 	 *
 	 * @param where
 	 *            Offset to read location
 	 * @return Value read from packet
 	 */
-	public abstract int getBigEndian32(int where);
+	public int getBigEndian32(int where) {
+		bb.order(ByteOrder.BIG_ENDIAN);
+		return bb.getInt(where);
+	}
 
 	/**
-	 * Write a 3-byte, big-endian integer value to packet at current read/write
+	 * Write a 4-byte, big-endian integer value to packet at current read/write
 	 * position
 	 *
 	 * @param what
 	 *            Value to write to packet
 	 */
-	public abstract void setBigEndian32(int what);
+	public void setBigEndian32(int what) {
+		bb.order(ByteOrder.BIG_ENDIAN);
+		bb.putInt(what);
+	}
 
 	/**
-	 * Write a 3-byte, big-endian integer value to packet at specified offset
+	 * Write a 4-byte, big-endian integer value to packet at specified offset
 	 *
 	 * @param where
 	 *            Offset in packet to write location
 	 * @param what
 	 *            Value to write to packet
 	 */
-	public abstract void setBigEndian32(int where, int what);
+	public void setBigEndian32(int where, int what) {
+		bb.order(ByteOrder.BIG_ENDIAN);
+		bb.putInt(where, what);
+	}
 
 	/**
 	 * Copy data from this packet to an array of bytes
@@ -249,8 +353,26 @@ public abstract class RdpPacket {
 	 * @param len
 	 *            Length of data to be copied
 	 */
-	public abstract void copyToByteArray(byte[] array, int array_offset,
-			int mem_offset, int len);
+	public void copyToByteArray(byte[] array, int array_offset, int mem_offset,
+			int len) {
+		if ((array_offset >= array.length)) {
+			throw new ArrayIndexOutOfBoundsException(
+					"Array offset beyond end of array!");
+		}
+		if (array_offset + len > array.length) {
+			throw new ArrayIndexOutOfBoundsException(
+					"Not enough bytes in array to copy!");
+		}
+		if (mem_offset + len > bb.capacity()) {
+			throw new ArrayIndexOutOfBoundsException(
+					"Memory accessed out of Range!");
+		}
+
+		int oldpos = getPosition();
+		setPosition(mem_offset);
+		bb.get(array, array_offset, len);
+		setPosition(oldpos);
+	}
 
 	/**
 	 * Copy data to this packet from an array of bytes
@@ -264,8 +386,23 @@ public abstract class RdpPacket {
 	 * @param len
 	 *            Length of data to be copied
 	 */
-	public abstract void copyFromByteArray(byte[] array, int array_offset,
-			int mem_offset, int len);
+	public void copyFromByteArray(byte[] array, int array_offset,
+			int mem_offset, int len) {
+		if ((array_offset >= array.length)
+				|| (array_offset + len > array.length)
+				|| (mem_offset + len > bb.capacity())) {
+			throw new ArrayIndexOutOfBoundsException(
+					"memory accessed out of Range!");
+		}
+		// store position
+		int oldpos = getPosition();
+
+		setPosition(mem_offset);
+		bb.put(array, array_offset, len);
+
+		// restore position
+		setPosition(oldpos);
+	}
 
 	/**
 	 * Copy data from this packet to another packet
@@ -279,8 +416,18 @@ public abstract class RdpPacket {
 	 * @param len
 	 *            Length of data to be copied
 	 */
-	public abstract void copyToPacket(RdpPacket_Localised dst, int srcOffset,
-			int dstOffset, int len);
+	public void copyToPacket(RdpPacket dst, int srcOffset,
+			int dstOffset, int len) {
+		int olddstpos = dst.getPosition();
+		int oldpos = getPosition();
+		dst.setPosition(dstOffset);
+		setPosition(srcOffset);
+		for (int i = 0; i < len; i++) {
+			dst.set8(bb.get());
+		}
+		dst.setPosition(olddstpos);
+		setPosition(oldpos);
+	}
 
 	/**
 	 * Copy data to this packet from another packet
@@ -294,22 +441,37 @@ public abstract class RdpPacket {
 	 * @param len
 	 *            Length of data to be copied
 	 */
-	public abstract void copyFromPacket(RdpPacket_Localised src, int srcOffset,
-			int dstOffset, int len);
+	public void copyFromPacket(RdpPacket src, int srcOffset,
+			int dstOffset, int len) {
+		int oldsrcpos = src.getPosition();
+		int oldpos = getPosition();
+		src.setPosition(srcOffset);
+		setPosition(dstOffset);
+		for (int i = 0; i < len; i++) {
+			bb.put((byte) src.get8());
+		}
+		src.setPosition(oldsrcpos);
+		setPosition(oldpos);
+	}
 
 	/**
 	 * Retrieve size of this packet
 	 *
 	 * @return Packet size
 	 */
-	public abstract int size();
+	public int size() {
+		return size;
+		// return bb.capacity(); //this.end - this.start;
+	}
 
 	/**
 	 * Retrieve offset to current read/write position
 	 *
 	 * @return Current read/write position (as byte offset from start)
 	 */
-	public abstract int getPosition();
+	public int getPosition() {
+		return bb.position();
+	}
 
 	/**
 	 * Set current read/write position
@@ -317,7 +479,15 @@ public abstract class RdpPacket {
 	 * @param position
 	 *            New read/write position (as byte offset from start)
 	 */
-	public abstract void setPosition(int position);
+	public void setPosition(int position) {
+		if (position > bb.capacity() || position < 0) {
+			logger.warn("stream position =" + getPosition() + " end ="
+					+ getEnd() + " capacity =" + capacity());
+			logger.warn("setPosition(" + position + ") failed");
+			throw new ArrayIndexOutOfBoundsException();
+		}
+		bb.position(position);
+	}
 
 	/**
 	 * Advance the read/write position
@@ -325,7 +495,14 @@ public abstract class RdpPacket {
 	 * @param length
 	 *            Number of bytes to advance read position by
 	 */
-	public abstract void incrementPosition(int length);
+	public void incrementPosition(int length) {
+
+		if (length > bb.capacity() || length + bb.position() > bb.capacity()
+				|| length < 0) {
+			throw new ArrayIndexOutOfBoundsException();
+		}
+		bb.position(bb.position() + length);
+	}
 
 	/**
 	 * Mark current read/write position as end of packet
@@ -339,7 +516,9 @@ public abstract class RdpPacket {
 	 *
 	 * @return Packet capacity (in bytes)
 	 */
-	public abstract int capacity();
+	public int capacity() {
+		return bb.capacity();
+	}
 
 	/**
 	 * Mark specified position as end of packet

@@ -85,8 +85,8 @@ public class ISO {
 	 *            Desired length of PDU
 	 * @return Packet configured as ISO PDU, ready to write at higher level
 	 */
-	public RdpPacket_Localised init(int length) {
-		RdpPacket_Localised data = new RdpPacket_Localised(length + 7);// getMemory(length+7);
+	public RdpPacket init(int length) {
+		RdpPacket data = new RdpPacket(length + 7);// getMemory(length+7);
 		data.incrementPosition(7);
 		data.setStart(data.getPosition());
 		return data;
@@ -161,7 +161,7 @@ public class ISO {
 	 *                when an I/O Error occurs
 	 */
 	private void sendMessage(int type) throws IOException {
-		RdpPacket_Localised buffer = new RdpPacket_Localised(11);// getMemory(11);
+		RdpPacket buffer = new RdpPacket(11);// getMemory(11);
 		byte[] packet = new byte[11];
 
 		buffer.set8(PROTOCOL_VERSION); // send Version Info
@@ -188,7 +188,7 @@ public class ISO {
 	 * @throws RdesktopException
 	 * @throws IOException
 	 */
-	public void send(RdpPacket_Localised buffer) throws RdesktopException,
+	public void send(RdpPacket buffer) throws RdesktopException,
 	IOException {
 		if (rdpsock == null || out == null) {
 			return;
@@ -224,10 +224,10 @@ public class ISO {
 	 * @throws RdesktopException
 	 * @throws OrderException
 	 */
-	public RdpPacket_Localised receive() throws IOException, RdesktopException,
+	public RdpPacket receive() throws IOException, RdesktopException,
 	OrderException {
 		int[] type = new int[1];
-		RdpPacket_Localised buffer = receiveMessage(type);
+		RdpPacket buffer = receiveMessage(type);
 		if (buffer == null) {
 			return null;
 		}
@@ -251,10 +251,10 @@ public class ISO {
 	 *         provided
 	 * @throws IOException
 	 */
-	private RdpPacket_Localised tcp_recv(RdpPacket_Localised p, int length)
+	private RdpPacket tcp_recv(RdpPacket p, int length)
 			throws IOException {
 		logger.debug("ISO.tcp_recv");
-		RdpPacket_Localised buffer = null;
+		RdpPacket buffer = null;
 
 		byte[] packet = new byte[length];
 
@@ -268,12 +268,12 @@ public class ISO {
 		}
 
 		if (p == null) {
-			buffer = new RdpPacket_Localised(length);
+			buffer = new RdpPacket(length);
 			buffer.copyFromByteArray(packet, 0, 0, packet.length);
 			buffer.markEnd(length);
 			buffer.setStart(buffer.getPosition());
 		} else {
-			buffer = new RdpPacket_Localised((p.getEnd() - p.getStart())
+			buffer = new RdpPacket((p.getEnd() - p.getStart())
 					+ length);
 			buffer.copyFromPacket(p, p.getStart(), 0, p.getEnd());
 			buffer.copyFromByteArray(packet, 0, p.getEnd(), packet.length);
@@ -295,10 +295,10 @@ public class ISO {
 	 * @throws RdesktopException
 	 * @throws OrderException
 	 */
-	private RdpPacket_Localised receiveMessage(int[] type) throws IOException,
+	private RdpPacket receiveMessage(int[] type) throws IOException,
 	RdesktopException, OrderException {
 		logger.debug("ISO.receiveMessage");
-		RdpPacket_Localised s = null;
+		RdpPacket s = null;
 		int length, version;
 
 		next_packet: while (true) {
@@ -391,7 +391,7 @@ public class ISO {
 		int length = 11 + (options.username.length() > 0 ? ("Cookie: mstshash="
 				.length()
 				+ uname.length() + 2) : 0) + 8;
-		RdpPacket_Localised buffer = new RdpPacket_Localised(length);
+		RdpPacket buffer = new RdpPacket(length);
 		byte[] packet = new byte[length];
 
 		buffer.set8(PROTOCOL_VERSION); // send Version Info

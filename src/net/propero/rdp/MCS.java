@@ -106,7 +106,7 @@ public class MCS {
 	 * @throws RdesktopException
 	 * @throws OrderException
 	 */
-	public void connect(InetAddress host, int port, RdpPacket_Localised data)
+	public void connect(InetAddress host, int port, RdpPacket data)
 			throws IOException, RdesktopException, OrderException {
 		logger.debug("MCS.connect");
 		IsoLayer.connect(host, port);
@@ -150,8 +150,8 @@ public class MCS {
 	 * @return
 	 * @throws RdesktopException
 	 */
-	public RdpPacket_Localised init(int length) throws RdesktopException {
-		RdpPacket_Localised data = IsoLayer.init(length + 8);
+	public RdpPacket init(int length) throws RdesktopException {
+		RdpPacket data = IsoLayer.init(length + 8);
 		// data.pushLayer(RdpPacket_Localised.MCS_HEADER, 8);
 		data.setHeader(RdpPacket.MCS_HEADER);
 		data.incrementPosition(8);
@@ -167,7 +167,7 @@ public class MCS {
 	 * @throws RdesktopException
 	 * @throws IOException
 	 */
-	public void send(RdpPacket_Localised buffer) throws RdesktopException,
+	public void send(RdpPacket buffer) throws RdesktopException,
 	IOException {
 		send_to_channel(buffer, MCS_GLOBAL_CHANNEL);
 	}
@@ -182,7 +182,7 @@ public class MCS {
 	 * @throws RdesktopException
 	 * @throws IOException
 	 */
-	public void send_to_channel(RdpPacket_Localised buffer, int channel)
+	public void send_to_channel(RdpPacket buffer, int channel)
 			throws RdesktopException, IOException {
 		int length = 0;
 		buffer.setPosition(buffer.getHeader(RdpPacket.MCS_HEADER));
@@ -208,11 +208,11 @@ public class MCS {
 	 * @throws RdesktopException
 	 * @throws OrderException
 	 */
-	public RdpPacket_Localised receive(int[] channel) throws IOException,
+	public RdpPacket receive(int[] channel) throws IOException,
 	RdesktopException, OrderException {
 		logger.debug("receive");
 		int opcode = 0, appid = 0, length = 0;
-		RdpPacket_Localised buffer = IsoLayer.receive();
+		RdpPacket buffer = IsoLayer.receive();
 		if (buffer == null) {
 			return null;
 		}
@@ -250,7 +250,7 @@ public class MCS {
 	 * @param value
 	 *            Integer value to store
 	 */
-	public void sendBerInteger(RdpPacket_Localised buffer, int value) {
+	public void sendBerInteger(RdpPacket buffer, int value) {
 
 		int len = 1;
 
@@ -304,7 +304,7 @@ public class MCS {
 	 * @param length
 	 *            Length of data header precedes
 	 */
-	public void sendBerHeader(RdpPacket_Localised buffer, int tagval, int length) {
+	public void sendBerHeader(RdpPacket buffer, int tagval, int length) {
 		if (tagval > 0xff) {
 			buffer.setBigEndian16(tagval);
 		} else {
@@ -371,7 +371,7 @@ public class MCS {
 	 * @param max_pdusize
 	 *            Maximum size for an MCS PDU
 	 */
-	public void sendDomainParams(RdpPacket_Localised buffer, int max_channels,
+	public void sendDomainParams(RdpPacket buffer, int max_channels,
 			int max_users, int max_tokens, int max_pdusize) {
 
 		int size = BERIntSize(max_channels) + BERIntSize(max_users)
@@ -400,12 +400,12 @@ public class MCS {
 	 * @throws IOException
 	 * @throws RdesktopException
 	 */
-	public void sendConnectInitial(RdpPacket_Localised data)
+	public void sendConnectInitial(RdpPacket data)
 			throws IOException, RdesktopException {
 		logger.debug("MCS.sendConnectInitial");
 		if (false) {
 			int length = 7 + (3 * 34) + 4 + data.getEnd();
-			RdpPacket_Localised buffer = IsoLayer.init(length + 5);
+			RdpPacket buffer = IsoLayer.init(length + 5);
 
 			sendBerHeader(buffer, CONNECT_INITIAL, length);
 			sendBerHeader(buffer, BER_TAG_OCTET_STRING, 0); // calling domain
@@ -435,7 +435,7 @@ public class MCS {
 				+ domainParamSize(0xffff, 0xfc17, 0xffff, 0xffff) + 4 + datalen; // RDP5
 		// Code
 
-		RdpPacket_Localised buffer = IsoLayer.init(length + 5);
+		RdpPacket buffer = IsoLayer.init(length + 5);
 
 		sendBerHeader(buffer, CONNECT_INITIAL, length);
 		sendBerHeader(buffer, BER_TAG_OCTET_STRING, 1); // calling domain
@@ -469,7 +469,7 @@ public class MCS {
 	 * @throws RdesktopException
 	 * @throws OrderException
 	 */
-	public void receiveConnectResponse(RdpPacket_Localised data)
+	public void receiveConnectResponse(RdpPacket data)
 			throws IOException, RdesktopException, OrderException {
 
 		logger.debug("MCS.receiveConnectResponse");
@@ -484,7 +484,7 @@ public class MCS {
 		int result = 0;
 		int length = 0;
 
-		RdpPacket_Localised buffer = IsoLayer.receive();
+		RdpPacket buffer = IsoLayer.receive();
 		logger.debug("Received buffer");
 		length = berParseHeader(buffer, CONNECT_RESPONSE);
 		length = berParseHeader(buffer, BER_TAG_RESULT);
@@ -520,7 +520,7 @@ public class MCS {
 	 */
 	public void send_edrq() throws IOException, RdesktopException {
 		logger.debug("send_edrq");
-		RdpPacket_Localised buffer = IsoLayer.init(5);
+		RdpPacket buffer = IsoLayer.init(5);
 		buffer.set8(EDRQ << 2);
 		buffer.setBigEndian16(1); // height
 		buffer.setBigEndian16(1); // interval
@@ -537,7 +537,7 @@ public class MCS {
 	 * @throws RdesktopException
 	 */
 	public void send_cjrq(int channelid) throws IOException, RdesktopException {
-		RdpPacket_Localised buffer = IsoLayer.init(5);
+		RdpPacket buffer = IsoLayer.init(5);
 		buffer.set8(CJRQ << 2);
 		buffer.setBigEndian16(this.McsUserID); // height
 		buffer.setBigEndian16(channelid); // interval
@@ -552,7 +552,7 @@ public class MCS {
 	 * @throws RdesktopException
 	 */
 	public void send_aucf() throws IOException, RdesktopException {
-		RdpPacket_Localised buffer = IsoLayer.init(2);
+		RdpPacket buffer = IsoLayer.init(2);
 
 		buffer.set8(AUCF << 2);
 		buffer.set8(0);
@@ -567,7 +567,7 @@ public class MCS {
 	 * @throws RdesktopException
 	 */
 	public void send_aurq() throws IOException, RdesktopException {
-		RdpPacket_Localised buffer = IsoLayer.init(1);
+		RdpPacket buffer = IsoLayer.init(1);
 
 		buffer.set8(AURQ << 2);
 		buffer.markEnd();
@@ -583,7 +583,7 @@ public class MCS {
 	public void receive_cjcf() throws IOException, RdesktopException, OrderException {
 		logger.debug("receive_cjcf");
 		int opcode = 0, result = 0;
-		RdpPacket_Localised buffer = IsoLayer.receive();
+		RdpPacket buffer = IsoLayer.receive();
 
 		opcode = buffer.get8();
 		if ((opcode >> 2) != CJCF) {
@@ -618,7 +618,7 @@ public class MCS {
 	OrderException {
 		logger.debug("receive_aucf");
 		int opcode = 0, result = 0, UserID = 0;
-		RdpPacket_Localised buffer = IsoLayer.receive();
+		RdpPacket buffer = IsoLayer.receive();
 
 		opcode = buffer.get8();
 		if ((opcode >> 2) != AUCF) {
@@ -650,7 +650,7 @@ public class MCS {
 	 * @return Length of following data
 	 * @throws RdesktopException
 	 */
-	public int berParseHeader(RdpPacket_Localised data, int tagval)
+	public int berParseHeader(RdpPacket data, int tagval)
 			throws RdesktopException {
 		int tag = 0;
 		int length = 0;
@@ -689,7 +689,7 @@ public class MCS {
 	 *            Packet containing domain parameters at current read position
 	 * @throws RdesktopException
 	 */
-	public void parseDomainParams(RdpPacket_Localised data)
+	public void parseDomainParams(RdpPacket data)
 			throws RdesktopException {
 		int length;
 

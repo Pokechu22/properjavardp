@@ -28,7 +28,6 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 
 import net.propero.rdp.RdpPacket;
-import net.propero.rdp.RdpPacket_Localised;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -85,7 +84,7 @@ public class UnicodeHandler extends TypeHandler {
 			byte[] sBytes = s.getBytes();
 			int length = sBytes.length;
 			int lengthBy2 = length * 2;
-			RdpPacket p = new RdpPacket_Localised(lengthBy2);
+			RdpPacket p = new RdpPacket(lengthBy2);
 			for (int i = 0; i < sBytes.length; i++) {
 				p.setLittleEndian16(sBytes[i]);
 			}

@@ -246,7 +246,7 @@ public class RdesktopCanvas extends Canvas {
 	 * @throws RdesktopException
 	 */
 	public void displayCompressed(int x, int y, int width, int height,
-			int size, RdpPacket_Localised data, int Bpp, IndexColorModel cm)
+			int size, RdpPacket data, int Bpp, IndexColorModel cm)
 					throws RdesktopException {
 		backstore = Bitmap.decompressImgDirect(options, width, height, size, data, Bpp,
 				cm, x, y, backstore);

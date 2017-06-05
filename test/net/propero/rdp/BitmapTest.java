@@ -424,7 +424,7 @@ public class BitmapTest {
 
 		int[][] result = new int[4][4];
 
-		RdpPacket_Localised packet = packet(data);
+		RdpPacket packet = packet(data);
 
 		Bitmap.decompress(options, 4, 4, packet, data.length, options.Bpp, new DecompressionCallback() {
 			@Override
@@ -444,14 +444,14 @@ public class BitmapTest {
 	/**
 	 * Returns an empty, unreadable packet.
 	 */
-	private static RdpPacket_Localised packet() {
-		return RdpPacket_Localised.EMPTY;
+	private static RdpPacket packet() {
+		return RdpPacket.EMPTY;
 	}
 	/**
 	 * Creates a packet containing the given bytes
 	 */
-	private static RdpPacket_Localised packet(int first, int... rest) {
-		RdpPacket_Localised packet = new RdpPacket_Localised(1 + rest.length);
+	private static RdpPacket packet(int first, int... rest) {
+		RdpPacket packet = new RdpPacket(1 + rest.length);
 		packet.set8(first);
 		for (int val : rest) {
 			packet.set8(val);
@@ -462,8 +462,8 @@ public class BitmapTest {
 	/**
 	 * Creates a packet containing the given (unsigned) bytes
 	 */
-	private static RdpPacket_Localised packet(byte[] data) {
-		RdpPacket_Localised packet = new RdpPacket_Localised(data.length);
+	private static RdpPacket packet(byte[] data) {
+		RdpPacket packet = new RdpPacket(data.length);
 		for (byte val : data) {
 			packet.set8(val & 0xFF);
 		}

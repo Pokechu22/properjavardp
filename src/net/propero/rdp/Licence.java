@@ -117,7 +117,7 @@ public class Licence {
 	 * @throws RdesktopException
 	 * @throws IOException
 	 */
-	public void process(RdpPacket_Localised data) throws RdesktopException,
+	public void process(RdpPacket data) throws RdesktopException,
 	IOException {
 		int tag = 0;
 		tag = data.get8();
@@ -160,7 +160,7 @@ public class Licence {
 	 * @throws RdesktopException
 	 * @throws IOException
 	 */
-	public void process_demand(RdpPacket_Localised data)
+	public void process_demand(RdpPacket data)
 			throws UnsupportedEncodingException, RdesktopException,
 			IOException {
 		byte[] null_data = new byte[Secure.SEC_MODULUS_SIZE];
@@ -212,7 +212,7 @@ public class Licence {
 	 * @return True if signature is read successfully
 	 * @throws RdesktopException
 	 */
-	public boolean parse_authreq(RdpPacket_Localised data)
+	public boolean parse_authreq(RdpPacket data)
 			throws RdesktopException {
 
 		int tokenlen = 0;
@@ -256,7 +256,7 @@ public class Licence {
 			throws RdesktopException, IOException {
 		int sec_flags = Secure.SEC_LICENCE_NEG;
 		int length = 58;
-		RdpPacket_Localised data = null;
+		RdpPacket data = null;
 
 		data = secure.init(sec_flags, length + 2);
 
@@ -305,7 +305,7 @@ public class Licence {
 				+ Secure.SEC_PADDING_SIZE + licence_size + LICENCE_HWID_SIZE
 				+ LICENCE_SIGNATURE_SIZE;
 
-		RdpPacket_Localised s = secure.init(sec_flags, length + 4);
+		RdpPacket s = secure.init(sec_flags, length + 4);
 
 		s.set8(LICENCE_TAG_PRESENT);
 		s.set8(2); // version
@@ -352,7 +352,7 @@ public class Licence {
 	 * @throws UnsupportedEncodingException
 	 * @throws IOException
 	 */
-	public void process_authreq(RdpPacket_Localised data)
+	public void process_authreq(RdpPacket data)
 			throws RdesktopException, UnsupportedEncodingException,
 			IOException {
 
@@ -412,7 +412,7 @@ public class Licence {
 	 * @param data
 	 *            Packet containing issued licence
 	 */
-	public void process_issue(RdpPacket_Localised data) {
+	public void process_issue(RdpPacket data) {
 		int length = 0;
 		int check = 0;
 		RC4Engine rc4_licence = new RC4Engine();
@@ -471,7 +471,7 @@ public class Licence {
 		int hostlen = (hostname.length == 0 ? 0 : hostname.length + 1);
 		int length = 128 + userlen + hostlen;
 
-		RdpPacket_Localised buffer = secure.init(sec_flags, length);
+		RdpPacket buffer = secure.init(sec_flags, length);
 
 		buffer.set8(LICENCE_TAG_REQUEST);
 		buffer.set8(2); // version
@@ -549,7 +549,7 @@ public class Licence {
 	 * @param length
 	 *            Length of licence
 	 */
-	private void save_licence(RdpPacket_Localised data, int length) {
+	private void save_licence(RdpPacket data, int length) {
 		logger.debug("save_licence");
 		int len;
 		int startpos = data.getPosition();

@@ -29,7 +29,6 @@ import net.propero.rdp.Input;
 import net.propero.rdp.Options;
 import net.propero.rdp.RdesktopException;
 import net.propero.rdp.RdpPacket;
-import net.propero.rdp.RdpPacket_Localised;
 import net.propero.rdp.Secure;
 
 import org.apache.logging.log4j.LogManager;
@@ -100,8 +99,8 @@ public abstract class VChannel {
 	 * @return Packet prepared for this channel
 	 * @throws RdesktopException
 	 */
-	public RdpPacket_Localised init(int length) throws RdesktopException {
-		RdpPacket_Localised s;
+	public RdpPacket init(int length) throws RdesktopException {
+		RdpPacket s;
 
 		s = secure.init(options.encryption ? Secure.SEC_ENCRYPT : 0,
 				length + 8);
@@ -119,7 +118,7 @@ public abstract class VChannel {
 	 * @throws RdesktopException
 	 * @throws IOException
 	 */
-	public void send_packet(RdpPacket_Localised data) throws RdesktopException, IOException {
+	public void send_packet(RdpPacket data) throws RdesktopException, IOException {
 		if (secure == null) {
 			return;
 		}
@@ -136,7 +135,7 @@ public abstract class VChannel {
 				int thisLength = Math.min(VChannels.CHANNEL_CHUNK_LENGTH, length
 						- data_offset);
 
-				RdpPacket_Localised s = secure.init(
+				RdpPacket s = secure.init(
 						options.encryption ? Secure.SEC_ENCRYPT : 0,
 								8 + thisLength);
 				s.setLittleEndian32(length);

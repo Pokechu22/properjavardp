@@ -30,7 +30,7 @@ import net.propero.rdp.Input;
 import net.propero.rdp.MCS;
 import net.propero.rdp.Options;
 import net.propero.rdp.RdesktopException;
-import net.propero.rdp.RdpPacket_Localised;
+import net.propero.rdp.RdpPacket;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -185,7 +185,7 @@ public class VChannels {
 	 * @throws RdesktopException
 	 * @throws IOException
 	 */
-	public void channel_process(RdpPacket_Localised data, int mcsChannel)
+	public void channel_process(RdpPacket data, int mcsChannel)
 			throws RdesktopException, IOException {
 
 		int length, flags;
@@ -220,7 +220,7 @@ public class VChannels {
 			fragment_buffer = append(fragment_buffer, content);
 
 			if ((flags & CHANNEL_FLAG_LAST) != 0) {
-				RdpPacket_Localised fullpacket = new RdpPacket_Localised(
+				RdpPacket fullpacket = new RdpPacket(
 						fragment_buffer.length);
 				fullpacket.copyFromByteArray(fragment_buffer, 0, 0,
 						fragment_buffer.length);

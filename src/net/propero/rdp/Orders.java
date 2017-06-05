@@ -495,7 +495,7 @@ public class Orders {
 	 * @param orderType The type of order
 	 * @return A bitmask of what fields are present.
 	 */
-	private int getPresentFields(RdpPacket_Localised data, int controlFlags, PrimaryOrder orderType) {
+	private int getPresentFields(RdpPacket data, int controlFlags, PrimaryOrder orderType) {
 		int ret = 0;
 		int size = orderType.numFieldBytes;
 
@@ -541,7 +541,7 @@ public class Orders {
 	 * @throws OrderException
 	 * @throws RdesktopException
 	 */
-	public void processOrders(RdpPacket_Localised data, int next_packet,
+	public void processOrders(RdpPacket data, int next_packet,
 			int n_orders) throws OrderException, RdesktopException {
 
 		int processed = 0;
@@ -604,7 +604,7 @@ public class Orders {
 	 * @throws OrderException
 	 * @throws RdesktopException
 	 */
-	private void processPrimaryOrders(RdpPacket_Localised data, int controlFlags)
+	private void processPrimaryOrders(RdpPacket data, int controlFlags)
 			throws OrderException, RdesktopException {
 		assert (controlFlags & RDP_ORDER_STANDARD) != 0;
 		assert (controlFlags & RDP_ORDER_SECONDARY) == 0;
@@ -760,7 +760,7 @@ public class Orders {
 	 *            True if the coordinates of the blit destination are described
 	 *            as relative to the source
 	 */
-	private void processDestBlt(RdpPacket_Localised data, DestBltOrder destblt,
+	private void processDestBlt(RdpPacket data, DestBltOrder destblt,
 			int present, boolean delta) {
 
 		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
@@ -788,7 +788,7 @@ public class Orders {
 	 *            True if the coordinates of the blit destination are described
 	 *            as relative to the source
 	 */
-	private void processPatBlt(RdpPacket_Localised data, PatBltOrder patblt,
+	private void processPatBlt(RdpPacket data, PatBltOrder patblt,
 			int present, boolean delta) {
 		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
 
@@ -819,7 +819,7 @@ public class Orders {
 	 *            True if the coordinates of the blit destination are described
 	 *            as relative to the source
 	 */
-	private void processScreenBlt(RdpPacket_Localised data,
+	private void processScreenBlt(RdpPacket data,
 			ScreenBltOrder screenblt, int present, boolean delta) {
 		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
 
@@ -849,7 +849,7 @@ public class Orders {
 	 *            True if the coordinates of the end of the line are defined as
 	 *            relative to the start
 	 */
-	private void processLine(RdpPacket_Localised data, LineOrder line,
+	private void processLine(RdpPacket data, LineOrder line,
 			int present, boolean delta) {
 		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
 
@@ -887,7 +887,7 @@ public class Orders {
 	 *            True if the rectangle is described as (x,y,width,height), as
 	 *            opposed to (x1,y1,x2,y2)
 	 */
-	private void processRectangle(RdpPacket_Localised data,
+	private void processRectangle(RdpPacket data,
 			RectangleOrder rect, int present, boolean delta) {
 		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
 
@@ -922,7 +922,7 @@ public class Orders {
 	 *            the source
 	 * @throws RdesktopException
 	 */
-	private void processDeskSave(RdpPacket_Localised data,
+	private void processDeskSave(RdpPacket data,
 			DeskSaveOrder desksave, int present, boolean delta)
 					throws RdesktopException {
 		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
@@ -966,7 +966,7 @@ public class Orders {
 	 *            True if destination coordinates are described as relative to
 	 *            the source
 	 */
-	private void processMemBlt(RdpPacket_Localised data, MemBltOrder memblt,
+	private void processMemBlt(RdpPacket data, MemBltOrder memblt,
 			int present, boolean delta) {
 		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
 
@@ -1001,7 +1001,7 @@ public class Orders {
 	 *            True if destination coordinates are described as relative to
 	 *            the source
 	 */
-	private void processTriBlt(RdpPacket_Localised data, TriBltOrder triblt,
+	private void processTriBlt(RdpPacket data, TriBltOrder triblt,
 			int present, boolean delta) {
 		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
 
@@ -1035,7 +1035,7 @@ public class Orders {
 	 *            True if each set of coordinates is described relative to
 	 *            previous set
 	 */
-	private void processPolyLine(RdpPacket_Localised data,
+	private void processPolyLine(RdpPacket data,
 			PolyLineOrder polyline, int present, boolean delta) {
 		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
 
@@ -1073,7 +1073,7 @@ public class Orders {
 	 *            Unused
 	 * @throws RdesktopException
 	 */
-	private void processText2(RdpPacket_Localised data, Text2Order text2,
+	private void processText2(RdpPacket data, Text2Order text2,
 			int present, boolean delta) throws RdesktopException {
 		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
 
@@ -1126,7 +1126,7 @@ public class Orders {
 	 *            BoundsOrder object in which to store description of bounds
 	 * @throws OrderException
 	 */
-	private void parseBounds(RdpPacket_Localised data, BoundsOrder bounds)
+	private void parseBounds(RdpPacket data, BoundsOrder bounds)
 			throws OrderException {
 		int present = data.get8();
 
@@ -1197,7 +1197,7 @@ public class Orders {
 	 * @throws OrderException
 	 * @throws RdesktopException
 	 */
-	private void processSecondaryOrders(RdpPacket_Localised data, int controlFlags)
+	private void processSecondaryOrders(RdpPacket data, int controlFlags)
 			throws OrderException, RdesktopException {
 		assert (controlFlags & RDP_ORDER_STANDARD) != 0;
 		assert (controlFlags & RDP_ORDER_SECONDARY) != 0;
@@ -1260,7 +1260,7 @@ public class Orders {
 	 *            Packet containing raw bitmap data
 	 * @throws RdesktopException
 	 */
-	private void processRawBitmapCache(RdpPacket_Localised data)
+	private void processRawBitmapCache(RdpPacket data)
 			throws RdesktopException {
 		int cache_id = data.get8();
 		data.incrementPosition(1); // pad
@@ -1294,7 +1294,7 @@ public class Orders {
 	 *            Packet containing cache information
 	 * @throws RdesktopException
 	 */
-	private void processColorCache(RdpPacket_Localised data)
+	private void processColorCache(RdpPacket data)
 			throws RdesktopException {
 		byte[] palette = null;
 
@@ -1332,7 +1332,7 @@ public class Orders {
 	 *            Packet containing compressed bitmap
 	 * @throws RdesktopException
 	 */
-	private void processBitmapCache(RdpPacket_Localised data)
+	private void processBitmapCache(RdpPacket data)
 			throws RdesktopException {
 		int bufsize, pad2, row_size, final_size, size;
 		int pad1;
@@ -1413,7 +1413,7 @@ public class Orders {
 	 * @throws RdesktopException
 	 * @throws IOException
 	 */
-	private void processBitmapCache2(RdpPacket_Localised data, int flags,
+	private void processBitmapCache2(RdpPacket data, int flags,
 			boolean compressed) throws RdesktopException, IOException {
 		Bitmap bitmap;
 		int y;
@@ -1519,7 +1519,7 @@ public class Orders {
 	 *            glyphs representing a font
 	 * @throws RdesktopException
 	 */
-	private void processFontCache(RdpPacket_Localised data)
+	private void processFontCache(RdpPacket data)
 			throws RdesktopException {
 		Glyph glyph = null;
 
@@ -1558,7 +1558,7 @@ public class Orders {
 	 * @throws OrderException
 	 * @throws RdesktopException
 	 */
-	private void processAltSecondaryOrders(RdpPacket_Localised data,
+	private void processAltSecondaryOrders(RdpPacket data,
 			int controlFlags) throws RdesktopException, OrderException {
 		assert (controlFlags & RDP_ORDER_STANDARD) == 0;
 		assert (controlFlags & RDP_ORDER_SECONDARY) != 0;
@@ -1582,7 +1582,7 @@ public class Orders {
 	 * @return Callback to the new value
 	 * @see [MS-RDPEGDI] section 2.2.2.2.1.1.1.1
 	 */
-	private static IntSupplier coordinateReader(final RdpPacket_Localised data,
+	private static IntSupplier coordinateReader(final RdpPacket data,
 			final int current, final boolean delta) {
 		return (() -> {
 			if (delta) {
@@ -1601,7 +1601,7 @@ public class Orders {
 	 *            Packet containing colour value at current read position
 	 * @return Callback to read the int value
 	 */
-	private static IntSupplier colorReader(RdpPacket_Localised data) {
+	private static IntSupplier colorReader(RdpPacket data) {
 		return (() -> {
 			// TODO: This doesn't handle lower bits per pixels
 			int color;
@@ -1626,7 +1626,7 @@ public class Orders {
 	 * @param aggregate
 	 *            Debug log builder
 	 */
-	private static void parseBrush(RdpPacket_Localised data, Brush brush, int startAt, int present, StringBuilder aggregate) {
+	private static void parseBrush(RdpPacket data, Brush brush, int startAt, int present, StringBuilder aggregate) {
 		readOptionalField("brushX", aggregate, startAt + 0, present, brush::setXOrigin, data::get8);
 		readOptionalField("brushY", aggregate, startAt + 1, present, brush::setYOrigin, data::get8);
 		readOptionalField("brushStyle", aggregate, startAt + 2, present, brush::setStyle, data::get8);
@@ -1650,7 +1650,7 @@ public class Orders {
 	 * @param aggregate
 	 *            Debug log builder
 	 */
-	private static void parsePen(RdpPacket_Localised data, Pen pen, int startAt, int present, StringBuilder aggregate) {
+	private static void parsePen(RdpPacket data, Pen pen, int startAt, int present, StringBuilder aggregate) {
 		readOptionalField("penStyle", aggregate, startAt + 0, present, pen::setStyle, data::get8);
 		readOptionalField("penWidth", aggregate, startAt + 0, present, pen::setWidth, data::get8);
 		readOptionalField("penColor", aggregate, startAt + 0, present, pen::setColor, colorReader(data));

@@ -202,7 +202,7 @@ public class Secure {
 			options.hostname.trim();
 		}
 
-		RdpPacket_Localised mcs_data = this.sendMcsData();
+		RdpPacket mcs_data = this.sendMcsData();
 		McsLayer.connect(host, port, mcs_data);
 
 		this.processMcsData(mcs_data);
@@ -238,10 +238,10 @@ public class Secure {
 	 *
 	 * @return Packet populated with MCS data
 	 */
-	public RdpPacket_Localised sendMcsData() {
+	public RdpPacket sendMcsData() {
 		logger.debug("Secure.sendMcsData");
 
-		RdpPacket_Localised buffer = new RdpPacket_Localised(512);
+		RdpPacket buffer = new RdpPacket(512);
 
 		int hostlen = 2 * (options.hostname == null ? 0 : options.hostname
 				.length());
@@ -379,7 +379,7 @@ public class Secure {
 	 * @param mcs_data
 	 *            Data received from server
 	 */
-	public void processMcsData(RdpPacket_Localised mcs_data)
+	public void processMcsData(RdpPacket mcs_data)
 			throws RdesktopException {
 		logger.debug("Secure.processMcsData");
 		int tag = 0, len = 0, length = 0, nexttag = 0;
@@ -430,7 +430,7 @@ public class Secure {
 	 * @param mcs_data
 	 *            Packet to read
 	 */
-	private void processSrvInfo(RdpPacket_Localised mcs_data) {
+	private void processSrvInfo(RdpPacket mcs_data) {
 		options.server_rdp_version = mcs_data.getLittleEndian16(); // in_uint16_le(s,
 		// g_server_rdp_version);
 		logger.debug(("Server RDP version is " + options.server_rdp_version));
@@ -442,7 +442,7 @@ public class Secure {
 	public void establishKey() throws RdesktopException, IOException {
 		int length = server_public_key_len + SEC_PADDING_SIZE;
 		int flags = SEC_CLIENT_RANDOM;
-		RdpPacket_Localised buffer = this.init(flags, length + 4);
+		RdpPacket buffer = this.init(flags, length + 4);
 
 		buffer.setLittleEndian32(length);
 
@@ -455,7 +455,7 @@ public class Secure {
 
 	}
 
-	public void processCryptInfo(RdpPacket_Localised data)
+	public void processCryptInfo(RdpPacket data)
 			throws RdesktopException {
 		int rc4_key_size = 0;
 
@@ -509,10 +509,10 @@ public class Secure {
 	 * @return Intialised packet
 	 * @throws RdesktopException
 	 */
-	public RdpPacket_Localised init(int flags, int length)
+	public RdpPacket init(int flags, int length)
 			throws RdesktopException {
 		int headerlength = 0;
-		RdpPacket_Localised buffer;
+		RdpPacket buffer;
 
 		if (!this.licenceIssued) {
 			headerlength = ((flags & SEC_ENCRYPT) != 0) ? 12 : 4;
@@ -538,7 +538,7 @@ public class Secure {
 	 * @throws RdesktopException
 	 * @throws IOException
 	 */
-	public void send(RdpPacket_Localised sec_data, int flags)
+	public void send(RdpPacket sec_data, int flags)
 			throws RdesktopException, IOException {
 		send_to_channel(sec_data, flags, MCS.MCS_GLOBAL_CHANNEL);
 	}
@@ -555,7 +555,7 @@ public class Secure {
 	 * @throws RdesktopException
 	 * @throws IOException
 	 */
-	public void send_to_channel(RdpPacket_Localised sec_data, int flags,
+	public void send_to_channel(RdpPacket sec_data, int flags,
 			int channel) throws RdesktopException, IOException {
 		int datalength = 0;
 		byte[] signature = null;
@@ -742,7 +742,7 @@ public class Secure {
 	 * @return Size of RC4 key
 	 * @throws RdesktopException
 	 */
-	public int parseCryptInfo(RdpPacket_Localised data)
+	public int parseCryptInfo(RdpPacket data)
 			throws RdesktopException {
 		logger.debug("Secure.parseCryptInfo");
 		int encryption_level = 0, random_length = 0, RSA_info_length = 0;
@@ -934,7 +934,7 @@ public class Secure {
 	 * @return True if key successfully read
 	 * @throws RdesktopException
 	 */
-	public boolean parsePublicKey(RdpPacket_Localised data)
+	public boolean parsePublicKey(RdpPacket data)
 			throws RdesktopException {
 		int magic = 0, modulus_length = 0;
 
@@ -1111,9 +1111,9 @@ public class Secure {
 	 * @throws IOException
 	 * @throws OrderException
 	 */
-	public RdpPacket_Localised receive() throws RdesktopException, IOException, OrderException {
+	public RdpPacket receive() throws RdesktopException, IOException, OrderException {
 		int sec_flags = 0;
-		RdpPacket_Localised buffer = null;
+		RdpPacket buffer = null;
 		while (true) {
 			int[] channel = new int[1];
 			buffer = McsLayer.receive(channel);

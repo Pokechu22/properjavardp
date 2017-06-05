@@ -36,7 +36,6 @@ import net.propero.rdp.Input;
 import net.propero.rdp.Options;
 import net.propero.rdp.RdesktopException;
 import net.propero.rdp.RdpPacket;
-import net.propero.rdp.RdpPacket_Localised;
 import net.propero.rdp.Secure;
 import net.propero.rdp.rdp5.VChannel;
 import net.propero.rdp.rdp5.VChannels;
@@ -161,9 +160,9 @@ ClipboardOwner, FocusListener {
 
 	@Override
 	public void send_null(int type, int status) {
-		RdpPacket_Localised s;
+		RdpPacket s;
 
-		s = new RdpPacket_Localised(12);
+		s = new RdpPacket(12);
 		s.setLittleEndian16(type);
 		s.setLittleEndian16(status);
 		s.setLittleEndian32(0);
@@ -186,10 +185,10 @@ ClipboardOwner, FocusListener {
 		TypeHandlerList availableFormats = allHandlers
 				.getHandlersForClipboard(dataTypes);
 
-		RdpPacket_Localised s;
+		RdpPacket s;
 		int number_of_formats = availableFormats.count();
 
-		s = new RdpPacket_Localised(number_of_formats * 36 + 12);
+		s = new RdpPacket(number_of_formats * 36 + 12);
 		s.setLittleEndian16(CLIPRDR_FORMAT_ANNOUNCE);
 		s.setLittleEndian16(CLIPRDR_REQUEST);
 		s.setLittleEndian32(number_of_formats * 36);
@@ -257,7 +256,7 @@ ClipboardOwner, FocusListener {
 
 	void request_clipboard_data(int formatcode) throws RdesktopException, IOException {
 
-		RdpPacket_Localised s = this.secure.init(
+		RdpPacket s = this.secure.init(
 				options.encryption ? Secure.SEC_ENCRYPT : 0, 24);
 		s.setLittleEndian32(16); // length
 
@@ -280,7 +279,7 @@ ClipboardOwner, FocusListener {
 
 	@Override
 	public void send_data(byte[] data, int length) {
-		RdpPacket_Localised all = new RdpPacket_Localised(12 + length);
+		RdpPacket all = new RdpPacket(12 + length);
 
 		all.setLittleEndian16(CLIPRDR_DATA_RESPONSE);
 		all.setLittleEndian16(CLIPRDR_RESPONSE);

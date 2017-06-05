@@ -28,7 +28,7 @@ import net.propero.rdp.Options;
 import net.propero.rdp.OrderException;
 import net.propero.rdp.RdesktopException;
 import net.propero.rdp.Rdp;
-import net.propero.rdp.RdpPacket_Localised;
+import net.propero.rdp.RdpPacket;
 
 /**
  * Handle RDP5 orders
@@ -58,7 +58,7 @@ public class Rdp5 extends Rdp {
 	 * @throws RdesktopException
 	 * @throws OrderException
 	 */
-	public void rdp5_process(RdpPacket_Localised s, boolean e)
+	public void rdp5_process(RdpPacket s, boolean e)
 			throws RdesktopException, OrderException {
 		rdp5_process(s, e, false);
 	}
@@ -75,7 +75,7 @@ public class Rdp5 extends Rdp {
 	 * @throws RdesktopException
 	 * @throws OrderException
 	 */
-	public void rdp5_process(RdpPacket_Localised s, boolean encryption,
+	public void rdp5_process(RdpPacket s, boolean encryption,
 			boolean shortform) throws RdesktopException, OrderException {
 		logger.debug("Processing RDP 5 order");
 
@@ -140,7 +140,7 @@ public class Rdp5 extends Rdp {
 	 * @param channelno
 	 *            Channel on which packet was received
 	 */
-	void rdp5_process_channel(RdpPacket_Localised s, int channelno) {
+	void rdp5_process_channel(RdpPacket s, int channelno) {
 		VChannel channel = channels.find_channel_by_channelno(channelno);
 		if (channel != null) {
 			try {
