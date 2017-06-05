@@ -1,6 +1,6 @@
 /* RdpApplet.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: Provide an applet interface to ProperJavaRDP
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 
 package net.propero.rdp.applet;
@@ -44,12 +44,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.StringTokenizer;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import net.propero.rdp.Common;
 import net.propero.rdp.Rdesktop;
 import net.propero.rdp.RdesktopException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class RdpApplet extends Applet {
 
@@ -59,6 +59,7 @@ public class RdpApplet extends Applet {
 
 	PrintStream aPrintStream = null;
 
+	@Override
 	public void paint(Graphics g) {
 		g.setColor(new Color(0xFFFFFF));
 		g.fillRect(0, 0, g.getClipBounds().width, g.getClipBounds().height);
@@ -67,18 +68,21 @@ public class RdpApplet extends Applet {
 				"Launching properJavaRDP session...");
 		int x = (int) (g.getClipBounds().getWidth() / 2) - (width / 2);
 		int y = (int) (g.getClipBounds().getHeight() / 2);
-		if (!redirectOutput)
+		if (!redirectOutput) {
 			g.drawString("Launching properJavaRDP session...", x, y);
+		}
 		width = g.getFontMetrics().stringWidth(
 				"Connect to:" + getParameter("server"));
 		x = (int) (g.getClipBounds().getWidth() / 2) - (width / 2);
 		y = (int) (g.getClipBounds().getHeight() / 2) + 20;
-		if (!redirectOutput)
+		if (!redirectOutput) {
 			g.drawString("Connecting to:" + getParameter("server"), x, y);
+		}
 	}
 
 	boolean redirectOutput = false;
 
+	@Override
 	public void init() {
 		redirectOutput = isSet("redirectOutput");
 		if (redirectOutput) {
@@ -94,6 +98,7 @@ public class RdpApplet extends Applet {
 
 	RdpThread rThread = null;
 
+	@Override
 	public void start() {
 
 		Common.underApplet = true; // TODO
@@ -133,6 +138,7 @@ public class RdpApplet extends Applet {
 		rThread.start();
 	}
 
+	@Override
 	public void stop() {
 		rThread = null;
 		notify();
@@ -141,8 +147,9 @@ public class RdpApplet extends Applet {
 	private boolean isSet(String parameter) {
 		String s = this.getParameter(parameter);
 		if (s != null) {
-			if (s.equalsIgnoreCase("yes"))
+			if (s.equalsIgnoreCase("yes")) {
 				return true;
+			}
 		}
 		return false;
 	}
@@ -150,8 +157,9 @@ public class RdpApplet extends Applet {
 	private String genFlag(String flag, String parameter) {
 		String s = this.getParameter(parameter);
 		if (s != null) {
-			if (s.equalsIgnoreCase("yes"))
+			if (s.equalsIgnoreCase("yes")) {
 				return flag;
+			}
 		}
 		return "";
 	}
@@ -159,12 +167,14 @@ public class RdpApplet extends Applet {
 	private String genParam(String name, String parameter) {
 		String s = this.getParameter(parameter);
 		if (s != null) {
-			if (name != "")
+			if (name != "") {
 				return name + " " + s;
-			else
+			} else {
 				return s;
-		} else
+			}
+		} else {
 			return "";
+		}
 	}
 
 	class FilteredStream extends FilterOutputStream {
@@ -172,11 +182,13 @@ public class RdpApplet extends Applet {
 			super(aStream);
 		}
 
+		@Override
 		public void write(byte b[]) throws IOException {
 			String aString = new String(b);
 			aTextArea.append(aString);
 		}
 
+		@Override
 		public void write(byte b[], int off, int len) throws IOException {
 			String aString = new String(b, off, len);
 			aTextArea.append(aString);
@@ -186,7 +198,7 @@ public class RdpApplet extends Applet {
 }
 
 class RdpThread extends Thread {
-	private static final Logger logger = LogManager.getLogger(); 
+	private static final Logger logger = LogManager.getLogger();
 	String[] args;
 
 	String redirect = null;
@@ -199,6 +211,7 @@ class RdpThread extends Thread {
 		this.redirect = redirect;
 	}
 
+	@Override
 	public void run() {
 		this.setPriority(Thread.MAX_PRIORITY);
 

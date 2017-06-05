@@ -1,6 +1,6 @@
 /* PstCache.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: Handle persistent caching
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 
 package net.propero.rdp;
@@ -65,8 +65,9 @@ class PstCache {
 	protected void touchBitmap(int cache_id, int cache_idx, int stamp) {
 		logger.info("PstCache.touchBitmap");
 
-		if (!IS_PERSISTENT(cache_id) || cache_idx >= Rdp.BMPCACHE2_NUM_PSTCELLS)
+		if (!IS_PERSISTENT(cache_id) || cache_idx >= Rdp.BMPCACHE2_NUM_PSTCELLS) {
 			return;
+		}
 
 		try (FileOutputStream fd = new FileOutputStream(pstcache_fd[cache_id])) {
 			fd.write(toBigEndian32(stamp), 12 + cache_idx
@@ -101,11 +102,13 @@ class PstCache {
 		Bitmap bitmap;
 		byte[] cellHead = null;
 
-		if (!options.persistent_bitmap_caching)
+		if (!options.persistent_bitmap_caching) {
 			return false;
+		}
 
-		if (!IS_PERSISTENT(cache_id) || cache_idx >= Rdp.BMPCACHE2_NUM_PSTCELLS)
+		if (!IS_PERSISTENT(cache_id) || cache_idx >= Rdp.BMPCACHE2_NUM_PSTCELLS) {
 			return false;
+		}
 
 		CELLHEADER c;
 		try (FileInputStream fd = new FileInputStream(pstcache_fd[cache_id])) {
@@ -135,12 +138,13 @@ class PstCache {
 	/* Store a bitmap in the persistent cache */
 	public boolean pstcache_put_bitmap(int cache_id, int cache_idx,
 			byte[] bitmap_id, int width, int height, int length, byte[] data)
-			throws IOException {
+					throws IOException {
 		logger.info("PstCache.pstcache_put_bitmap");
 		CELLHEADER cellhdr = new CELLHEADER();
 
-		if (!IS_PERSISTENT(cache_id) || cache_idx >= Rdp.BMPCACHE2_NUM_PSTCELLS)
+		if (!IS_PERSISTENT(cache_id) || cache_idx >= Rdp.BMPCACHE2_NUM_PSTCELLS) {
 			return false;
+		}
 
 		cellhdr.bitmap_id = bitmap_id;
 		// memcpy(cellhdr.bitmap_id, bitmap_id, 8/* sizeof(BITMAP_ID) */);
@@ -170,15 +174,17 @@ class PstCache {
 		int n, c = 0;
 		CELLHEADER cellhdr = null;
 
-		if (!(options.bitmap_caching && options.persistent_bitmap_caching && IS_PERSISTENT(cache_id)))
+		if (!(options.bitmap_caching && options.persistent_bitmap_caching && IS_PERSISTENT(cache_id))) {
 			return 0;
+		}
 
 		/*
 		 * The server disconnects if the bitmap cache content is sent more than
 		 * once
 		 */
-		if (pstcache_enumerated)
+		if (pstcache_enumerated) {
 			return 0;
+		}
 
 		logger.debug("pstcache enumeration... ");
 		for (n = 0; n < Rdp.BMPCACHE2_NUM_PSTCELLS; n++) {
@@ -209,8 +215,9 @@ class PstCache {
 					 * is needed to load them
 					 */
 					if (options.precache_bitmaps && (options.server_bpp > 8)) {
-						if (pstcache_load_bitmap(cache_id, n))
+						if (pstcache_load_bitmap(cache_id, n)) {
 							c++;
+						}
 					}
 
 					stamp = Math.max(stamp, cellhdr.stamp);
@@ -231,13 +238,15 @@ class PstCache {
 		// int fd;
 		String filename;
 
-		if (pstcache_enumerated)
+		if (pstcache_enumerated) {
 			return true;
+		}
 
 		pstcache_fd[cache_id] = null;
 
-		if (!(options.bitmap_caching && options.persistent_bitmap_caching))
+		if (!(options.bitmap_caching && options.persistent_bitmap_caching)) {
 			return false;
+		}
 
 		pstcache_Bpp = options.Bpp;
 		filename = "./cache/pstcache_" + cache_id + "_" + pstcache_Bpp;
@@ -292,8 +301,9 @@ class CELLHEADER {
 	}
 
 	public CELLHEADER(byte[] data) {
-		for (int i = 0; i < bitmap_id.length; i++)
+		for (int i = 0; i < bitmap_id.length; i++) {
 			bitmap_id[i] = data[i];
+		}
 
 		width = data[bitmap_id.length];
 		height = data[bitmap_id.length + 1];

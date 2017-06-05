@@ -1,6 +1,6 @@
 /* Cache.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: Handle caching of bitmaps, cursors, colour maps, text and fonts
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- *          
+ *
  */
 package net.propero.rdp;
 
@@ -67,7 +67,7 @@ public class Cache {
 
 	/**
 	 * Remove the least-recently-used bitmap from the specified cache
-	 * 
+	 *
 	 * @param cache_id
 	 *            Number of cache from which to remove bitmap
 	 */
@@ -91,7 +91,7 @@ public class Cache {
 
 	/**
 	 * Retrieve the indexed colour model from the specified cache
-	 * 
+	 *
 	 * @param cache_id
 	 *            ID of cache from which to retrieve colour model
 	 * @return Indexed colour model for specified cache
@@ -101,8 +101,9 @@ public class Cache {
 		IndexColorModel map = null;
 		if (cache_id < colourcache.length) {
 			map = colourcache[cache_id];
-			if (map != null)
+			if (map != null) {
 				return map;
+			}
 		}
 		throw new RdesktopException("Could not get colourmap with cache_id="
 				+ cache_id);
@@ -110,7 +111,7 @@ public class Cache {
 
 	/**
 	 * Assign a colour model to a specified cache
-	 * 
+	 *
 	 * @param cache_id
 	 *            ID of cache to which the colour map should be added
 	 * @param map
@@ -119,16 +120,17 @@ public class Cache {
 	 */
 	public void put_colourmap(int cache_id, IndexColorModel map)
 			throws RdesktopException {
-		if (cache_id < colourcache.length)
+		if (cache_id < colourcache.length) {
 			colourcache[cache_id] = map;
-		else
+		} else {
 			throw new RdesktopException(
 					"Could not put colourmap with cache_id=" + cache_id);
+		}
 	}
 
 	/**
 	 * Retrieve a bitmap from the cache
-	 * 
+	 *
 	 * @param cache_id
 	 *            ID of cache from which to retrieve bitmap
 	 * @param cache_idx
@@ -151,8 +153,9 @@ public class Cache {
 			 * return bitmap; } } catch (IOException e) { e.printStackTrace(); }
 			 * catch (RdesktopException e) { e.printStackTrace(); }
 			 */
-			if (bitmap != null)
+			if (bitmap != null) {
 				return bitmap;
+			}
 		}
 
 		throw new RdesktopException("Could not get Bitmap!");
@@ -160,7 +163,7 @@ public class Cache {
 
 	/**
 	 * Add a bitmap to the cache
-	 * 
+	 *
 	 * @param cache_id
 	 *            ID of cache to which the Bitmap should be added
 	 * @param cache_idx
@@ -182,7 +185,7 @@ public class Cache {
 			/*
 			 * if (options.use_rdp5) { if (++num_bitmaps_in_memory[cache_id] >
 			 * Rdp.BMPCACHE2_C2_CELLS) removeLRUBitmap(cache_id); }
-			 * 
+			 *
 			 * bitmapcache[cache_id][cache_idx] = bitmap;
 			 * bitmapcache[cache_id][cache_idx].usage = stamp;
 			 */
@@ -193,7 +196,7 @@ public class Cache {
 
 	/**
 	 * Retrieve a Cursor object from the cache
-	 * 
+	 *
 	 * @param cache_idx
 	 *            ID of cache in which the Cursor is stored
 	 * @return Cursor stored in specified cache
@@ -213,7 +216,7 @@ public class Cache {
 
 	/**
 	 * Assign a Cursor object to a specific cache
-	 * 
+	 *
 	 * @param cache_idx
 	 *            ID of cache to store Cursor in
 	 * @param cursor
@@ -232,7 +235,7 @@ public class Cache {
 
 	/**
 	 * Add a font to the cache
-	 * 
+	 *
 	 * @param glyph
 	 *            Glyph containing references to relevant font
 	 * @throws RdesktopException
@@ -252,15 +255,18 @@ public class Cache {
 	public void saveState() {
 		int id, idx;
 
-		for (id = 0; id < bitmapcache.length; id++)
-			if (pstCache.IS_PERSISTENT(id))
-				for (idx = 0; idx < bitmapcache[id].length; idx++)
+		for (id = 0; id < bitmapcache.length; id++) {
+			if (pstCache.IS_PERSISTENT(id)) {
+				for (idx = 0; idx < bitmapcache[id].length; idx++) {
 					pstCache.touchBitmap(id, idx, bitmapcache[id][idx].usage);
+				}
+			}
+		}
 	}
 
 	/**
 	 * Retrieve a Glyph for a specified character in a specified font
-	 * 
+	 *
 	 * @param font
 	 *            ID of desired font for Glyph
 	 * @param character
@@ -282,7 +288,7 @@ public class Cache {
 
 	/**
 	 * Retrieve text stored in the cache
-	 * 
+	 *
 	 * @param cache_id
 	 *            ID of cache containing text
 	 * @return Text stored in specified cache, represented as a DataBlob
@@ -304,7 +310,7 @@ public class Cache {
 
 	/**
 	 * Store text in the cache
-	 * 
+	 *
 	 * @param cache_id
 	 *            ID of cache in which to store the text
 	 * @param entry
@@ -321,7 +327,7 @@ public class Cache {
 
 	/**
 	 * Store an image in the desktop cache
-	 * 
+	 *
 	 * @param offset
 	 *            Location in desktop cache to begin storage of supplied data
 	 * @param cx
@@ -338,10 +344,11 @@ public class Cache {
 		int length = cx * cy;
 		int pdata = 0;
 
-		if (offset > highdeskcache.length)
+		if (offset > highdeskcache.length) {
 			offset = 0;
+		}
 
-		if ((int) offset + length <= highdeskcache.length) {
+		if (offset + length <= highdeskcache.length) {
 			for (int i = 0; i < cy; i++) {
 				System.arraycopy(data, pdata, highdeskcache, offset, cx);
 				offset += cx;
@@ -354,7 +361,7 @@ public class Cache {
 
 	/**
 	 * Retrieve an image from the desktop cache
-	 * 
+	 *
 	 * @param offset
 	 *            Offset of image data within desktop cache
 	 * @param cx
@@ -370,10 +377,11 @@ public class Cache {
 		int pdata = 0;
 		int[] data = new int[length];
 
-		if (offset > highdeskcache.length)
+		if (offset > highdeskcache.length) {
 			offset = 0;
+		}
 
-		if ((int) offset + length <= highdeskcache.length) {
+		if (offset + length <= highdeskcache.length) {
 			for (int i = 0; i < cy; i++) {
 				System.arraycopy(highdeskcache, offset, data, pdata, cx);
 				offset += cx;

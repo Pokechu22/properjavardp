@@ -1,6 +1,6 @@
 /* Rdp.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: Rdp layer of communication
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 package net.propero.rdp;
 
@@ -66,9 +66,9 @@ public class Rdp {
 	public static int RDP5_NO_CURSOR_SHADOW = 0x20;
 
 	public static int RDP5_NO_CURSORSETTINGS = 0x40; /*
-														 * disables cursor
-														 * blinking
-														 */
+	 * disables cursor
+	 * blinking
+	 */
 
 	protected static Logger logger = LogManager.getLogger(Rdp.class);
 
@@ -200,8 +200,12 @@ public class Rdp {
 		}
 
 		private Capset(final int id, final int len) {
-			if (id < 0 || id > 0xFFFF) throw new IllegalArgumentException("id must be an unsigned short; got " + id);
-			if (len < -1 || len > 0xFFFF) throw new IllegalArgumentException("len must be an unsigned short or -1; got " + len);
+			if (id < 0 || id > 0xFFFF) {
+				throw new IllegalArgumentException("id must be an unsigned short; got " + id);
+			}
+			if (len < -1 || len > 0xFFFF) {
+				throw new IllegalArgumentException("len must be an unsigned short or -1; got " + len);
+			}
 			this.id = id;
 			this.len = len;
 		}
@@ -235,7 +239,7 @@ public class Rdp {
 				if (BY_ID[capset.id] != null) {
 					throw new AssertionError("Duplicate capsets with ID " + capset.id + ": tried to register " + capset + " over " + BY_ID[capset.id] + "!");
 				}
-				BY_ID[capset.id]= capset; 
+				BY_ID[capset.id]= capset;
 			}
 		}
 
@@ -270,7 +274,7 @@ public class Rdp {
 
 	/** MSTSC encoded as 7 byte US-Ascii */
 	private static final byte[] RDP_SOURCE = { (byte) 0x4D, (byte) 0x53,
-			(byte) 0x54, (byte) 0x53, (byte) 0x43, (byte) 0x00 }; // string
+		(byte) 0x54, (byte) 0x53, (byte) 0x43, (byte) 0x00 }; // string
 
 	protected Secure SecureLayer = null;
 
@@ -298,7 +302,7 @@ public class Rdp {
 
 	/**
 	 * Process a general capability set
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing capability set data at current read position
 	 */
@@ -308,13 +312,14 @@ public class Rdp {
 		data.incrementPosition(10); // in_uint8s(s, 10);
 		pad2octetsB = data.getLittleEndian16(); // in_uint16_le(s, pad2octetsB);
 
-		if (pad2octetsB != 0)
+		if (pad2octetsB != 0) {
 			options.use_rdp5 = false;
+		}
 	}
 
 	/**
 	 * Process a bitmap capability set
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing capability set data at current read position
 	 */
@@ -351,7 +356,7 @@ public class Rdp {
 
 	/**
 	 * Process server capabilities
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing capability set data at current read position
 	 */
@@ -366,8 +371,9 @@ public class Rdp {
 		data.incrementPosition(2); // in_uint8s(s, 2); /* pad */
 
 		for (n = 0; n < ncapsets; n++) {
-			if (data.getPosition() > start + length)
+			if (data.getPosition() > start + length) {
 				return;
+			}
 
 			capset_type = data.getLittleEndian16(); // in_uint16_le(s,
 			// capset_type);
@@ -402,7 +408,7 @@ public class Rdp {
 
 	/**
 	 * Process a disconnect PDU
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing disconnect PDU at current read position
 	 * @return Code specifying the reason for disconnection
@@ -414,7 +420,7 @@ public class Rdp {
 
 	/**
 	 * Initialise RDP comms layer, and register virtual channels
-	 * 
+	 *
 	 * @param channels
 	 *            Virtual channels to be used in connection
 	 */
@@ -428,7 +434,7 @@ public class Rdp {
 
 	/**
 	 * Initialise a packet for sending data on the RDP layer
-	 * 
+	 *
 	 * @param size
 	 *            Size of RDP data
 	 * @return Packet initialised for RDP
@@ -448,7 +454,7 @@ public class Rdp {
 
 	/**
 	 * Send a packet on the RDP layer
-	 * 
+	 *
 	 * @param data
 	 *            Packet to send
 	 * @param data_pdu_type
@@ -484,7 +490,7 @@ public class Rdp {
 
 	/**
 	 * Receive a packet from the RDP layer
-	 * 
+	 *
 	 * @param type
 	 *            Type of PDU received, stored in type[0]
 	 * @return Packet received from RDP layer
@@ -494,13 +500,14 @@ public class Rdp {
 	 * @throws OrderException
 	 */
 	private RdpPacket_Localised receive(int[] type) throws IOException,
-			RdesktopException, CryptoException, OrderException {
+	RdesktopException, CryptoException, OrderException {
 		int length = 0;
 
 		if ((this.stream == null) || (this.next_packet >= this.stream.getEnd())) {
 			this.stream = SecureLayer.receive();
-			if (stream == null)
+			if (stream == null) {
 				return null;
+			}
 			this.next_packet = this.stream.getPosition();
 		} else {
 			this.stream.setPosition(this.next_packet);
@@ -525,7 +532,7 @@ public class Rdp {
 
 	/**
 	 * Connect to a server
-	 * 
+	 *
 	 * @param username
 	 *            Username for log on
 	 * @param server
@@ -544,7 +551,7 @@ public class Rdp {
 	 */
 	public void connect(String username, InetAddress server, int flags,
 			String domain, String password, String command, String directory)
-			throws ConnectionException {
+					throws ConnectionException {
 		try {
 			SecureLayer.connect(server);
 			this.connected = true;
@@ -560,7 +567,7 @@ public class Rdp {
 		catch (ConnectException e) {
 			throw new ConnectionException(
 					"Connection refused when trying to connect to " + server
-							+ " on port " + options.port, e);
+					+ " on port " + options.port, e);
 		}
 		// Handle a timeout on connecting
 		catch (NoRouteToHostException e) {
@@ -589,7 +596,7 @@ public class Rdp {
 
 	/**
 	 * Retrieve status of connection
-	 * 
+	 *
 	 * @return True if connection to RDP session
 	 */
 	public boolean isConnected() {
@@ -598,7 +605,7 @@ public class Rdp {
 
 	/**
 	 * RDP receive loop
-	 * 
+	 *
 	 * @return Info about the disconnection
 	 * @throws IOException
 	 * @throws RdesktopException
@@ -617,8 +624,9 @@ public class Rdp {
 		while (true) {
 			try {
 				data = this.receive(type);
-				if (data == null)
+				if (data == null) {
 					return new DisconnectInfo(false, "No data?");
+				}
 			} catch (EOFException e) {
 				logger.warn("Unexpected EOF", e);
 				return new DisconnectInfo(false, "EOF?");
@@ -628,37 +636,37 @@ public class Rdp {
 
 			case (Rdp.RDP_PDU_DEMAND_ACTIVE):
 				logger.debug("Rdp.RDP_PDU_DEMAND_ACTIVE");
-				// get this after licence negotiation, just before the 1st
-				// order...
-				ThreadContext.push("processDemandActive");
-				this.processDemandActive(data);
-				// can use this to trigger things that have to be done before
-				// 1st order
-				logger.debug("ready to send (got past licence negotiation)");
-				Rdesktop.readytosend = true;
-				callback.triggerReadyToSend();
-				ThreadContext.pop();
-				cleanDisconnect = false;
-				break;
+			// get this after licence negotiation, just before the 1st
+			// order...
+			ThreadContext.push("processDemandActive");
+			this.processDemandActive(data);
+			// can use this to trigger things that have to be done before
+			// 1st order
+			logger.debug("ready to send (got past licence negotiation)");
+			Rdesktop.readytosend = true;
+			callback.triggerReadyToSend();
+			ThreadContext.pop();
+			cleanDisconnect = false;
+			break;
 
 			case (Rdp.RDP_PDU_DEACTIVATE):
 				// get this on log off
 				cleanDisconnect = true;
-				this.stream = null; // ty this fix
-				break;
+			this.stream = null; // ty this fix
+			break;
 
 			case (Rdp.RDP_PDU_DATA):
 				logger.debug("Rdp.RDP_PDU_DATA");
-				// all the others should be this
-				ThreadContext.push("processData");
+			// all the others should be this
+			ThreadContext.push("processData");
 
-				Integer result = this.processData(data);
-				if (result != null) {
-					// Received a disconnect PDU; exit
-					return new DisconnectInfo(cleanDisconnect, result.intValue());
-				}
-				ThreadContext.pop();
-				break;
+			Integer result = this.processData(data);
+			if (result != null) {
+				// Received a disconnect PDU; exit
+				return new DisconnectInfo(cleanDisconnect, result.intValue());
+			}
+			ThreadContext.pop();
+			break;
 
 			case 0:
 				break; // 32K keep alive fix, see receive() - rdesktop 1.2.0.
@@ -672,7 +680,7 @@ public class Rdp {
 
 	/**
 	 * Send user logon details to the server
-	 * 
+	 *
 	 * @param flags
 	 *            Set of flags defining logon type
 	 * @param domain
@@ -691,7 +699,7 @@ public class Rdp {
 	 */
 	private void sendLogonInfo(int flags, String domain, String username,
 			String password, String command, String directory)
-			throws RdesktopException, IOException, CryptoException {
+					throws RdesktopException, IOException, CryptoException {
 
 		int len_ip = 2 * "127.0.0.1".length();
 		int len_dll = 2 * "C:\\WINNT\\System32\\mstscax.dll".length();
@@ -752,7 +760,7 @@ public class Rdp {
 					+ 0
 					+ // We have no 512 byte BLOB. Perhaps we must?
 					((flags & RDP_LOGON_BLOB) != 0
-							&& (flags & RDP_LOGON_AUTO) == 0 ? 2 : 0)
+					&& (flags & RDP_LOGON_AUTO) == 0 ? 2 : 0)
 					+ (0 < commandlen ? commandlen + 2 : 2)
 					+ (0 < dirlen ? dirlen + 2 : 2) + 2 + // Unknown (2)
 					2 + // Client ip length
@@ -787,12 +795,14 @@ public class Rdp {
 			// len_program);
 			data.setLittleEndian16(dirlen); // out_uint16_le(s, len_directory);
 
-			if (0 < domainlen)
+			if (0 < domainlen) {
 				data.outUnicodeString(domain, domainlen); // rdp_out_unistr(s,
-			// domain,
-			// len_domain);
-			else
+				// domain,
+				// len_domain);
+			}
+			else {
 				data.setLittleEndian16(0); // out_uint16_le(s, 0);
+			}
 
 			data.outUnicodeString(username, userlen); // rdp_out_unistr(s,
 			// user, len_user);
@@ -875,7 +885,7 @@ public class Rdp {
 	/**
 	 * Process an activation demand from the server (received between licence
 	 * negotiation and 1st order)
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing demand at current read position
 	 * @throws RdesktopException
@@ -897,8 +907,9 @@ public class Rdp {
 		len_combined_caps = data.getLittleEndian16(); // in_uint16_le(s, len_combined_caps);
 		len_src_descriptor = data.get8(); // Overwriting??? // in_uint8s(s, len_src_descriptor);
 		data.incrementPosition(3); // changed - why is this needed?
-		if (logger.isDebugEnabled())
+		if (logger.isDebugEnabled()) {
 			logger.debug("process_demand_active(), shareid=0x" + Integer.toHexString(rdp_shareid));
+		}
 		processServerCaps(data, len_combined_caps);
 
 		this.sendConfirmActive();
@@ -922,7 +933,7 @@ public class Rdp {
 
 	/**
 	 * Process a data PDU received from the server
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing data PDU at current read position
 	 * @return If non-null, the disconnect error code.
@@ -945,8 +956,8 @@ public class Rdp {
 
 		case (Rdp.RDP_DATA_PDU_UPDATE):
 			logger.debug("Rdp.RDP_DATA_PDU_UPDATE");
-			this.processUpdate(data);
-			break;
+		this.processUpdate(data);
+		break;
 
 		case RDP_DATA_PDU_CONTROL:
 			logger.debug(("Received Control PDU\n"));
@@ -958,17 +969,17 @@ public class Rdp {
 
 		case (Rdp.RDP_DATA_PDU_POINTER):
 			logger.debug("Received pointer PDU");
-			this.processPointer(data);
-			break;
+		this.processPointer(data);
+		break;
 		case (Rdp.RDP_DATA_PDU_BELL):
 			logger.debug("Received bell PDU");
-			Toolkit tx = Toolkit.getDefaultToolkit();
-			tx.beep();
-			break;
+		Toolkit tx = Toolkit.getDefaultToolkit();
+		tx.beep();
+		break;
 		case (Rdp.RDP_DATA_PDU_LOGON):
 			logger.debug("User logged on");
-			Rdesktop.loggedon = true;
-			break;
+		Rdesktop.loggedon = true;
+		break;
 		case RDP_DATA_PDU_DISCONNECT:
 			/*
 			 * Normally received when user logs out or disconnects from a
@@ -986,7 +997,7 @@ public class Rdp {
 	}
 
 	private void processUpdate(RdpPacket_Localised data) throws OrderException,
-			RdesktopException {
+	RdesktopException {
 		int update_type = 0;
 
 		update_type = data.getLittleEndian16();
@@ -995,16 +1006,16 @@ public class Rdp {
 
 		case (Rdp.RDP_UPDATE_ORDERS):
 			data.incrementPosition(2); // pad
-			int n_orders = data.getLittleEndian16();
-			data.incrementPosition(2); // pad
-			this.orders.processOrders(data, next_packet, n_orders);
-			break;
+		int n_orders = data.getLittleEndian16();
+		data.incrementPosition(2); // pad
+		this.orders.processOrders(data, next_packet, n_orders);
+		break;
 		case (Rdp.RDP_UPDATE_BITMAP):
 			this.processBitmapUpdates(data);
-			break;
+		break;
 		case (Rdp.RDP_UPDATE_PALETTE):
 			this.processPalette(data);
-			break;
+		break;
 		case (Rdp.RDP_UPDATE_SYNCHRONIZE):
 			break;
 		default:
@@ -1013,7 +1024,7 @@ public class Rdp {
 	}
 
 	private void sendConfirmActive() throws RdesktopException, IOException,
-			CryptoException {
+	CryptoException {
 		int caplen = Capset.GENERAL.getLength() + Capset.BITMAP.getLength() + Capset.ORDER.getLength()
 				+ Capset.BITMAPCACHE.getLength() + Capset.COLORCACHE.getLength()
 				+ Capset.ACTIVATION.getLength() + Capset.CONTROL.getLength() + Capset.POINTER.getLength()
@@ -1053,8 +1064,9 @@ public class Rdp {
 		if (options.use_rdp5 && options.persistent_bitmap_caching) {
 			logger.info("Persistent caching enabled");
 			this.sendBitmapcache2Caps(data);
-		} else
+		} else {
 			this.sendBitmapcacheCaps(data);
+		}
 
 		this.sendColorcacheCaps(data);
 		this.sendActivateCaps(data);
@@ -1315,12 +1327,12 @@ public class Rdp {
 		data.setLittleEndian16(length /* 0x58 */);
 
 		data.copyFromByteArray(caps, 0, data.getPosition(), /* RDP_CAPLEN_UNKNOWN */
-		length - 4);
+				length - 4);
 		data.incrementPosition(/* RDP_CAPLEN_UNKNOWN */length - 4);
 	}
 
 	private void sendSynchronize() throws RdesktopException, IOException,
-			CryptoException {
+	CryptoException {
 		RdpPacket_Localised data = this.initData(4);
 
 		data.setLittleEndian16(1); // type
@@ -1332,7 +1344,7 @@ public class Rdp {
 	}
 
 	private void sendControl(int action) throws RdesktopException, IOException,
-			CryptoException {
+	CryptoException {
 
 		RdpPacket_Localised data = this.initData(8);
 
@@ -1383,7 +1395,7 @@ public class Rdp {
 	}
 
 	private void sendFonts(int seq) throws RdesktopException, IOException,
-			CryptoException {
+	CryptoException {
 
 		RdpPacket_Localised data = this.initData(8);
 
@@ -1408,21 +1420,21 @@ public class Rdp {
 
 		case (Rdp.RDP_POINTER_MOVE):
 			logger.debug("Rdp.RDP_POINTER_MOVE");
-			x = data.getLittleEndian16();
-			y = data.getLittleEndian16();
+		x = data.getLittleEndian16();
+		y = data.getLittleEndian16();
 
-			if (data.getPosition() <= data.getEnd()) {
-				surface.movePointer(x, y);
-			}
-			break;
+		if (data.getPosition() <= data.getEnd()) {
+			surface.movePointer(x, y);
+		}
+		break;
 
 		case (Rdp.RDP_POINTER_COLOR):
 			process_colour_pointer_pdu(data);
-			break;
+		break;
 
 		case (Rdp.RDP_POINTER_CACHED):
 			process_cached_pointer_pdu(data);
-			break;
+		break;
 
 		case RDP_POINTER_SYSTEM:
 			process_system_pointer_pdu(data);
@@ -1483,14 +1495,18 @@ public class Rdp {
 			cx = right - left + 1;
 			cy = bottom - top + 1;
 
-			if (minX > left)
+			if (minX > left) {
 				minX = left;
-			if (minY > top)
+			}
+			if (minY > top) {
 				minY = top;
-			if (maxX < right)
+			}
+			if (maxX < right) {
 				maxX = right;
-			if (maxY < bottom)
+			}
+			if (maxY < bottom) {
 				maxY = bottom;
+			}
 
 			/* Server may limit bpp - this is how we find out */
 			if (options.server_bpp != bitsperpixel) {
@@ -1527,28 +1543,31 @@ public class Rdp {
 			}
 			if (Bpp == 1) {
 				pixel = Bitmap.decompress(options, width, height, size, data, Bpp);
-				if (pixel != null)
+				if (pixel != null) {
 					surface.displayImage(Bitmap.convertImage(options, pixel, Bpp),
 							width, height, left, top, cx, cy);
-				else
+				} else {
 					logger.warn("Could not decompress bitmap");
+				}
 			} else {
 
 				if (options.bitmap_decompression_store == options.INTEGER_BITMAP_DECOMPRESSION) {
 					int[] pixeli = Bitmap.decompressInt(options, width, height, size,
 							data, Bpp);
-					if (pixeli != null)
+					if (pixeli != null) {
 						surface.displayImage(pixeli, width, height, left, top,
 								cx, cy);
-					else
+					} else {
 						logger.warn("Could not decompress bitmap");
+					}
 				} else if (options.bitmap_decompression_store == options.BUFFEREDIMAGE_BITMAP_DECOMPRESSION) {
 					Image pix = Bitmap.decompressImg(options, width, height, size, data,
 							Bpp, null);
-					if (pix != null)
+					if (pix != null) {
 						surface.displayImage(pix, left, top);
-					else
+					} else {
 						logger.warn("Could not decompress bitmap");
+					}
 				} else {
 					surface.displayCompressed(left, top, width, height, size,
 							data, Bpp, null);

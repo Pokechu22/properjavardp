@@ -1,6 +1,6 @@
 /* RdesktopCanvas.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -9,24 +9,24 @@
  *
  * Purpose: Canvas component, handles drawing requests from server,
  *          and passes user input to Input class.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- *          
+ *
  */
 package net.propero.rdp;
 
@@ -130,7 +130,7 @@ public class RdesktopCanvas extends Canvas {
 	/**
 	 * Initialise this canvas to specified width and height, also initialise
 	 * backstore
-	 * 
+	 *
 	 * @param width
 	 *            Desired width of canvas
 	 * @param height
@@ -151,10 +151,12 @@ public class RdesktopCanvas extends Canvas {
 		// now do input listeners in registerCommLayer() / registerKeyboard()
 	}
 
+	@Override
 	public void paint(Graphics g) {
 		update(g);
 	}
 
+	@Override
 	public void addNotify() {
 		super.addNotify();
 
@@ -167,6 +169,7 @@ public class RdesktopCanvas extends Canvas {
 		}
 	}
 
+	@Override
 	public void update(Graphics g) {
 		Rectangle r = g.getClipBounds();
 		g.drawImage(backstore.getSubimage(r.x, r.y, r.width, r.height), r.x,
@@ -175,7 +178,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Register a colour palette with this canvas
-	 * 
+	 *
 	 * @param cm
 	 *            Colour model to be used with this canvas
 	 */
@@ -188,7 +191,7 @@ public class RdesktopCanvas extends Canvas {
 	/**
 	 * Register the Rdp layer to act as the communications interface to this
 	 * canvas
-	 * 
+	 *
 	 * @param rdp
 	 *            Rdp object controlling Rdp layer communication
 	 */
@@ -201,7 +204,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Register keymap
-	 * 
+	 *
 	 * @param keys
 	 *            Keymapping object for use in handling keyboard events
 	 */
@@ -215,7 +218,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Set cache for this session
-	 * 
+	 *
 	 * @param cache
 	 *            Cache to be used in this session
 	 */
@@ -227,7 +230,7 @@ public class RdesktopCanvas extends Canvas {
 	 * Display a compressed bitmap direct to the backstore NOTE: Currently not
 	 * functioning correctly, see Bitmap.decompressImgDirect Does not call
 	 * repaint. Image is drawn to canvas on next update
-	 * 
+	 *
 	 * @param x
 	 *            x coordinate within backstore for drawing of bitmap
 	 * @param y
@@ -249,7 +252,7 @@ public class RdesktopCanvas extends Canvas {
 	 */
 	public void displayCompressed(int x, int y, int width, int height,
 			int size, RdpPacket_Localised data, int Bpp, IndexColorModel cm)
-			throws RdesktopException {
+					throws RdesktopException {
 		backstore = Bitmap.decompressImgDirect(options, width, height, size, data, Bpp,
 				cm, x, y, backstore);
 	}
@@ -257,7 +260,7 @@ public class RdesktopCanvas extends Canvas {
 	/**
 	 * Draw an image object to the backstore, does not call repaint. Image is
 	 * drawn to canvas on next update.
-	 * 
+	 *
 	 * @param img
 	 *            Image to draw to backstore
 	 * @param x
@@ -280,7 +283,7 @@ public class RdesktopCanvas extends Canvas {
 	/**
 	 * Draw an image (from an integer array of colour data) to the backstore,
 	 * does not call repaint. Image is drawn to canvas on next update.
-	 * 
+	 *
 	 * @param data
 	 *            Integer array of pixel colour information
 	 * @param w
@@ -312,7 +315,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Retrieve an image from the backstore, as integer pixel information
-	 * 
+	 *
 	 * @param x
 	 *            x coordinate of image to retrieve
 	 * @param y
@@ -338,7 +341,7 @@ public class RdesktopCanvas extends Canvas {
 	/**
 	 * Draw an image (from an integer array of colour data) to the backstore,
 	 * also calls repaint to draw image to canvas
-	 * 
+	 *
 	 * @param x
 	 *            x coordinate at which to draw image
 	 * @param y
@@ -377,7 +380,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Set clipping boundaries for canvas, based on a bounds order
-	 * 
+	 *
 	 * @param bounds
 	 *            Order defining new boundaries
 	 */
@@ -394,7 +397,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Move the mouse pointer (only available in Java 1.3+)
-	 * 
+	 *
 	 * @param x
 	 *            x coordinate for mouse move
 	 * @param y
@@ -409,7 +412,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Draw a filled rectangle to the screen
-	 * 
+	 *
 	 * @param x
 	 *            x coordinate (left) of rectangle
 	 * @param y
@@ -424,7 +427,9 @@ public class RdesktopCanvas extends Canvas {
 	public void fillRectangle(int x, int y, int cx, int cy, int color) {
 		// clip here instead
 		if (x > this.right || y > this.bottom)
+		{
 			return; // off screen
+		}
 
 		int Bpp = options.Bpp;
 
@@ -432,30 +437,36 @@ public class RdesktopCanvas extends Canvas {
 		color = Bitmap.convertTo24(options, color);
 
 		// correction for 24-bit colour
-		if (Bpp == 3)
+		if (Bpp == 3) {
 			color = ((color & 0xFF) << 16) | (color & 0xFF00)
 					| ((color & 0xFF0000) >> 16);
+		}
 
 		// Perform standard clipping checks, x-axis
 		int clipright = x + cx - 1;
-		if (clipright > this.right)
+		if (clipright > this.right) {
 			clipright = this.right;
-		if (x < this.left)
+		}
+		if (x < this.left) {
 			x = this.left;
+		}
 		cx = clipright - x + 1;
 
 		// Perform standard clipping checks, y-axis
 		int clipbottom = y + cy - 1;
-		if (clipbottom > this.bottom)
+		if (clipbottom > this.bottom) {
 			clipbottom = this.bottom;
-		if (y < this.top)
+		}
+		if (y < this.top) {
 			y = this.top;
+		}
 		cy = clipbottom - y + 1;
 
 		// construct rectangle as integer array, filled with color
 		int[] rect = new int[cx * cy];
-		for (int i = 0; i < rect.length; i++)
+		for (int i = 0; i < rect.length; i++) {
 			rect[i] = color;
+		}
 		// draw rectangle to backstore
 		backstore.setRGB(x, y, cx, cy, rect, 0, cx);
 
@@ -467,7 +478,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Draw a line to the screen
-	 * 
+	 *
 	 * @param x1
 	 *            x coordinate of start point of line
 	 * @param y1
@@ -554,7 +565,7 @@ public class RdesktopCanvas extends Canvas {
 	/**
 	 * Helper function for drawLine, draws a horizontal or vertical line using a
 	 * much faster method than used for diagonal lines
-	 * 
+	 *
 	 * @param x1
 	 *            x coordinate of start point of line
 	 * @param y1
@@ -577,10 +588,12 @@ public class RdesktopCanvas extends Canvas {
 		if (y1 == y2) { // HORIZONTAL
 			if (y1 >= this.top && y1 <= this.bottom) { // visible
 				if (x2 > x1) { // x inc, y1=y2
-					if (x1 < this.left)
+					if (x1 < this.left) {
 						x1 = this.left;
-					if (x2 > this.right)
+					}
+					if (x2 > this.right) {
 						x2 = this.right;
+					}
 					pbackstore = y1 * this.width + x1;
 					for (i = 0; i < x2 - x1; i++) {
 						rop.do_pixel(opcode, backstore, x1 + i, y1, color);
@@ -588,10 +601,12 @@ public class RdesktopCanvas extends Canvas {
 					}
 					repaint(x1, y1, x2 - x1 + 1, 1);
 				} else { // x dec, y1=y2
-					if (x2 < this.left)
+					if (x2 < this.left) {
 						x2 = this.left;
-					if (x1 > this.right)
+					}
+					if (x1 > this.right) {
 						x1 = this.right;
+					}
 					pbackstore = y1 * this.width + x1;
 					for (i = 0; i < x1 - x2; i++) {
 						rop.do_pixel(opcode, backstore, x2 + i, y1, color);
@@ -603,10 +618,12 @@ public class RdesktopCanvas extends Canvas {
 		} else { // x1==x2 VERTICAL
 			if (x1 >= this.left && x1 <= this.right) { // visible
 				if (y2 > y1) { // x1=x2, y inc
-					if (y1 < this.top)
+					if (y1 < this.top) {
 						y1 = this.top;
-					if (y2 > this.bottom)
+					}
+					if (y2 > this.bottom) {
 						y2 = this.bottom;
+					}
 					pbackstore = y1 * this.width + x1;
 					for (i = 0; i < y2 - y1; i++) {
 						rop.do_pixel(opcode, backstore, x1, y1 + i, color);
@@ -614,10 +631,12 @@ public class RdesktopCanvas extends Canvas {
 					}
 					repaint(x1, y1, 1, y2 - y1 + 1);
 				} else { // x1=x2, y dec
-					if (y2 < this.top)
+					if (y2 < this.top) {
 						y2 = this.top;
-					if (y1 > this.bottom)
+					}
+					if (y1 > this.bottom) {
 						y1 = this.bottom;
+					}
 					pbackstore = y1 * this.width + x1;
 					for (i = 0; i < y1 - y2; i++) {
 						rop.do_pixel(opcode, backstore, x1, y2 + i, color);
@@ -633,7 +652,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Draw a line to the screen
-	 * 
+	 *
 	 * @param line
 	 *            LineOrder describing line to be drawn
 	 */
@@ -651,7 +670,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Perform a dest blt
-	 * 
+	 *
 	 * @param destblt
 	 *            DestBltOrder describing the blit to be performed
 	 */
@@ -660,23 +679,29 @@ public class RdesktopCanvas extends Canvas {
 		int y = destblt.getY();
 
 		if (x > this.right || y > this.bottom)
+		{
 			return; // off screen
+		}
 
 		int cx = destblt.getCX();
 		int cy = destblt.getCY();
 
 		int clipright = x + cx - 1;
-		if (clipright > this.right)
+		if (clipright > this.right) {
 			clipright = this.right;
-		if (x < this.left)
+		}
+		if (x < this.left) {
 			x = this.left;
+		}
 		cx = clipright - x + 1;
 
 		int clipbottom = y + cy - 1;
-		if (clipbottom > this.bottom)
+		if (clipbottom > this.bottom) {
 			clipbottom = this.bottom;
-		if (y < this.top)
+		}
+		if (y < this.top) {
 			y = this.top;
+		}
 		cy = clipbottom - y + 1;
 
 		rop.do_array(destblt.getOpcode(), backstore, this.width, x, y, cx, cy,
@@ -687,7 +712,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Perform a screen blit
-	 * 
+	 *
 	 * @param screenblt
 	 *            ScreenBltOrder describing the blit to be performed
 	 */
@@ -696,7 +721,9 @@ public class RdesktopCanvas extends Canvas {
 		int y = screenblt.getY();
 
 		if (x > this.right || y > this.bottom)
+		{
 			return; // off screen
+		}
 
 		int cx = screenblt.getCX();
 		int cy = screenblt.getCY();
@@ -704,17 +731,21 @@ public class RdesktopCanvas extends Canvas {
 		int srcy = screenblt.getSrcY();
 
 		int clipright = x + cx - 1;
-		if (clipright > this.right)
+		if (clipright > this.right) {
 			clipright = this.right;
-		if (x < this.left)
+		}
+		if (x < this.left) {
 			x = this.left;
+		}
 		cx = clipright - x + 1;
 
 		int clipbottom = y + cy - 1;
-		if (clipbottom > this.bottom)
+		if (clipbottom > this.bottom) {
 			clipbottom = this.bottom;
-		if (y < this.top)
+		}
+		if (y < this.top) {
 			y = this.top;
+		}
 		cy = clipbottom - y + 1;
 
 		srcx += x - screenblt.getX();
@@ -728,7 +759,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Perform a memory blit
-	 * 
+	 *
 	 * @param memblt
 	 *            MemBltOrder describing the blit to be performed
 	 */
@@ -737,7 +768,9 @@ public class RdesktopCanvas extends Canvas {
 		int y = memblt.getY();
 
 		if (x > this.right || y > this.bottom)
+		{
 			return; // off screen
+		}
 
 		int cx = memblt.getCX();
 		int cy = memblt.getCY();
@@ -767,12 +800,13 @@ public class RdesktopCanvas extends Canvas {
 		srcx += x - memblt.getX();
 		srcy += y - memblt.getY();
 
-		if (logger.isDebugEnabled())
+		if (logger.isDebugEnabled()) {
 			logger.debug("MEMBLT x=" + x + " y=" + y + " cx=" + cx + "("
 					+ memblt.getCX() + ") cy=" + cy + "(" + memblt.getCY()
 					+ ") srcx=" + srcx + " srcy=" + srcy + " opcode="
 					+ memblt.getOpcode() + " id=" + memblt.getCacheID()
 					+ " idx=" + memblt.getCacheIDX());
+		}
 		try {
 			Bitmap bitmap = cache.getBitmap(memblt.getCacheID(), memblt
 					.getCacheIDX());
@@ -790,7 +824,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Draw a pattern to the screen (pattern blit)
-	 * 
+	 *
 	 * @param opcode
 	 *            Code defining operation to be performed
 	 * @param x
@@ -817,18 +851,22 @@ public class RdesktopCanvas extends Canvas {
 
 		// Perform standard clipping checks, x-axis
 		int clipright = x + cx - 1;
-		if (clipright > this.right)
+		if (clipright > this.right) {
 			clipright = this.right;
-		if (x < this.left)
+		}
+		if (x < this.left) {
 			x = this.left;
+		}
 		cx = clipright - x + 1;
 
 		// Perform standard clipping checks, y-axis
 		int clipbottom = y + cy - 1;
-		if (clipbottom > this.bottom)
+		if (clipbottom > this.bottom) {
 			clipbottom = this.bottom;
-		if (y < this.top)
+		}
+		if (y < this.top) {
 			y = this.top;
+		}
 		cy = clipbottom - y + 1;
 
 		int i;
@@ -838,15 +876,16 @@ public class RdesktopCanvas extends Canvas {
 			// make efficient version of rop later with int fgcolor and boolean
 			// usearray set to false for single colour
 			src = new int[cx * cy];
-			for (i = 0; i < src.length; i++)
+			for (i = 0; i < src.length; i++) {
 				src[i] = fgcolor;
+			}
 			rop.do_array(opcode, backstore, this.width, x, y, cx, cy, src, cx,
 					0, 0);
 			this.repaint(x, y, cx, cy);
 
 			break;
 
-		/*case 2: // hatch
+			/*case 2: // hatch
 			// TODO
 			break;*/
 
@@ -866,10 +905,11 @@ public class RdesktopCanvas extends Canvas {
 			int psrc = 0;
 			for (i = 0; i < cy; i++) {
 				for (int j = 0; j < cx; j++) {
-					if ((ipattern[(i + brushy) % 8] & (0x01 << ((j + brushx) % 8))) == 0)
+					if ((ipattern[(i + brushy) % 8] & (0x01 << ((j + brushx) % 8))) == 0) {
 						src[psrc] = fgcolor;
-					else
+					} else {
 						src[psrc] = bgcolor;
+					}
 					psrc++;
 				}
 			}
@@ -884,7 +924,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Perform a pattern blit on the screen
-	 * 
+	 *
 	 * @param patblt
 	 *            PatBltOrder describing the blit to be performed
 	 */
@@ -894,7 +934,9 @@ public class RdesktopCanvas extends Canvas {
 		int y = patblt.getY();
 
 		if (x > this.right || y > this.bottom)
+		{
 			return; // off screen
+		}
 
 		int cx = patblt.getCX();
 		int cy = patblt.getCY();
@@ -907,7 +949,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Perform a tri blit on the screen
-	 * 
+	 *
 	 * @param triblt
 	 *            TriBltOrder describing the blit
 	 */
@@ -916,7 +958,9 @@ public class RdesktopCanvas extends Canvas {
 		int y = triblt.getY();
 
 		if (x > this.right || y > this.bottom)
+		{
 			return; // off screen
+		}
 
 		int cx = triblt.getCX();
 		int cy = triblt.getCY();
@@ -932,18 +976,22 @@ public class RdesktopCanvas extends Canvas {
 
 		// Perform standard clipping checks, x-axis
 		int clipright = x + cx - 1;
-		if (clipright > this.right)
+		if (clipright > this.right) {
 			clipright = this.right;
-		if (x < this.left)
+		}
+		if (x < this.left) {
 			x = this.left;
+		}
 		cx = clipright - x + 1;
 
 		// Perform standard clipping checks, y-axis
 		int clipbottom = y + cy - 1;
-		if (clipbottom > this.bottom)
+		if (clipbottom > this.bottom) {
 			clipbottom = this.bottom;
-		if (y < this.top)
+		}
+		if (y < this.top) {
 			y = this.top;
+		}
 		cy = clipbottom - y + 1;
 
 		try {
@@ -969,8 +1017,8 @@ public class RdesktopCanvas extends Canvas {
 
 			default:
 				logger
-						.warn("Unimplemented Triblt opcode:"
-								+ triblt.getOpcode());
+				.warn("Unimplemented Triblt opcode:"
+						+ triblt.getOpcode());
 				rop.do_array(ROP2_COPY, backstore, this.width, x, y, cx, cy,
 						bitmap.getBitmapData(), bitmap.getWidth(), srcx, srcy);
 			}
@@ -981,7 +1029,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Parse a delta co-ordinate in polyline order form
-	 * 
+	 *
 	 * @param buffer
 	 * @param offset
 	 * @return
@@ -990,20 +1038,22 @@ public class RdesktopCanvas extends Canvas {
 		int value = buffer[offset[0]++] & 0xff;
 		int two_byte = value & 0x80;
 
-		if ((value & 0x40) != 0) /* sign bit */
+		if ((value & 0x40) != 0) {
 			value |= ~0x3f;
-		else
+		} else {
 			value &= 0x3f;
+		}
 
-		if (two_byte != 0)
+		if (two_byte != 0) {
 			value = (value << 8) | (buffer[offset[0]++] & 0xff);
+		}
 
 		return value;
 	}
 
 	/**
 	 * Draw a multi-point set of lines to the screen
-	 * 
+	 *
 	 * @param polyline
 	 *            PolyLineOrder describing the set of lines to draw
 	 */
@@ -1033,19 +1083,24 @@ public class RdesktopCanvas extends Canvas {
 			int xfrom = x;
 			int yfrom = y;
 
-			if (line % 4 == 0)
+			if (line % 4 == 0) {
 				flags = databytes[index++];
+			}
 
-			if ((flags & 0xc0) == 0)
+			if ((flags & 0xc0) == 0) {
 				flags |= 0xc0; /* none = both */
+			}
 
-			if ((flags & 0x40) != 0)
+			if ((flags & 0x40) != 0) {
 				x += parse_delta(databytes, data);
+			}
 
 			if ((flags & 0x80) != 0)
+			{
 				y += parse_delta(databytes, data);
-			// logger.info("polyline
-			// "+line+","+xfrom+","+yfrom+","+x+","+y+","+fgcolor+","+opcode);
+				// logger.info("polyline
+				// "+line+","+xfrom+","+yfrom+","+x+","+y+","+fgcolor+","+opcode);
+			}
 
 			drawLine(xfrom, yfrom, x, y, fgcolor, opcode);
 			flags <<= 2;
@@ -1054,7 +1109,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Draw a rectangle to the screen
-	 * 
+	 *
 	 * @param rect
 	 *            RectangleOrder defining the rectangle to be drawn
 	 */
@@ -1066,7 +1121,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Perform an operation on a pixel in the backstore
-	 * 
+	 *
 	 * @param opcode
 	 *            ID of operation to perform
 	 * @param x
@@ -1080,9 +1135,10 @@ public class RdesktopCanvas extends Canvas {
 		int Bpp = options.Bpp;
 
 		// correction for 24-bit colour
-		if (Bpp == 3)
+		if (Bpp == 3) {
 			color = ((color & 0xFF) << 16) | (color & 0xFF00)
 					| ((color & 0xFF0000) >> 16);
+		}
 
 		if ((x < this.left) || (x > this.right) || (y < this.top)
 				|| (y > this.bottom)) { // Clip
@@ -1093,7 +1149,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Draw a single glyph to the screen
-	 * 
+	 *
 	 * @param mixmode
 	 *            0 for transparent background, specified colour for background
 	 *            otherwide
@@ -1138,24 +1194,30 @@ public class RdesktopCanvas extends Canvas {
 		// clip here instead
 
 		if (x > this.right || y > this.bottom)
+		{
 			return; // off screen
+		}
 
 		int clipright = x + cx - 1;
-		if (clipright > this.right)
+		if (clipright > this.right) {
 			clipright = this.right;
-		if (x < this.left)
+		}
+		if (x < this.left) {
 			newx = this.left;
-		else
+		} else {
 			newx = x;
+		}
 		newcx = clipright - x + 1; // not clipright - newx - 1
 
 		int clipbottom = y + cy - 1;
-		if (clipbottom > this.bottom)
+		if (clipbottom > this.bottom) {
 			clipbottom = this.bottom;
-		if (y < this.top)
+		}
+		if (y < this.top) {
 			newy = this.top;
-		else
+		} else {
 			newy = y;
+		}
 
 		newcy = clipbottom - newy + 1;
 
@@ -1171,9 +1233,10 @@ public class RdesktopCanvas extends Canvas {
 					}
 
 					if ((data[pdata] & index) != 0) {
-						if ((x + j >= newx) && (newx + j > 0) && (newy + i > 0))
+						if ((x + j >= newx) && (newx + j > 0) && (newy + i > 0)) {
 							// since haven't offset x
 							backstore.setRGB(newx + j, newy + i, fgcolor);
+						}
 					}
 					index >>= 1;
 				}
@@ -1194,10 +1257,11 @@ public class RdesktopCanvas extends Canvas {
 
 					if (x + j >= newx) {
 						if ((x + j > 0) && (y + i > 0)) {
-							if ((data[pdata] & index) != 0)
+							if ((data[pdata] & index) != 0) {
 								backstore.setRGB(x + j, y + i, fgcolor);
-							else
+							} else {
 								backstore.setRGB(x + j, y + i, bgcolor);
+							}
 						}
 					}
 					index >>= 1;
@@ -1218,7 +1282,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Create an AWT Cursor object
-	 * 
+	 *
 	 * @param x
 	 * @param y
 	 * @param w
@@ -1299,7 +1363,7 @@ public class RdesktopCanvas extends Canvas {
 
 	/**
 	 * Create an AWT Cursor from an image
-	 * 
+	 *
 	 * @param wincursor
 	 * @param p
 	 * @param s
@@ -1319,16 +1383,18 @@ public class RdesktopCanvas extends Canvas {
 	 * Handle the window losing focus, notify input classes
 	 */
 	public void lostFocus() {
-		if (input != null)
+		if (input != null) {
 			input.lostFocus();
+		}
 	}
 
 	/**
 	 * Handle the window gaining focus, notify input classes
 	 */
 	public void gainedFocus() {
-		if (input != null)
+		if (input != null) {
 			input.gainedFocus();
+		}
 	}
 
 	/**

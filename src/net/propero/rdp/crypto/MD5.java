@@ -21,7 +21,7 @@ package net.propero.rdp.crypto;
  * All rights reserved.
  * <p>
  * <b>$Revision$</b>
- * 
+ *
  * @author Systemics Ltd
  * @author David Hopwood
  * @since Cryptix 2.2
@@ -49,6 +49,7 @@ public final class MD5 extends BlockMessageDigest implements Cloneable {
 	}
 
 	/** Returns the length of the data (in bytes) hashed in every transform. */
+	@Override
 	protected int engineGetDataLength() {
 		return DATA_LENGTH;
 	}
@@ -73,14 +74,15 @@ public final class MD5 extends BlockMessageDigest implements Cloneable {
 	 */
 	private MD5(MD5 md) {
 		this();
-		data = (int[]) md.data.clone();
-		digest = (int[]) md.digest.clone();
-		tmp = (byte[]) md.tmp.clone();
+		data = md.data.clone();
+		digest = md.digest.clone();
+		tmp = md.tmp.clone();
 	}
 
 	/**
 	 * Returns a copy of this MD object.
 	 */
+	@Override
 	public Object clone() {
 		return new MD5(this);
 	}
@@ -88,6 +90,7 @@ public final class MD5 extends BlockMessageDigest implements Cloneable {
 	/**
 	 * Initializes (resets) the message digest.
 	 */
+	@Override
 	public void engineReset() {
 		super.engineReset();
 		java_reset();
@@ -102,7 +105,7 @@ public final class MD5 extends BlockMessageDigest implements Cloneable {
 
 	/**
 	 * Adds data to the message digest.
-	 * 
+	 *
 	 * @param data
 	 *            The data to be added.
 	 * @param offset
@@ -110,6 +113,7 @@ public final class MD5 extends BlockMessageDigest implements Cloneable {
 	 * @param length
 	 *            The amount of data to add.
 	 */
+	@Override
 	protected void engineTransform(byte[] in) {
 		java_transform(in);
 	}
@@ -121,10 +125,11 @@ public final class MD5 extends BlockMessageDigest implements Cloneable {
 
 	/**
 	 * Returns the digest of the data added and resets the digest.
-	 * 
+	 *
 	 * @return the digest of all the data added to the message digest as a byte
 	 *         array.
 	 */
+	@Override
 	public byte[] engineDigest(byte[] in, int length) {
 		byte b[] = java_digest(in, length);
 		engineReset();
@@ -132,22 +137,25 @@ public final class MD5 extends BlockMessageDigest implements Cloneable {
 	}
 
 	private byte[] java_digest(byte[] in, int pos) {
-		if (pos != 0)
+		if (pos != 0) {
 			System.arraycopy(in, 0, tmp, 0, pos);
+		}
 
 		tmp[pos++] = -128; // (byte)0x80;
 
 		if (pos > DATA_LENGTH - 8) {
-			while (pos < DATA_LENGTH)
+			while (pos < DATA_LENGTH) {
 				tmp[pos++] = 0;
+			}
 
 			byte2int(tmp, 0, data, 0, DATA_LENGTH / 4);
 			transform(data);
 			pos = 0;
 		}
 
-		while (pos < DATA_LENGTH - 8)
+		while (pos < DATA_LENGTH - 8) {
 			tmp[pos++] = 0;
+		}
 
 		byte2int(tmp, 0, data, 0, (DATA_LENGTH / 4) - 2);
 

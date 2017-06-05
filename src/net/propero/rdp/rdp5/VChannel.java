@@ -1,6 +1,6 @@
 /* VChannel.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: Abstract class for RDP5 channels
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 package net.propero.rdp.rdp5;
 
@@ -60,21 +60,21 @@ public abstract class VChannel {
 
 	/**
 	 * Provide the name of this channel
-	 * 
+	 *
 	 * @return Channel name as string
 	 */
 	public abstract String name();
 
 	/**
 	 * Provide the set of flags specifying working options for this channel
-	 * 
+	 *
 	 * @return Option flags
 	 */
 	public abstract int flags();
 
 	/**
 	 * Process a packet sent on this channel
-	 * 
+	 *
 	 * @param data
 	 *            Packet sent to this channel
 	 * @throws RdesktopException
@@ -82,7 +82,7 @@ public abstract class VChannel {
 	 * @throws CryptoException
 	 */
 	public abstract void process(RdpPacket data) throws RdesktopException,
-			IOException, CryptoException;
+	IOException, CryptoException;
 
 	public int mcs_id() {
 		return mcs_id;
@@ -90,7 +90,7 @@ public abstract class VChannel {
 
 	/**
 	 * Set the MCS ID for this channel
-	 * 
+	 *
 	 * @param mcs_id
 	 *            New MCS ID
 	 */
@@ -100,7 +100,7 @@ public abstract class VChannel {
 
 	/**
 	 * Initialise a packet for transmission over this virtual channel
-	 * 
+	 *
 	 * @param length
 	 *            Desired length of packet
 	 * @return Packet prepared for this channel
@@ -119,7 +119,7 @@ public abstract class VChannel {
 
 	/**
 	 * Send a packet over this virtual channel
-	 * 
+	 *
 	 * @param data
 	 *            Packet to be sent
 	 * @throws RdesktopException
@@ -127,9 +127,10 @@ public abstract class VChannel {
 	 * @throws CryptoException
 	 */
 	public void send_packet(RdpPacket_Localised data) throws RdesktopException,
-			IOException, CryptoException {
-		if (secure == null)
+	IOException, CryptoException {
+		if (secure == null) {
 			return;
+		}
 		synchronized (this.secure) {
 			int length = data.size();
 
@@ -149,11 +150,13 @@ public abstract class VChannel {
 				s.setLittleEndian32(length);
 
 				int flags = ((data_offset == 0) ? VChannels.CHANNEL_FLAG_FIRST : 0);
-				if (data_offset + thisLength >= length)
+				if (data_offset + thisLength >= length) {
 					flags |= VChannels.CHANNEL_FLAG_LAST;
+				}
 
-				if ((this.flags() & VChannels.CHANNEL_OPTION_SHOW_PROTOCOL) != 0)
+				if ((this.flags() & VChannels.CHANNEL_OPTION_SHOW_PROTOCOL) != 0) {
 					flags |= VChannels.CHANNEL_FLAG_SHOW_PROTOCOL;
+				}
 
 				s.setLittleEndian32(flags);
 				s.copyFromPacket(data, data_offset, s.getPosition(), thisLength);
@@ -162,10 +165,11 @@ public abstract class VChannel {
 
 				data_offset += thisLength;
 
-				if (secure != null)
+				if (secure != null) {
 					secure.send_to_channel(s,
 							options.encryption ? Secure.SEC_ENCRYPT : 0, this
 									.mcs_id());
+				}
 				packets_sent++;
 			}
 		}

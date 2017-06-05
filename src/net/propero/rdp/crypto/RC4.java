@@ -25,7 +25,7 @@ package net.propero.rdp.crypto;
  * All rights reserved.
  * <p>
  * <b>$Revision$</b>
- * 
+ *
  * @author Raif S. Naffah
  * @author David Hopwood
  * @since Cryptix 2.2.2
@@ -44,7 +44,7 @@ public final class RC4 { // must be final for security reasons
 	/**
 	 * The state of the cipher when it is ready to encrypt, that is, the state
 	 * it is in right after a call to <code>initEncrypt</code>.
-	 * 
+	 *
 	 * @see #initEncrypt
 	 */
 	public static final int ENCRYPT = 1;
@@ -52,7 +52,7 @@ public final class RC4 { // must be final for security reasons
 	/**
 	 * The state of the cipher when it is ready to decrypt, that is, the state
 	 * it is in right after a call to <code>initDecrypt</code>.
-	 * 
+	 *
 	 * @see #initDecrypt
 	 */
 	public static final int DECRYPT = 2;
@@ -93,6 +93,7 @@ public final class RC4 { // must be final for security reasons
 	 * Always throws a CloneNotSupportedException (cloning of ciphers is not
 	 * supported for security reasons).
 	 */
+	@Override
 	public final Object clone() throws CloneNotSupportedException {
 		throw new CloneNotSupportedException();
 	}
@@ -102,7 +103,7 @@ public final class RC4 { // must be final for security reasons
 
 	/**
 	 * <b>SPI</b>: Returns the length of an input block, in bytes.
-	 * 
+	 *
 	 * @return the length in bytes of an input block for this cipher.
 	 */
 	public int engineBlockSize() {
@@ -112,7 +113,7 @@ public final class RC4 { // must be final for security reasons
 	/**
 	 * <b>SPI</b>: Initializes this cipher for encryption, using the specified
 	 * key.
-	 * 
+	 *
 	 * @param key
 	 *            the key to use for encryption.
 	 * @exception CryptoException
@@ -126,7 +127,7 @@ public final class RC4 { // must be final for security reasons
 	/**
 	 * <b>SPI</b>: Initializes this cipher for decryption, using the specified
 	 * key.
-	 * 
+	 *
 	 * @param key
 	 *            the key to use for decryption.
 	 * @exception CryptoException
@@ -142,7 +143,7 @@ public final class RC4 { // must be final for security reasons
 	 * <p>
 	 * <i>in</i> and <i>out</i> may be the same array, and the input and
 	 * output regions may overlap.
-	 * 
+	 *
 	 * @param in
 	 *            the input data.
 	 * @param inOffset
@@ -158,13 +159,14 @@ public final class RC4 { // must be final for security reasons
 	 */
 	protected int engineUpdate(byte[] in, int inOffset, int inLen, byte[] out,
 			int outOffset) {
-		if (inLen < 0)
+		if (inLen < 0) {
 			throw new IllegalArgumentException("inLen < 0");
+		}
 
 		// Avoid overlapping input and output regions.
 		if (in == out
 				&& (outOffset >= inOffset && outOffset < inOffset + inLen || inOffset >= outOffset
-						&& inOffset < outOffset + inLen)) {
+				&& inOffset < outOffset + inLen)) {
 			byte[] newin = new byte[inLen];
 			System.arraycopy(in, inOffset, newin, 0, inLen);
 			in = newin;
@@ -182,7 +184,7 @@ public final class RC4 { // must be final for security reasons
 	/**
 	 * RC4 encryption/decryption. The input and output regions are assumed not
 	 * to overlap.
-	 * 
+	 *
 	 * @param in
 	 *            the input data.
 	 * @param inOffset
@@ -220,7 +222,7 @@ public final class RC4 { // must be final for security reasons
 	 * <p>
 	 * The method's only exceptions are when the user-key's contents are null,
 	 * or a byte array of zero length.
-	 * 
+	 *
 	 * @param key
 	 *            the user-key object to use.
 	 * @exception CryptoException
@@ -233,17 +235,20 @@ public final class RC4 { // must be final for security reasons
 	 */
 	private void makeKey(byte[] userkey) throws CryptoException {
 
-		if (userkey == null)
+		if (userkey == null) {
 			throw new CryptoException(getAlgorithm() + ": Null user key");
+		}
 
 		int len = userkey.length;
-		if (len == 0)
+		if (len == 0) {
 			throw new CryptoException(getAlgorithm()
 					+ ": Invalid user key length");
+		}
 
 		x = y = 0;
-		for (int i = 0; i < 256; i++)
+		for (int i = 0; i < 256; i++) {
 			sBox[i] = i;
+		}
 
 		int i1 = 0, i2 = 0, t;
 
@@ -265,7 +270,7 @@ public final class RC4 { // must be final for security reasons
 	 * See <a href="../guide/ijce/Algorithms.html#Cipher"> <cite>International
 	 * JCE Standard Algorithm Names</cite></a> for a list of Cipher algorithm
 	 * names.
-	 * 
+	 *
 	 * @return the standard cipher name (such as "DES").
 	 */
 	public final String getAlgorithm() {
@@ -285,9 +290,9 @@ public final class RC4 { // must be final for security reasons
 	 * <dd> The cipher has been initialized for decryption. It may be used for
 	 * decryption only.
 	 * </dl>
-	 * 
+	 *
 	 * @return the state of this cipher object.
-	 * 
+	 *
 	 * @see #UNINITIALIZED
 	 * @see #ENCRYPT
 	 * @see #DECRYPT

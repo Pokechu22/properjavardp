@@ -1,6 +1,6 @@
 /* options.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: <del>Global static</del> storage of user-definable options
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 package net.propero.rdp;
 
@@ -112,17 +112,18 @@ public class Options {
 
 	/**
 	 * Set a new value for the server's bits per pixel
-	 * 
+	 *
 	 * @param server_bpp
 	 *            New bpp value
 	 */
 	public void set_bpp(int server_bpp) {
 		this.server_bpp = server_bpp;
 		this.Bpp = (server_bpp + 7) / 8;
-		if (server_bpp == 8)
+		if (server_bpp == 8) {
 			bpp_mask = 0xFF;
-		else
+		} else {
 			bpp_mask = 0xFFFFFF;
+		}
 
 		colour_model = new DirectColorModel(24, 0xFF0000, 0x00FF00, 0x0000FF);
 	}

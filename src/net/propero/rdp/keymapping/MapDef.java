@@ -1,6 +1,6 @@
 /* MapDef.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: Encapsulates an individual key mapping
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 package net.propero.rdp.keymapping;
 
@@ -70,7 +70,7 @@ public class MapDef {
 
 	/**
 	 * Constructor for a character-defined mapping definition
-	 * 
+	 *
 	 * @param keyChar
 	 * @param keyLocation
 	 * @param scancode
@@ -96,7 +96,7 @@ public class MapDef {
 
 	/**
 	 * Constructor for a keycode-defined mapping definition
-	 * 
+	 *
 	 * @param keyChar
 	 * @param keyLocation
 	 * @param scancode
@@ -129,7 +129,7 @@ public class MapDef {
 
 	/**
 	 * Return the scancode associated with this mapping
-	 * 
+	 *
 	 * @return
 	 */
 	public int getScancode() {
@@ -138,7 +138,7 @@ public class MapDef {
 
 	/**
 	 * Return true if this mapping is defined by a character, false otherwise
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isCharacterDef() {
@@ -148,7 +148,7 @@ public class MapDef {
 	/**
 	 * Return true if the keystroke defined in this mapping requires that the
 	 * Control key be down
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isCtrlDown() {
@@ -158,7 +158,7 @@ public class MapDef {
 	/**
 	 * Return true if the keystroke defined in this mapping requires that the
 	 * Alt key be down
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isAltDown() {
@@ -168,7 +168,7 @@ public class MapDef {
 	/**
 	 * Return true if the keystroke defined in this mapping requires that the
 	 * Shift key be down
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isShiftDown() {
@@ -178,7 +178,7 @@ public class MapDef {
 	/**
 	 * Return true if the keystroke defined in this mapping requires that Caps
 	 * Lock is on
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isCapslockOn() {
@@ -188,7 +188,7 @@ public class MapDef {
 	/**
 	 * Return the number of modifiers that would need to be changed to send the
 	 * specified character/key using this particular mapping.
-	 * 
+	 *
 	 * @param e
 	 *            Key event which was received by Java
 	 * @param capslock
@@ -199,18 +199,23 @@ public class MapDef {
 		// boolean capslock = e.getComponent().getToolkit().getLockingKeyState(
 		// KeyEvent.VK_CAPS_LOCK);
 
-		if (!characterDef)
+		if (!characterDef) {
 			return 0;
+		}
 
 		int dist = 0;
-		if (ctrlDown != e.isControlDown())
+		if (ctrlDown != e.isControlDown()) {
 			dist += 1;
-		if (altDown != e.isAltDown())
+		}
+		if (altDown != e.isAltDown()) {
 			dist += 1;
-		if (shiftDown != e.isShiftDown())
+		}
+		if (shiftDown != e.isShiftDown()) {
 			dist += 1;
-		if (capslockDown != capslock)
+		}
+		if (capslockDown != capslock) {
 			dist += 1;
+		}
 		return dist;
 	}
 
@@ -219,9 +224,9 @@ public class MapDef {
 	}
 
 	/**
-	 * 
+	 *
 	 * Return true if this map definition applies to the supplied key event
-	 * 
+	 *
 	 * @param e
 	 *            KeyEvent to check definition against
 	 * @return
@@ -233,8 +238,8 @@ public class MapDef {
 	protected boolean appliesToTyped(KeyEvent e, boolean capslock) {
 
 		if (options.os == Options.OS.MAC) {
-			// Remap the hash key to §
-			if (options.remap_hash && (e.getKeyChar() == '§')) {
+			// Remap the hash key to ï¿½
+			if (options.remap_hash && (e.getKeyChar() == 'ï¿½')) {
 				return ((characterDef) && (this.keyChar == '#'));
 			}
 
@@ -250,9 +255,9 @@ public class MapDef {
 	}
 
 	/**
-	 * 
+	 *
 	 * Return true if this map definition applies to the supplied key event
-	 * 
+	 *
 	 * @param e
 	 *            KeyEvent to check definition against
 	 * @return
@@ -260,10 +265,12 @@ public class MapDef {
 	protected boolean appliesToPressed(KeyEvent e) {
 		// only match special characters if the modifiers are consistent
 		if (!characterDef) {
-			if (!((ctrlDown && e.isControlDown()) || !ctrlDown))
+			if (!((ctrlDown && e.isControlDown()) || !ctrlDown)) {
 				return false;
-			if (!((altDown && e.isAltDown()) || !altDown))
+			}
+			if (!((altDown && e.isAltDown()) || !altDown)) {
 				return false;
+			}
 		}
 
 		return ((!characterDef) && (this.keyCode == e.getKeyCode()));
@@ -273,7 +280,7 @@ public class MapDef {
 	 * Constructor for a mapping definition based on a given string
 	 * representation (as would be output to a stream by the writeToStream
 	 * method).
-	 * 
+	 *
 	 * @param definition
 	 *            One-line definition string
 	 * @throws KeyMapException
@@ -287,10 +294,11 @@ public class MapDef {
 					: false);
 
 			// read in the character or keycode
-			if (characterDef)
+			if (characterDef) {
 				keyChar = (char) Integer.parseInt(st.nextToken());
-			else
+			} else {
 				keyCode = Integer.parseInt(st.nextToken());
+			}
 
 			// read in the key location
 			keyLocation = Integer.parseInt(st.nextToken());
@@ -319,7 +327,7 @@ public class MapDef {
 	 * Output this mapping definition to a stream, formatted as a single line
 	 * (characterDef character/keycode location scancode modifiers
 	 * [description])
-	 * 
+	 *
 	 * @param p
 	 *            Stream to write to
 	 */
@@ -331,10 +339,11 @@ public class MapDef {
 
 		// add character or keycode
 		definition += "\t";
-		if (characterDef)
+		if (characterDef) {
 			definition += (int) keyChar;
-		else
+		} else {
 			definition += keyCode;
+		}
 
 		// add key location
 		definition += "\t" + keyLocation;
@@ -349,8 +358,9 @@ public class MapDef {
 		definition += "\t" + modifiers;
 
 		// add additional information if available (and necessary)
-		if (!characterDef)
+		if (!characterDef) {
 			definition += "\t" + KeyEvent.getKeyText(this.keyCode);
+		}
 
 		// output the definition to the specified stream
 		p.println(definition);

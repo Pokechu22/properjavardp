@@ -1,6 +1,6 @@
 /* WrappedImage.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -10,24 +10,24 @@
  * Purpose: Adds functionality to the BufferedImage class, allowing
  *          manipulation of colour indices, making the RGB values
  *          invisible (in the case of Indexed Colour only).
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- *          
+ *
  */
 package net.propero.rdp;
 
@@ -51,8 +51,8 @@ public class WrappedImage {
 
 	public WrappedImage(int arg0, int arg1, int arg2, IndexColorModel cm) {
 		bi = new BufferedImage(arg0, arg1, BufferedImage.TYPE_INT_RGB); // super(arg0,
-																		// arg1,
-																		// BufferedImage.TYPE_INT_RGB);
+		// arg1,
+		// BufferedImage.TYPE_INT_RGB);
 		this.cm = cm;
 	}
 
@@ -79,19 +79,20 @@ public class WrappedImage {
 	/**
 	 * Force a colour to its true RGB representation (extracting from colour
 	 * model if indexed colour)
-	 * 
+	 *
 	 * @param color
 	 * @return
 	 */
 	public int checkColor(int color) {
-		if (cm != null)
+		if (cm != null) {
 			return cm.getRGB(color);
+		}
 		return color;
 	}
 
 	/**
 	 * Set the colour model for this Image
-	 * 
+	 *
 	 * @param cm
 	 *            Colour model for use with this image
 	 */
@@ -103,15 +104,16 @@ public class WrappedImage {
 		// if(x >= bi.getWidth() || x < 0 || y >= bi.getHeight() || y < 0)
 		// return;
 
-		if (cm != null)
+		if (cm != null) {
 			color = cm.getRGB(color);
+		}
 		bi.setRGB(x, y, color);
 	}
 
 	/**
 	 * Apply a given array of colour values to an area of pixels in the image,
 	 * do not convert for colour model
-	 * 
+	 *
 	 * @param x
 	 *            x-coordinate for left of area to set
 	 * @param y
@@ -135,8 +137,9 @@ public class WrappedImage {
 	public void setRGB(int x, int y, int cx, int cy, int[] data, int offset,
 			int w) {
 		if (cm != null && data != null && data.length > 0) {
-			for (int i = 0; i < data.length; i++)
+			for (int i = 0; i < data.length; i++) {
 				data[i] = cm.getRGB(data[i]);
+			}
 		}
 		bi.setRGB(x, y, cx, cy, data, offset, w);
 	}
@@ -150,16 +153,17 @@ public class WrappedImage {
 		// if(x >= this.getWidth() || x < 0 || y >= this.getHeight() || y < 0)
 		// return 0;
 
-		if (cm == null)
+		if (cm == null) {
 			return bi.getRGB(x, y);
-		else {
+		} else {
 			int pix = bi.getRGB(x, y) & 0xFFFFFF;
 			int[] vals = { (pix >> 16) & 0xFF, (pix >> 8) & 0xFF, (pix) & 0xFF };
 			int out = cm.getDataElement(vals, 0);
-			if (cm.getRGB(out) != bi.getRGB(x, y))
+			if (cm.getRGB(out) != bi.getRGB(x, y)) {
 				logger.info("Did not get correct colour value for color ("
 						+ Integer.toHexString(pix) + "), got ("
 						+ cm.getRGB(out) + ") instead");
+			}
 			return out;
 		}
 	}

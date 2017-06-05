@@ -1,6 +1,6 @@
 /* Glyph.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: Represents data for individual glyphs, used for drawing text
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- *          
+ *
  */
 package net.propero.rdp;
 
@@ -50,7 +50,7 @@ public class Glyph {
 
 	/**
 	 * Construct a Glyph object
-	 * 
+	 *
 	 * @param font
 	 *            Font ID for Glyph
 	 * @param character
@@ -79,7 +79,7 @@ public class Glyph {
 
 	/**
 	 * Retrieve the font ID for this Glyph
-	 * 
+	 *
 	 * @return Font ID
 	 */
 	public int getFont() {
@@ -88,7 +88,7 @@ public class Glyph {
 
 	/**
 	 * Retrive y-offset of Glyph data
-	 * 
+	 *
 	 * @return y-offset
 	 */
 	public int getBaseLine() {
@@ -97,7 +97,7 @@ public class Glyph {
 
 	/**
 	 * Return character ID of this Glyph
-	 * 
+	 *
 	 * @return ID of character represented by this Glyph
 	 */
 	public int getCharacter() {
@@ -106,7 +106,7 @@ public class Glyph {
 
 	/**
 	 * Retrive x-offset of Glyph data
-	 * 
+	 *
 	 * @return x-offset
 	 */
 	public int getOffset() {
@@ -115,7 +115,7 @@ public class Glyph {
 
 	/**
 	 * Return width of Glyph
-	 * 
+	 *
 	 * @return Glyph width, in pixels
 	 */
 	public int getWidth() {
@@ -124,7 +124,7 @@ public class Glyph {
 
 	/**
 	 * Return height of Glyph
-	 * 
+	 *
 	 * @return Glyph height, in pixels
 	 */
 	public int getHeight() {
@@ -133,7 +133,7 @@ public class Glyph {
 
 	/**
 	 * Graphical data for this Glyph
-	 * 
+	 *
 	 * @return Data defining graphical representation of this Glyph
 	 */
 	public byte[] getFontData() {

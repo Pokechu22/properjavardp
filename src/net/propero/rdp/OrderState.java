@@ -1,6 +1,6 @@
 /* OrderState.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -9,24 +9,24 @@
  *
  * Purpose: Storage of current order state, which may consist of one of each of a number of
  *          order types.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- *          
+ *
  */
 package net.propero.rdp;
 
@@ -87,7 +87,7 @@ class OrderState {
 
 	/**
 	 * Get the id of the current order type
-	 * 
+	 *
 	 * @return Order type id
 	 */
 	public PrimaryOrder getOrderType() {
@@ -96,7 +96,7 @@ class OrderState {
 
 	/**
 	 * Set the id of the current order type
-	 * 
+	 *
 	 * @param order_type
 	 *            Type to set for current order
 	 */
@@ -106,7 +106,7 @@ class OrderState {
 
 	/**
 	 * Retrieve the bounds order stored within this state
-	 * 
+	 *
 	 * @return BoundsOrder from this state
 	 */
 	public BoundsOrder getBounds() {
@@ -115,7 +115,7 @@ class OrderState {
 
 	/**
 	 * Retrieve the dest blt order stored within this state
-	 * 
+	 *
 	 * @return DestBltOrder from this state
 	 */
 	public DestBltOrder getDestBlt() {
@@ -124,7 +124,7 @@ class OrderState {
 
 	/**
 	 * Retrieve the pattern blit order stored within this state
-	 * 
+	 *
 	 * @return PatBltOrder from this state
 	 */
 	public PatBltOrder getPatBlt() {
@@ -133,7 +133,7 @@ class OrderState {
 
 	/**
 	 * Retrieve the screen blit order stored within this state
-	 * 
+	 *
 	 * @return ScreenBltOrder from this state
 	 */
 	public ScreenBltOrder getScreenBlt() {
@@ -142,7 +142,7 @@ class OrderState {
 
 	/**
 	 * Retrieve the line order stored within this state
-	 * 
+	 *
 	 * @return LineOrder from this state
 	 */
 	public LineOrder getLine() {
@@ -151,7 +151,7 @@ class OrderState {
 
 	/**
 	 * Retrieve the rectangle order stored within this state
-	 * 
+	 *
 	 * @return RectangleOrder from this state
 	 */
 	public RectangleOrder getRectangle() {
@@ -160,7 +160,7 @@ class OrderState {
 
 	/**
 	 * Retrieve the desktop save order stored within this state
-	 * 
+	 *
 	 * @return DeskSaveOrder from this state
 	 */
 	public DeskSaveOrder getDeskSave() {
@@ -169,7 +169,7 @@ class OrderState {
 
 	/**
 	 * Retrieve the memory blit order stored within this state
-	 * 
+	 *
 	 * @return MemBltOrder from this state
 	 */
 	public MemBltOrder getMemBlt() {
@@ -178,7 +178,7 @@ class OrderState {
 
 	/**
 	 * Retrieve the tri blit order stored within this state
-	 * 
+	 *
 	 * @return TriBltOrder from this state
 	 */
 	public TriBltOrder getTriBlt() {
@@ -187,7 +187,7 @@ class OrderState {
 
 	/**
 	 * Retrieve the multi-point line order stored within this state
-	 * 
+	 *
 	 * @return PolyLineOrder from this state
 	 */
 	public PolyLineOrder getPolyLine() {
@@ -196,7 +196,7 @@ class OrderState {
 
 	/**
 	 * Retrieve the text2 order stored within this state
-	 * 
+	 *
 	 * @return Text2Order from this state
 	 */
 	public Text2Order getText2() {

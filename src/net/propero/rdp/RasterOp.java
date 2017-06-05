@@ -1,6 +1,6 @@
 /* RasterOp.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: Set of operations used in displaying raster graphics
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 // Created on 01-Jul-2003
 package net.propero.rdp;
@@ -50,8 +50,9 @@ public class RasterOp {
 				if (biDst != null) {
 					int c = biDst.getRGB(x + j, y + i);
 					biDst.setRGB(x + j, y + i, ~c & mask);
-				} else
+				} else {
 					dest[pdest] = (~dest[pdest]) & mask;
+				}
 				pdest++;
 			}
 			pdest += (width - cx);
@@ -62,8 +63,9 @@ public class RasterOp {
 			int cy, int Bpp) {
 
 		for (int i = x; i < x + cx; i++) {
-			for (int j = y; j < y + cy; j++)
+			for (int j = y; j < y + cy; j++) {
 				biDst.setRGB(i, j, 0);
+			}
 		}
 	}
 
@@ -73,8 +75,9 @@ public class RasterOp {
 		int mask = options.bpp_mask;
 
 		for (int i = x; i < x + cx; i++) {
-			for (int j = y; j < y + cy; j++)
+			for (int j = y; j < y + cy; j++) {
 				biDst.setRGB(i, j, mask);
+			}
 		}
 
 	}
@@ -84,7 +87,7 @@ public class RasterOp {
 
 		if (src == null) { // special case - copy to self
 			biDst.getGraphics()
-					.copyArea(srcx, srcy, cx, cy, x - srcx, y - srcy);
+			.copyArea(srcx, srcy, cx, cy, x - srcx, y - srcy);
 		} else {
 			// Manually use rows to implement srcx and srcy correctly
 			for (int row = 0; row < cy; row++) {
@@ -97,7 +100,7 @@ public class RasterOp {
 	/**
 	 * Perform an operation on a rectangular area of a WrappedImage, using an
 	 * integer array of colour values as source if necessary
-	 * 
+	 *
 	 * @param opcode
 	 *            Code defining operation to perform
 	 * @param biDst
@@ -196,7 +199,7 @@ public class RasterOp {
 
 	/**
 	 * Perform an operation on a single pixel in a WrappedImage
-	 * 
+	 *
 	 * @param opcode
 	 *            Opcode defining operation to perform
 	 * @param dst
@@ -211,8 +214,9 @@ public class RasterOp {
 	public void do_pixel(int opcode, WrappedImage dst, int x, int y, int color) {
 		int mask = options.bpp_mask;
 
-		if (dst == null)
+		if (dst == null) {
 			return;
+		}
 
 		int c = dst.getRGB(x, y);
 

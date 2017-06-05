@@ -1,6 +1,6 @@
 /* Rdesktop.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: Main class, launches session
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 
 package net.propero.rdp;
@@ -79,7 +79,7 @@ public class Rdesktop {
 
 	/**
 	 * Outputs version and usage information via System.err
-	 * 
+	 *
 	 */
 	public static void usage() {
 		logger.info("properJavaRDP version " + Version.version);
@@ -115,7 +115,7 @@ public class Rdesktop {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param args
 	 * @throws OrderException
 	 * @throws RdesktopException
@@ -236,16 +236,16 @@ public class Rdesktop {
 				break;
 			case 'f':
 				Dimension screen_size = Toolkit.getDefaultToolkit()
-						.getScreenSize();
+				.getScreenSize();
 				// ensure width a multiple of 4
 				options.width = screen_size.width & ~3;
 				options.height = screen_size.height;
 				options.fullscreen = true;
 				arg = g.getOptarg();
 				if (arg != null) {
-					if (arg.charAt(0) == 'l')
+					if (arg.charAt(0) == 'l') {
 						fKdeHack = true;
-					else {
+					} else {
 						logger.fatal(progname
 								+ ": Invalid fullscreen option '" + arg + "'");
 						usage();
@@ -338,16 +338,18 @@ public class Rdesktop {
 		// Initialise all RDP5 channels
 		if (options.use_rdp5) {
 			// TODO: implement all relevant channels
-			if (options.map_clipboard)
+			if (options.map_clipboard) {
 				channels.register(clipChannel);
+			}
 		}
 
 		// Now do the startup...
 
 		logger.info("properJavaRDP version " + Version.version);
 
-		if (args.length == 0)
+		if (args.length == 0) {
 			usage();
+		}
 
 		String java = System.getProperty("java.specification.version");
 		logger.info("Java version is " + java);
@@ -355,20 +357,23 @@ public class Rdesktop {
 		String os = System.getProperty("os.name");
 		String osvers = System.getProperty("os.version");
 
-		if (os.equals("Windows 2000") || os.equals("Windows XP"))
+		if (os.equals("Windows 2000") || os.equals("Windows XP")) {
 			options.built_in_licence = true;
+		}
 
 		logger.info("Operating System is " + os + " version " + osvers);
 
-		if (os.startsWith("Linux"))
+		if (os.startsWith("Linux")) {
 			options.os = Options.OS.LINUX;
-		else if (os.startsWith("Windows"))
+		} else if (os.startsWith("Windows")) {
 			options.os = Options.OS.WINDOWS;
-		else if (os.startsWith("Mac"))
+		} else if (os.startsWith("Mac")) {
 			options.os = Options.OS.MAC;
+		}
 
-		if (options.os == Options.OS.MAC)
+		if (options.os == Options.OS.MAC) {
 			options.caps_sends_up_and_down = false;
+		}
 
 		Rdp5 RdpLayer = null;
 		RdesktopFrame window = new RdesktopFrame(options);
@@ -388,8 +393,9 @@ public class Rdesktop {
 				logger.debug("Loading keymap from InputStream");
 				keyMap = new KeyCode_FileBased(options, istr);
 			}
-			if (istr != null)
+			if (istr != null) {
 				istr.close();
+			}
 			options.keylayout = keyMap.getMapCode();
 		} catch (Exception kmEx) {
 			logger.warn("Unexpected keymap exception: ", kmEx);
@@ -399,8 +405,9 @@ public class Rdesktop {
 		}
 
 		logger.debug("Registering keyboard...");
-		if (keyMap != null)
+		if (keyMap != null) {
 			window.registerKeyboard(keyMap);
+		}
 
 		logger.debug("keep_running = " + keep_running);
 		while (keep_running) {
@@ -414,11 +421,12 @@ public class Rdesktop {
 			loggedon = false;
 			readytosend = false;
 			logger
-					.info("Connecting to " + server + ":" + options.port
-							+ " ...");
+			.info("Connecting to " + server + ":" + options.port
+					+ " ...");
 
-			if (server.equalsIgnoreCase("localhost"))
+			if (server.equalsIgnoreCase("localhost")) {
 				server = "127.0.0.1";
+			}
 
 			if (RdpLayer != null) {
 				// Attempt to connect to server on port options.port
@@ -442,8 +450,9 @@ public class Rdesktop {
 						 * encrypted login packet but unencrypted transfer of
 						 * other packets
 						 */
-						if (!options.packet_encryption)
+						if (!options.packet_encryption) {
 							options.encryption = false;
+						}
 
 						logger.info("Connection successful");
 						// now show window after licence negotiation
@@ -490,8 +499,10 @@ public class Rdesktop {
 
 					// Remove to get rid of tool window
 					if (showTools)
+					{
 						toolFrame.dispose();
-					// End
+						// End
+					}
 
 				} catch (ConnectionException e) {
 					logger.warn("Connection exception", e);
@@ -520,7 +531,7 @@ public class Rdesktop {
 						String msg[] = {
 								"The terminal server reset connection before licence negotiation completed.",
 								"Possible cause: terminal server could not connect to licence server.",
-								"Retry?" };
+						"Retry?" };
 						boolean retry = window.showYesNoErrorDialog(msg);
 						if (!retry) {
 							logger.info("Selected not to retry.");
@@ -546,7 +557,7 @@ public class Rdesktop {
 				}
 			} else { // closing bracket to if(!rdp==null)
 				logger
-						.fatal("The communications layer could not be initiated!");
+				.fatal("The communications layer could not be initiated!");
 			}
 		}
 		Rdesktop.exit(0, RdpLayer, window, true);
@@ -558,7 +569,7 @@ public class Rdesktop {
 	 * <p>
 	 * Exits the application iff sysexit == true, providing return value n to
 	 * the operating system.
-	 * 
+	 *
 	 * @param n
 	 * @param rdp
 	 * @param window
@@ -571,8 +582,10 @@ public class Rdesktop {
 
 		// Remove to get rid of tool window
 		if ((showTools) && (toolFrame != null))
+		{
 			toolFrame.dispose();
-		// End
+			// End
+		}
 
 		if (rdp != null && rdp.isConnected()) {
 			logger.info("Disconnecting ...");
@@ -587,8 +600,9 @@ public class Rdesktop {
 		System.gc();
 
 		if (sysexit) {
-			if (!rdp.options/* XXX THIS IS NOT GOOD */.noSystemExit)
+			if (!rdp.options/* XXX THIS IS NOT GOOD */.noSystemExit) {
 				System.exit(n);
+			}
 		}
 	}
 
@@ -597,7 +611,7 @@ public class Rdesktop {
 	 * customised message emsg, and reports this through the logging system.
 	 * <p>
 	 * The application then exits iff sysexit == true
-	 * 
+	 *
 	 * @param emsg
 	 * @param RdpLayer
 	 * @param window
@@ -618,7 +632,7 @@ public class Rdesktop {
 	 * stack trace.
 	 * <p>
 	 * The application then exits iff sysexit == true
-	 * 
+	 *
 	 * @param e
 	 * @param RdpLayer
 	 * @param window

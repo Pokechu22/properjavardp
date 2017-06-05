@@ -1,6 +1,6 @@
 /* RdpPacket.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -10,24 +10,24 @@
  * Purpose: Encapsulates data from a single received packet.
  *          Provides methods for reading from and writing to
  *          an individual packet at all relevant levels.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- *          
+ *
  */
 // Created on 03-Sep-2003
 package net.propero.rdp;
@@ -62,14 +62,14 @@ public abstract class RdpPacket {
 	/**
 	 * Read an 8-bit integer value from the packet (at current read/write
 	 * position)
-	 * 
+	 *
 	 * @return Value read from packet
 	 */
 	public abstract int get8();
 
 	/**
 	 * Read an 8-bit integer value from a specified offset in the packet
-	 * 
+	 *
 	 * @param where
 	 *            Offset to read location
 	 * @return Value read from packet
@@ -78,7 +78,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Write 8-bit value to packet at current read/write position
-	 * 
+	 *
 	 * @param what
 	 *            Value to write to packet
 	 */
@@ -86,7 +86,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Write 8-bit value to packet at specified offset
-	 * 
+	 *
 	 * @param where
 	 *            Offset in packet to write location
 	 * @param what
@@ -97,7 +97,7 @@ public abstract class RdpPacket {
 	/**
 	 * Read a 2-byte, little-endian integer value from the packet (at current
 	 * read/write position)
-	 * 
+	 *
 	 * @return Value read from packet
 	 */
 	public abstract int getLittleEndian16();
@@ -105,7 +105,7 @@ public abstract class RdpPacket {
 	/**
 	 * Read a 2-byte, little-endian integer value from a specified offset in the
 	 * packet
-	 * 
+	 *
 	 * @param where
 	 *            Offset to read location
 	 * @return Value read from packet
@@ -115,7 +115,7 @@ public abstract class RdpPacket {
 	/**
 	 * Write a 2-byte, little-endian integer value to packet at current
 	 * read/write position
-	 * 
+	 *
 	 * @param what
 	 *            Value to write to packet
 	 */
@@ -123,7 +123,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Write a 2-byte, little-endian integer value to packet at specified offset
-	 * 
+	 *
 	 * @param where
 	 *            Offset in packet to write location
 	 * @param what
@@ -134,7 +134,7 @@ public abstract class RdpPacket {
 	/**
 	 * Read a 2-byte, big-endian integer value from the packet (at current
 	 * read/write position)
-	 * 
+	 *
 	 * @return Value read from packet
 	 */
 	public abstract int getBigEndian16();
@@ -142,7 +142,7 @@ public abstract class RdpPacket {
 	/**
 	 * Read a 2-byte, big-endian integer value from a specified offset in the
 	 * packet
-	 * 
+	 *
 	 * @param where
 	 *            Offset to read location
 	 * @return Value read from packet
@@ -152,7 +152,7 @@ public abstract class RdpPacket {
 	/**
 	 * Write a 2-byte, big-endian integer value to packet at current read/write
 	 * position
-	 * 
+	 *
 	 * @param what
 	 *            Value to write to packet
 	 */
@@ -160,7 +160,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Write a 2-byte, big-endian integer value to packet at specified offset
-	 * 
+	 *
 	 * @param where
 	 *            Offset in packet to write location
 	 * @param what
@@ -171,7 +171,7 @@ public abstract class RdpPacket {
 	/**
 	 * Read a 3-byte, little-endian integer value from the packet (at current
 	 * read position)
-	 * 
+	 *
 	 * @return Value read from packet
 	 */
 	public abstract int getLittleEndian32();
@@ -179,7 +179,7 @@ public abstract class RdpPacket {
 	/**
 	 * Read a 3-byte, little-endian integer value from a specified offset in the
 	 * packet
-	 * 
+	 *
 	 * @param where
 	 *            Offset to read location
 	 * @return Value read from packet
@@ -189,7 +189,7 @@ public abstract class RdpPacket {
 	/**
 	 * Write a 3-byte, little-endian integer value to packet at current
 	 * read/write position
-	 * 
+	 *
 	 * @param what
 	 *            Value to write to packet
 	 */
@@ -197,7 +197,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Write a 3-byte, little-endian integer value to packet at specified offset
-	 * 
+	 *
 	 * @param where
 	 *            Offset in packet to write location
 	 * @param what
@@ -208,7 +208,7 @@ public abstract class RdpPacket {
 	/**
 	 * Read a 3-byte, big-endian integer value from the packet (at current
 	 * read/write position)
-	 * 
+	 *
 	 * @return Value read from packet
 	 */
 	public abstract int getBigEndian32();
@@ -216,7 +216,7 @@ public abstract class RdpPacket {
 	/**
 	 * Read a 3-byte, big-endian integer value from a specified offset in the
 	 * packet
-	 * 
+	 *
 	 * @param where
 	 *            Offset to read location
 	 * @return Value read from packet
@@ -226,7 +226,7 @@ public abstract class RdpPacket {
 	/**
 	 * Write a 3-byte, big-endian integer value to packet at current read/write
 	 * position
-	 * 
+	 *
 	 * @param what
 	 *            Value to write to packet
 	 */
@@ -234,7 +234,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Write a 3-byte, big-endian integer value to packet at specified offset
-	 * 
+	 *
 	 * @param where
 	 *            Offset in packet to write location
 	 * @param what
@@ -244,7 +244,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Copy data from this packet to an array of bytes
-	 * 
+	 *
 	 * @param array
 	 *            Array of bytes to which data should be copied
 	 * @param array_offset
@@ -259,7 +259,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Copy data to this packet from an array of bytes
-	 * 
+	 *
 	 * @param array
 	 *            Array of bytes containing source data
 	 * @param array_offset
@@ -274,7 +274,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Copy data from this packet to another packet
-	 * 
+	 *
 	 * @param dst
 	 *            Destination packet
 	 * @param srcOffset
@@ -289,7 +289,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Copy data to this packet from another packet
-	 * 
+	 *
 	 * @param src
 	 *            Source packet
 	 * @param srcOffset
@@ -304,21 +304,21 @@ public abstract class RdpPacket {
 
 	/**
 	 * Retrieve size of this packet
-	 * 
+	 *
 	 * @return Packet size
 	 */
 	public abstract int size();
 
 	/**
 	 * Retrieve offset to current read/write position
-	 * 
+	 *
 	 * @return Current read/write position (as byte offset from start)
 	 */
 	public abstract int getPosition();
 
 	/**
 	 * Set current read/write position
-	 * 
+	 *
 	 * @param position
 	 *            New read/write position (as byte offset from start)
 	 */
@@ -326,7 +326,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Advance the read/write position
-	 * 
+	 *
 	 * @param length
 	 *            Number of bytes to advance read position by
 	 */
@@ -341,14 +341,14 @@ public abstract class RdpPacket {
 
 	/**
 	 * Retrieve capacity of this packet
-	 * 
+	 *
 	 * @return Packet capacity (in bytes)
 	 */
 	public abstract int capacity();
 
 	/**
 	 * Mark specified position as end of packet
-	 * 
+	 *
 	 * @param position
 	 *            New end position (as byte offset from start)
 	 */
@@ -361,7 +361,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Retrieve location of packet end
-	 * 
+	 *
 	 * @return Position of packet end (as byte offset from start)
 	 */
 	public int getEnd() {
@@ -372,7 +372,7 @@ public abstract class RdpPacket {
 	 * Reserve space within this packet for writing of headers for a specific
 	 * communications layer. Move read/write position ready for adding data for
 	 * a higher communications layer.
-	 * 
+	 *
 	 * @param header
 	 *            ID of header type
 	 * @param increment
@@ -387,7 +387,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Get location of the header for a specific communications layer
-	 * 
+	 *
 	 * @param header
 	 *            ID of header type
 	 * @return Location of header, as byte offset from start of packet
@@ -410,7 +410,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Set current read/write position as the start of a layer header
-	 * 
+	 *
 	 * @param header
 	 *            ID of header type
 	 * @throws RdesktopException
@@ -436,7 +436,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Retrieve start location of this packet
-	 * 
+	 *
 	 * @return Start location of packet (as byte offset from location 0)
 	 */
 	public int getStart() {
@@ -445,7 +445,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Set start position of this packet
-	 * 
+	 *
 	 * @param position
 	 *            New start position (as byte offset from location 0)
 	 */
@@ -455,7 +455,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Add a unicode string to this packet at the current read/write position
-	 * 
+	 *
 	 * @param str
 	 *            String to write as unicode to packet
 	 * @param len
@@ -478,7 +478,7 @@ public abstract class RdpPacket {
 
 	/**
 	 * Write an ASCII string to this packet at current read/write position
-	 * 
+	 *
 	 * @param str
 	 *            String to be written
 	 * @param length

@@ -1,6 +1,6 @@
 /* MCS.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: MCS Layer of communication
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 package net.propero.rdp;
 
@@ -87,7 +87,7 @@ public class MCS {
 
 	/**
 	 * Initialise the MCS layer (and lower layers) with provided channels
-	 * 
+	 *
 	 * @param channels
 	 *            Set of available MCS channels
 	 */
@@ -99,7 +99,7 @@ public class MCS {
 
 	/**
 	 * Connect to a server
-	 * 
+	 *
 	 * @param host
 	 *            Address of server
 	 * @param port
@@ -140,7 +140,7 @@ public class MCS {
 
 	/**
 	 * Disconnect from server
-	 * 
+	 *
 	 */
 	public void disconnect() {
 		IsoLayer.disconnect();
@@ -150,7 +150,7 @@ public class MCS {
 
 	/**
 	 * Initialise a packet as an MCS PDU
-	 * 
+	 *
 	 * @param length
 	 *            Desired length of PDU
 	 * @return
@@ -167,20 +167,20 @@ public class MCS {
 
 	/**
 	 * Send a packet to the global channel
-	 * 
+	 *
 	 * @param buffer
 	 *            Packet to send
 	 * @throws RdesktopException
 	 * @throws IOException
 	 */
 	public void send(RdpPacket_Localised buffer) throws RdesktopException,
-			IOException {
+	IOException {
 		send_to_channel(buffer, MCS_GLOBAL_CHANNEL);
 	}
 
 	/**
 	 * Send a packet to a specified channel
-	 * 
+	 *
 	 * @param buffer
 	 *            Packet to send to channel
 	 * @param channel
@@ -206,7 +206,7 @@ public class MCS {
 
 	/**
 	 * Receive an MCS PDU from the next channel with available data
-	 * 
+	 *
 	 * @param channel
 	 *            ID of channel will be stored in channel[0]
 	 * @return Received packet
@@ -216,12 +216,13 @@ public class MCS {
 	 * @throws CryptoException
 	 */
 	public RdpPacket_Localised receive(int[] channel) throws IOException,
-			RdesktopException, OrderException, CryptoException {
+	RdesktopException, OrderException, CryptoException {
 		logger.debug("receive");
 		int opcode = 0, appid = 0, length = 0;
 		RdpPacket_Localised buffer = IsoLayer.receive();
-		if (buffer == null)
+		if (buffer == null) {
 			return null;
+		}
 		buffer.setHeader(RdpPacket.MCS_HEADER);
 		opcode = buffer.get8();
 
@@ -250,7 +251,7 @@ public class MCS {
 
 	/**
 	 * send an Integer encoded according to the ISO ASN.1 Basic Encoding Rules
-	 * 
+	 *
 	 * @param buffer
 	 *            Packet in which to store encoded value
 	 * @param value
@@ -260,8 +261,9 @@ public class MCS {
 
 		int len = 1;
 
-		if (value > 0xff)
+		if (value > 0xff) {
 			len = 2;
+		}
 
 		sendBerHeader(buffer, BER_TAG_INTEGER, len);
 
@@ -276,7 +278,7 @@ public class MCS {
 	/**
 	 * Determine the size of a BER header encoded for the specified tag and data
 	 * length
-	 * 
+	 *
 	 * @param tagval
 	 *            Value of tag identifying data type
 	 * @param length
@@ -301,7 +303,7 @@ public class MCS {
 
 	/**
 	 * Send a Header encoded according to the ISO ASN.1 Basic Encoding rules
-	 * 
+	 *
 	 * @param buffer
 	 *            Packet in which to send the header
 	 * @param tagval
@@ -326,22 +328,23 @@ public class MCS {
 
 	/**
 	 * Determine the size of a BER encoded integer with specified value
-	 * 
+	 *
 	 * @param value
 	 *            Value of integer
 	 * @return Number of bytes the encoded data would occupy
 	 */
 	private int BERIntSize(int value) {
-		if (value > 0xff)
+		if (value > 0xff) {
 			return 4;
-		else
+		} else {
 			return 3;
+		}
 	}
 
 	/**
 	 * Determine the size of the domain parameters, encoded according to the ISO
 	 * ASN.1 Basic Encoding Rules
-	 * 
+	 *
 	 * @param max_channels
 	 *            Maximum number of channels
 	 * @param max_users
@@ -363,7 +366,7 @@ public class MCS {
 	/**
 	 * send a DOMAIN_PARAMS structure encoded according to the ISO ASN.1 Basic
 	 * Encoding rules
-	 * 
+	 *
 	 * @param buffer
 	 *            Packet in which to send the structure
 	 * @param max_channels
@@ -396,9 +399,9 @@ public class MCS {
 	}
 
 	/**
-	 * 
+	 *
 	 * Send an MCS_CONNECT_INITIAL message (encoded as ASN.1 Ber)
-	 * 
+	 *
 	 * @param data
 	 *            Packet in which to send the message
 	 * @throws IOException
@@ -466,7 +469,7 @@ public class MCS {
 
 	/**
 	 * Receive and handle a connect response from the server
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing response data
 	 * @throws IOException
@@ -512,7 +515,7 @@ public class MCS {
 		 * size!"+length); length=data.size(); } data.copyFromPacket(buffer,
 		 * buffer.getPosition(), 0, length); data.setPosition(0);
 		 * data.markEnd(length); buffer.incrementPosition(length);
-		 * 
+		 *
 		 * if (buffer.getPosition() != buffer.getEnd()) { throw new
 		 * RdesktopException(); }
 		 */
@@ -520,7 +523,7 @@ public class MCS {
 
 	/**
 	 * Transmit an EDrq message
-	 * 
+	 *
 	 * @throws IOException
 	 * @throws RdesktopException
 	 */
@@ -536,7 +539,7 @@ public class MCS {
 
 	/**
 	 * Transmit a CJrq message
-	 * 
+	 *
 	 * @param channelid
 	 *            Id of channel to be identified in request
 	 * @throws IOException
@@ -553,7 +556,7 @@ public class MCS {
 
 	/**
 	 * Transmit an AUcf message
-	 * 
+	 *
 	 * @throws IOException
 	 * @throws RdesktopException
 	 */
@@ -568,7 +571,7 @@ public class MCS {
 
 	/**
 	 * Transmit an AUrq mesage
-	 * 
+	 *
 	 * @throws IOException
 	 * @throws RdesktopException
 	 */
@@ -582,12 +585,12 @@ public class MCS {
 
 	/**
 	 * Receive and handle a CJcf message
-	 * 
+	 *
 	 * @throws IOException
 	 * @throws RdesktopException
 	 */
 	public void receive_cjcf() throws IOException, RdesktopException,
-			OrderException, CryptoException {
+	OrderException, CryptoException {
 		logger.debug("receive_cjcf");
 		int opcode = 0, result = 0;
 		RdpPacket_Localised buffer = IsoLayer.receive();
@@ -615,7 +618,7 @@ public class MCS {
 
 	/**
 	 * Receive an AUcf message
-	 * 
+	 *
 	 * @return UserID specified in message
 	 * @throws IOException
 	 * @throws RdesktopException
@@ -623,7 +626,7 @@ public class MCS {
 	 * @throws CryptoException
 	 */
 	public int receive_aucf() throws IOException, RdesktopException,
-			OrderException, CryptoException {
+	OrderException, CryptoException {
 		logger.debug("receive_aucf");
 		int opcode = 0, result = 0, UserID = 0;
 		RdpPacket_Localised buffer = IsoLayer.receive();
@@ -650,7 +653,7 @@ public class MCS {
 
 	/**
 	 * Parse a BER header and determine data length
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing header at current read position
 	 * @param tagval
@@ -692,7 +695,7 @@ public class MCS {
 
 	/**
 	 * Parse domain parameters sent by server
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing domain parameters at current read position
 	 * @throws RdesktopException
@@ -711,7 +714,7 @@ public class MCS {
 
 	/**
 	 * Retrieve the user ID stored by this MCS object
-	 * 
+	 *
 	 * @return User ID
 	 */
 	public int getUserID() {

@@ -1,31 +1,31 @@
 /* SendEvent.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
  *
  * Copyright (c) 2005 Propero Limited
  *
- * Purpose: 
- * 
+ * Purpose:
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 package net.propero.rdp.tools;
 
@@ -86,7 +86,7 @@ public class SendEvent extends JFrame {
 
 	/**
 	 * This method initializes this
-	 * 
+	 *
 	 * @return void
 	 */
 	private void initialize() {
@@ -97,7 +97,7 @@ public class SendEvent extends JFrame {
 
 	/**
 	 * This method initializes jContentPane
-	 * 
+	 *
 	 * @return javax.swing.JPanel
 	 */
 	private javax.swing.JPanel getJContentPane() {
@@ -172,7 +172,7 @@ public class SendEvent extends JFrame {
 
 	/**
 	 * This method initializes inputTypeField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getInputTypeField() {
@@ -184,7 +184,7 @@ public class SendEvent extends JFrame {
 
 	/**
 	 * This method initializes flagsField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getFlagsField() {
@@ -196,7 +196,7 @@ public class SendEvent extends JFrame {
 
 	/**
 	 * This method initializes param1Field
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getParam1Field() {
@@ -208,7 +208,7 @@ public class SendEvent extends JFrame {
 
 	/**
 	 * This method initializes param2Field
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getParam2Field() {
@@ -220,7 +220,7 @@ public class SendEvent extends JFrame {
 
 	/**
 	 * This method initializes jButton
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	private JButton getJButton() {
@@ -228,13 +228,14 @@ public class SendEvent extends JFrame {
 			jButton = new JButton();
 			jButton.setText("Send Event");
 			jButton.addActionListener(new java.awt.event.ActionListener() {
+				@Override
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					if (rdp != null) {
 						rdp.sendInput(Input.getTime(), Integer.decode(
 								inputTypeField.getText()).intValue(), Integer
 								.decode(flagsField.getText()).intValue(),
 								Integer.decode(param1Field.getText())
-										.intValue(), Integer.decode(
+								.intValue(), Integer.decode(
 										param2Field.getText()).intValue());
 					}
 				}
@@ -245,7 +246,7 @@ public class SendEvent extends JFrame {
 
 	/**
 	 * This method initializes flagMaskField
-	 * 
+	 *
 	 * @return javax.swing.JTextField
 	 */
 	private JTextField getFlagMaskField() {
@@ -257,7 +258,7 @@ public class SendEvent extends JFrame {
 
 	/**
 	 * This method initializes jButton1
-	 * 
+	 *
 	 * @return javax.swing.JButton
 	 */
 	private JButton getJButton1() {
@@ -265,13 +266,14 @@ public class SendEvent extends JFrame {
 			jButton1 = new JButton();
 			jButton1.setText("Apply Mask");
 			jButton1.addActionListener(new java.awt.event.ActionListener() {
+				@Override
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					// apply the mask to the flags field
 					flagsField.setText("0x"
 							+ Integer.toHexString(Integer.decode(
 									flagsField.getText()).intValue()
 									| Integer.decode(flagMaskField.getText())
-											.intValue()));
+									.intValue()));
 					flagMaskField.setText("");
 				}
 			});

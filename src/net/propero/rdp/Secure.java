@@ -1,6 +1,6 @@
 /* Secure.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -9,24 +9,24 @@
  * Copyright (c) 2008 IsmAvatar <cmagicj@nni.com>
  *
  * Purpose: Secure layer of communication
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 package net.propero.rdp;
 
@@ -141,13 +141,13 @@ public class Secure {
 	private byte[] client_random = new byte[SEC_RANDOM_SIZE];
 
 	private static final byte[] pad_54 = { 54, 54, 54, 54, 54, 54, 54, 54, 54,
-			54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
-			54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54 };
+		54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+		54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54 };
 
 	private static final byte[] pad_92 = { 92, 92, 92, 92, 92, 92, 92, 92, 92,
-			92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92,
-			92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92,
-			92, 92, 92, 92, 92 };
+		92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92,
+		92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92,
+		92, 92, 92, 92, 92 };
 
 	private VChannels channels;
 
@@ -155,7 +155,7 @@ public class Secure {
 
 	/**
 	 * Initialise Secure layer of communications
-	 * 
+	 *
 	 * @param channels
 	 *            Virtual channels for this connection
 	 * @param options
@@ -184,7 +184,7 @@ public class Secure {
 
 	/**
 	 * Connect to server
-	 * 
+	 *
 	 * @param host
 	 *            Address of server to connect to
 	 * @param port
@@ -219,7 +219,7 @@ public class Secure {
 
 	/**
 	 * Connect to server on default port
-	 * 
+	 *
 	 * @param host
 	 *            Server to connect to
 	 * @throws IOException
@@ -228,7 +228,7 @@ public class Secure {
 	 * @throws CryptoException
 	 */
 	public void connect(InetAddress host) throws IOException,
-			RdesktopException, OrderException, CryptoException {
+	RdesktopException, OrderException, CryptoException {
 		this.connect(host, options.port);
 	}
 
@@ -241,7 +241,7 @@ public class Secure {
 
 	/**
 	 * Construct MCS data, including channel, encryption and display options
-	 * 
+	 *
 	 * @return Packet populated with MCS data
 	 */
 	public RdpPacket_Localised sendMcsData() {
@@ -257,11 +257,13 @@ public class Secure {
 		}
 
 		int length = 158;
-		if (options.use_rdp5)
+		if (options.use_rdp5) {
 			length += 76 + 12 + 4;
+		}
 
-		if (options.use_rdp5 && (channels.num_channels() > 0))
+		if (options.use_rdp5 && (channels.num_channels() > 0)) {
 			length += channels.num_channels() * 12 + 8;
+		}
 
 		buffer.setBigEndian16(5); /* unknown */
 		buffer.setBigEndian16(0x14);
@@ -337,12 +339,14 @@ public class Secure {
 		// 0x1b : 0); // 128-bit encryption supported
 		// else
 		buffer
-				.setLittleEndian32(options.encryption ? (options.console_session ? 0xb
-						: 0x3)
-						: 0);
+		.setLittleEndian32(options.encryption ? (options.console_session ? 0xb
+				: 0x3)
+				: 0);
 
 		if (options.use_rdp5)
+		{
 			buffer.setLittleEndian32(0); // unknown
+		}
 
 		if (options.use_rdp5 && (channels.num_channels() > 0)) {
 			logger.debug(("num_channels is " + channels.num_channels()));
@@ -377,7 +381,7 @@ public class Secure {
 	/**
 	 * Handle MCS info from server (server info, encryption info and channel
 	 * information)
-	 * 
+	 *
 	 * @param mcs_data
 	 *            Data received from server
 	 */
@@ -397,18 +401,19 @@ public class Secure {
 			tag = mcs_data.getLittleEndian16();
 			length = mcs_data.getLittleEndian16();
 
-			if (length <= 4)
+			if (length <= 4) {
 				return;
+			}
 
 			nexttag = mcs_data.getPosition() + length - 4;
 
 			switch (tag) {
 			case (Secure.SEC_TAG_SRV_INFO):
 				processSrvInfo(mcs_data);
-				break;
+			break;
 			case (Secure.SEC_TAG_SRV_CRYPT):
 				this.processCryptInfo(mcs_data);
-				break;
+			break;
 			case (Secure.SEC_TAG_SRV_CHANNELS):
 				/*
 				 * FIXME: We should parse this information and use it to map
@@ -427,7 +432,7 @@ public class Secure {
 
 	/**
 	 * Read server info from packet, specifically the RDP version of the server
-	 * 
+	 *
 	 * @param mcs_data
 	 *            Packet to read
 	 */
@@ -435,12 +440,13 @@ public class Secure {
 		options.server_rdp_version = mcs_data.getLittleEndian16(); // in_uint16_le(s,
 		// g_server_rdp_version);
 		logger.debug(("Server RDP version is " + options.server_rdp_version));
-		if (1 == options.server_rdp_version)
+		if (1 == options.server_rdp_version) {
 			options.use_rdp5 = false;
+		}
 	}
 
 	public void establishKey() throws RdesktopException, IOException,
-			CryptoException {
+	CryptoException {
 		int length = server_public_key_len + SEC_PADDING_SIZE;
 		int flags = SEC_CLIENT_RANDOM;
 		RdpPacket_Localised buffer = this.init(flags, length + 4);
@@ -468,8 +474,8 @@ public class Secure {
 		// this.client_random = this.generateRandom(SEC_RANDOM_SIZE);
 		logger.debug("readCert = " + readCert);
 		if (readCert) { /*
-						 * Which means we should use RDP5-style encryption
-						 */
+		 * Which means we should use RDP5-style encryption
+		 */
 
 			// *** reverse the client random
 			// this.reverse(this.client_random);
@@ -480,7 +486,7 @@ public class Secure {
 			 * this.exponent =
 			 * this.server_public_key.getPublicExponent().toByteArray();
 			 * this.modulus = this.server_public_key.getModulus().toByteArray();
-			 * 
+			 *
 			 * System.out.println("Exponent: " +
 			 * server_public_key.getPublicExponent());
 			 * System.out.println("Modulus: " + server_public_key.getModulus());
@@ -502,7 +508,7 @@ public class Secure {
 
 	/**
 	 * Intialise a packet at the Secure layer
-	 * 
+	 *
 	 * @param flags
 	 *            Encryption flags
 	 * @param length
@@ -515,10 +521,11 @@ public class Secure {
 		int headerlength = 0;
 		RdpPacket_Localised buffer;
 
-		if (!this.licenceIssued)
+		if (!this.licenceIssued) {
 			headerlength = ((flags & SEC_ENCRYPT) != 0) ? 12 : 4;
-		else
+		} else {
 			headerlength = ((flags & SEC_ENCRYPT) != 0) ? 12 : 0;
+		}
 
 		buffer = McsLayer.init(length + headerlength);
 		buffer.pushLayer(RdpPacket.SECURE_HEADER, headerlength);
@@ -530,7 +537,7 @@ public class Secure {
 
 	/**
 	 * Send secure data on the global channel
-	 * 
+	 *
 	 * @param sec_data
 	 *            Data to send
 	 * @param flags
@@ -546,7 +553,7 @@ public class Secure {
 
 	/**
 	 * Prepare data as a Secure PDU and pass down to the MCS layer
-	 * 
+	 *
 	 * @param sec_data
 	 *            Data to send
 	 * @param flags
@@ -592,7 +599,7 @@ public class Secure {
 
 	/**
 	 * Generate MD5 signature
-	 * 
+	 *
 	 * @param session_key
 	 *            Key with which to sign data
 	 * @param length
@@ -636,7 +643,7 @@ public class Secure {
 
 	/**
 	 * Encrypt specified number of bytes from provided data using RC4 algorithm
-	 * 
+	 *
 	 * @param data
 	 *            Data to encrypt
 	 * @param length
@@ -663,7 +670,7 @@ public class Secure {
 
 	/**
 	 * Encrypt provided data using the RC4 algorithm
-	 * 
+	 *
 	 * @param data
 	 *            Data to encrypt
 	 * @return Encrypted data
@@ -689,7 +696,7 @@ public class Secure {
 
 	/**
 	 * Decrypt specified number of bytes from provided data using RC4 algorithm
-	 * 
+	 *
 	 * @param data
 	 *            Data to decrypt
 	 * @param length
@@ -716,7 +723,7 @@ public class Secure {
 
 	/**
 	 * Decrypt provided data using RC4 algorithm
-	 * 
+	 *
 	 * @param data
 	 *            Data to decrypt
 	 * @return Decrypted data
@@ -743,7 +750,7 @@ public class Secure {
 	/**
 	 * Read encryption information from a Secure layer PDU, obtaining and
 	 * storing level of encryption and any keys received
-	 * 
+	 *
 	 * @param data
 	 *            Packet to read encryption information from
 	 * @return Size of RC4 key
@@ -805,7 +812,7 @@ public class Secure {
 						return 0;
 					}
 
-					break;
+				break;
 				case (Secure.SEC_TAG_KEYSIG):
 					// Microsoft issued a key but we don't care
 					break;
@@ -843,19 +850,19 @@ public class Secure {
 	/*
 	 * public X509Certificate readCert(int length, RdpPacket_Localised data){
 	 * byte[] buf = new byte[length];
-	 * 
+	 *
 	 * data.copyToByteArray(buf,0,data.getPosition(),buf.length);
 	 * data.incrementPosition(length);
-	 * 
+	 *
 	 * for(int i = 0; i < buf.length; i++){ buf[i] = (byte) (buf[i] & 0xFF); }
-	 * 
+	 *
 	 * ByteArrayInputStream bIn = new ByteArrayInputStream(buf); X509Certificate
 	 * cert = null; CertificateFactory cf = null; try { cf =
 	 * CertificateFactory.getInstance("X.509"); cert =
 	 * (X509Certificate)cf.generateCertificate(bIn); } catch
 	 * (CertificateException e) { // TODO Auto-generated catch block
 	 * e.printStackTrace(); }
-	 * 
+	 *
 	 * bIn.reset(); return cert; }
 	 */
 	public void generateRandom() {
@@ -935,7 +942,7 @@ public class Secure {
 	/**
 	 * Read in a public key from a provided Secure layer PDU, and store in
 	 * this.exponent and this.modulus
-	 * 
+	 *
 	 * @param data
 	 *            Secure layer PDU containing key data
 	 * @return True if key successfully read
@@ -980,7 +987,7 @@ public class Secure {
 
 	/**
 	 * Reverse the values in the provided array
-	 * 
+	 *
 	 * @param data
 	 *            Array as passed reversed on return
 	 */
@@ -1043,7 +1050,7 @@ public class Secure {
 
 	/**
 	 * Generate a 40-bit key and store in the parameter key.
-	 * 
+	 *
 	 * @param key
 	 */
 	public void make40bit(byte[] key) {
@@ -1053,7 +1060,7 @@ public class Secure {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param key
 	 * @param update_key
 	 * @return
@@ -1095,7 +1102,7 @@ public class Secure {
 
 	/**
 	 * Write a 32-bit integer value to an array of bytes, length 4
-	 * 
+	 *
 	 * @param data
 	 *            Modified by method to be a 4-byte array representing the
 	 *            parameter value
@@ -1112,7 +1119,7 @@ public class Secure {
 
 	/**
 	 * Receive a Secure layer PDU from the MCS layer
-	 * 
+	 *
 	 * @return Packet representing received Secure PDU
 	 * @throws RdesktopException
 	 * @throws IOException
@@ -1120,14 +1127,15 @@ public class Secure {
 	 * @throws OrderException
 	 */
 	public RdpPacket_Localised receive() throws RdesktopException, IOException,
-			CryptoException, OrderException {
+	CryptoException, OrderException {
 		int sec_flags = 0;
 		RdpPacket_Localised buffer = null;
 		while (true) {
 			int[] channel = new int[1];
 			buffer = McsLayer.receive(channel);
-			if (buffer == null)
+			if (buffer == null) {
 				return null;
+			}
 			buffer.setHeader(RdpPacket.SECURE_HEADER);
 			if (options.encryption || (!this.licenceIssued)) {
 
@@ -1164,7 +1172,7 @@ public class Secure {
 
 	/**
 	 * Generate encryption keys of applicable size for connection
-	 * 
+	 *
 	 * @param rc4_key_size
 	 *            Size of keys to generate (1 if 40-bit encryption, otherwise
 	 *            128-bit)

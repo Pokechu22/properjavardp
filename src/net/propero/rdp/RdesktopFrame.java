@@ -1,6 +1,6 @@
 /* RdesktopFrame.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: Window for RDP session
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 package net.propero.rdp;
 
@@ -74,7 +74,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 
 	/**
 	 * Register the clipboard channel
-	 * 
+	 *
 	 * @param c
 	 *            ClipChannel object for controlling clipboard mapping
 	 */
@@ -82,22 +82,26 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 		canvas.addFocusListener(c);
 	}
 
+	@Override
 	public boolean action(Event event, Object arg) {
-		if (menu != null)
+		if (menu != null) {
 			return menu.action(event, arg);
+		}
 		return false;
 	}
 
 	protected boolean inFullscreen = false;
 
 	public void goFullScreen() {
-		if (!options.fullscreen)
+		if (!options.fullscreen) {
 			return;
+		}
 
 		inFullscreen = true;
 
-		if (this.isDisplayable())
+		if (this.isDisplayable()) {
 			this.dispose();
+		}
 		this.setVisible(false);
 		this.setLocation(0, 0);
 		this.setUndecorated(true);
@@ -113,19 +117,22 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 	}
 
 	public void leaveFullScreen() {
-		if (!options.fullscreen)
+		if (!options.fullscreen) {
 			return;
+		}
 
 		inFullscreen = false;
 
-		if (this.isDisplayable())
+		if (this.isDisplayable()) {
 			this.dispose();
+		}
 
 		GraphicsEnvironment env = GraphicsEnvironment
 				.getLocalGraphicsEnvironment();
 		GraphicsDevice myDevice = env.getDefaultScreenDevice();
-		if (myDevice.isFullScreenSupported())
+		if (myDevice.isFullScreenSupported()) {
 			myDevice.setFullScreenWindow(null);
+		}
 
 		this.setLocation(10, 10);
 		this.setUndecorated(false);
@@ -138,10 +145,11 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 	 * Switch in/out of fullscreen mode
 	 */
 	public void toggleFullScreen() {
-		if (inFullscreen)
+		if (inFullscreen) {
 			leaveFullScreen();
-		else
+		} else {
 			goFullScreen();
+		}
 	}
 
 	private boolean menuVisible = false;
@@ -150,11 +158,13 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 	 * Display the menu bar
 	 */
 	public void showMenu() {
-		if (menu == null)
+		if (menu == null) {
 			menu = new RdpMenu(options, this);
+		}
 
-		if (!menuVisible && options.enable_menu)
+		if (!menuVisible && options.enable_menu) {
 			this.setMenuBar(menu);
+		}
 		canvas.repaint();
 		menuVisible = true;
 	}
@@ -163,8 +173,9 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 	 * Hide the menu bar
 	 */
 	public void hideMenu() {
-		if (menuVisible && options.enable_menu)
+		if (menuVisible && options.enable_menu) {
 			this.setMenuBar(null);
+		}
 		// canvas.setSize(this.WIDTH, this.HEIGHT);
 		canvas.repaint();
 		menuVisible = false;
@@ -172,13 +183,14 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 
 	/**
 	 * Toggle the menu on/off (show if hidden, hide if visible)
-	 * 
+	 *
 	 */
 	public void toggleMenu() {
-		if (!menuVisible)
+		if (!menuVisible) {
 			showMenu();
-		else
+		} else {
 			hideMenu();
+		}
 	}
 
 	protected final Options options;
@@ -196,9 +208,11 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 		setTitle(options.windowTitle);
 
 		if (options.os == Options.OS.WINDOWS)
+		{
 			setResizable(false);
-		// Windows has to setResizable(false) before pack,
-		// else draws on the frame
+			// Windows has to setResizable(false) before pack,
+			// else draws on the frame
+		}
 
 		if (options.fullscreen) {
 			goFullScreen();
@@ -210,8 +224,10 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 		}
 
 		if (options.os != Options.OS.WINDOWS)
+		{
 			setResizable(false);
-		// Linux Java 1.3 needs pack() before setResizeable
+			// Linux Java 1.3 needs pack() before setResizeable
+		}
 
 		addWindowListener(new RdesktopWindowAdapter());
 		canvas.addFocusListener(new RdesktopFocusListener());
@@ -225,7 +241,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 
 	/**
 	 * Retrieve the canvas contained within this frame
-	 * 
+	 *
 	 * @return RdesktopCanvas object associated with this frame
 	 */
 	@Override
@@ -235,7 +251,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 
 	/**
 	 * Register the RDP communications layer with this frame
-	 * 
+	 *
 	 * @param rdp
 	 *            Rdp object encapsulating the RDP comms layer
 	 */
@@ -246,7 +262,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 
 	/**
 	 * Register keymap
-	 * 
+	 *
 	 * @param keys
 	 *            Keymapping object for use in handling keyboard events
 	 */
@@ -256,6 +272,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 
 	class RdesktopFocusListener implements FocusListener {
 
+		@Override
 		public void focusGained(FocusEvent arg0) {
 			if (options.os == Options.OS.WINDOWS) {
 				// canvas.repaint();
@@ -265,6 +282,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 			canvas.gainedFocus();
 		}
 
+		@Override
 		public void focusLost(FocusEvent arg0) {
 			// lost focus - need clear keys that are down
 			canvas.lostFocus();
@@ -273,17 +291,20 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 
 	class RdesktopWindowAdapter extends WindowAdapter {
 
+		@Override
 		public void windowClosing(WindowEvent e) {
 			hide();
 			Rdesktop.exit(0, rdp, (RdesktopFrame) e.getWindow(), true);
 		}
 
+		@Override
 		public void windowLostFocus(WindowEvent e) {
 			logger.info("windowLostFocus");
 			// lost focus - need clear keys that are down
 			canvas.lostFocus();
 		}
 
+		@Override
 		public void windowDeiconified(WindowEvent e) {
 			if (options.os == Options.OS.WINDOWS) {
 				// canvas.repaint();
@@ -292,6 +313,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 			canvas.gainedFocus();
 		}
 
+		@Override
 		public void windowActivated(WindowEvent e) {
 			if (options.os == Options.OS.WINDOWS) {
 				// canvas.repaint();
@@ -301,6 +323,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 			canvas.gainedFocus();
 		}
 
+		@Override
 		public void windowGainedFocus(WindowEvent e) {
 			if (options.os == Options.OS.WINDOWS) {
 				// canvas.repaint();
@@ -312,6 +335,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 	}
 
 	class RdesktopComponentAdapter extends ComponentAdapter {
+		@Override
 		public void componentMoved(ComponentEvent e) {
 			canvas.repaint(0, 0, options.width, options.height);
 		}
@@ -333,8 +357,9 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 			// this.add("Center",msg);
 			Panel msg = new Panel();
 			msg.setLayout(new GridLayout(message.length, 1));
-			for (int i = 0; i < message.length; i++)
+			for (int i = 0; i < message.length; i++) {
 				msg.add(new Label(message[i], Label.CENTER));
+			}
 			this.add("Center", msg);
 
 			Panel p = new Panel();
@@ -347,17 +372,20 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 			p.add(no);
 			this.add("South", p);
 			this.pack();
-			if (getSize().width < 240)
+			if (getSize().width < 240) {
 				setSize(new Dimension(240, getSize().height));
+			}
 
 			centreWindow(this);
 		}
 
+		@Override
 		public void actionPerformed(ActionEvent e) {
-			if (e.getSource() == yes)
+			if (e.getSource() == yes) {
 				retry = true;
-			else
+			} else {
 				retry = false;
+			}
 			this.hide();
 			this.dispose();
 		}
@@ -376,8 +404,9 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 
 			Panel msg = new Panel();
 			msg.setLayout(new GridLayout(message.length, 1));
-			for (int i = 0; i < message.length; i++)
+			for (int i = 0; i < message.length; i++) {
 				msg.add(new Label(message[i], Label.CENTER));
+			}
 			this.add("Center", msg);
 
 			Panel p = new Panel();
@@ -388,12 +417,14 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 			this.add("South", p);
 			this.pack();
 
-			if (getSize().width < 240)
+			if (getSize().width < 240) {
 				setSize(new Dimension(240, getSize().height));
+			}
 
 			centreWindow(this);
 		}
 
+		@Override
 		public void actionPerformed(ActionEvent e) {
 			this.hide();
 			this.dispose();
@@ -403,7 +434,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 	/**
 	 * Display an error dialog with "Yes" and "No" buttons and the title
 	 * "properJavaRDP error"
-	 * 
+	 *
 	 * @param msg
 	 *            Array of message lines to display in dialog box
 	 * @return True if "Yes" was clicked to dismiss box
@@ -417,7 +448,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 
 	/**
 	 * Display an error dialog with the title "properJavaRDP error"
-	 * 
+	 *
 	 * @param msg
 	 *            Array of message lines to display in dialog box
 	 */
@@ -437,7 +468,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 
 	/**
 	 * Centre a window to the screen
-	 * 
+	 *
 	 * @param f
 	 *            Window to be centred
 	 */
@@ -446,10 +477,14 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 		Dimension window_size = f.getSize();
 		int x = (screen_size.width - window_size.width) / 2;
 		if (x < 0)
+		{
 			x = 0; // window can be bigger than screen
+		}
 		int y = (screen_size.height - window_size.height) / 2;
 		if (y < 0)
+		{
 			y = 0; // window can be bigger than screen
+		}
 		f.setLocation(x, y);
 	}
 

@@ -1,6 +1,6 @@
 /* Licence.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: Handles request, receipt and processing of licences
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 // Created on 02-Jul-2003
 package net.propero.rdp;
@@ -115,7 +115,7 @@ public class Licence {
 
 	/**
 	 * Process and handle licence data from a packet
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing licence data
 	 * @throws RdesktopException
@@ -123,7 +123,7 @@ public class Licence {
 	 * @throws CryptoException
 	 */
 	public void process(RdpPacket_Localised data) throws RdesktopException,
-			IOException, CryptoException {
+	IOException, CryptoException {
 		int tag = 0;
 		tag = data.get8();
 		data.incrementPosition(3); // version, length
@@ -132,19 +132,19 @@ public class Licence {
 
 		case (LICENCE_TAG_DEMAND):
 			this.process_demand(data);
-			break;
+		break;
 
 		case (LICENCE_TAG_AUTHREQ):
 			this.process_authreq(data);
-			break;
+		break;
 
 		case (LICENCE_TAG_ISSUE):
 			this.process_issue(data);
-			break;
+		break;
 
 		case (LICENCE_TAG_REISSUE):
 			logger.debug("Presented licence was accepted!");
-			break;
+		break;
 
 		case (LICENCE_TAG_RESULT):
 			break;
@@ -158,7 +158,7 @@ public class Licence {
 	/**
 	 * Process a demand for a licence. Find a license and transmit to server, or
 	 * request new licence
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing details of licence demand
 	 * @throws UnsupportedEncodingException
@@ -212,7 +212,7 @@ public class Licence {
 	/**
 	 * Handle an authorisation request, based on a licence signature (store
 	 * signatures in this Licence object
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing details of request
 	 * @return True if signature is read successfully
@@ -248,7 +248,7 @@ public class Licence {
 	/**
 	 * Respond to authorisation request, with token, hwid and signature, send
 	 * response to server
-	 * 
+	 *
 	 * @param token
 	 *            Token data
 	 * @param crypt_hwid
@@ -274,8 +274,8 @@ public class Licence {
 		data.setLittleEndian16(1);
 		data.setLittleEndian16(LICENCE_TOKEN_SIZE);
 		data
-				.copyFromByteArray(token, 0, data.getPosition(),
-						LICENCE_TOKEN_SIZE);
+		.copyFromByteArray(token, 0, data.getPosition(),
+				LICENCE_TOKEN_SIZE);
 		data.incrementPosition(LICENCE_TOKEN_SIZE);
 
 		data.setLittleEndian16(1);
@@ -293,7 +293,7 @@ public class Licence {
 
 	/**
 	 * Present a licence to the server
-	 * 
+	 *
 	 * @param client_random
 	 * @param rsa_data
 	 * @param licence_data
@@ -306,10 +306,10 @@ public class Licence {
 	 */
 	public void present(byte[] client_random, byte[] rsa_data,
 			byte[] licence_data, int licence_size, byte[] hwid, byte[] signature)
-			throws RdesktopException, IOException, CryptoException {
+					throws RdesktopException, IOException, CryptoException {
 		int sec_flags = Secure.SEC_LICENCE_NEG;
 		int length = /* rdesktop is 16 not 20, but this must be wrong?! */
-		20 + Secure.SEC_RANDOM_SIZE + Secure.SEC_MODULUS_SIZE
+				20 + Secure.SEC_RANDOM_SIZE + Secure.SEC_MODULUS_SIZE
 				+ Secure.SEC_PADDING_SIZE + licence_size + LICENCE_HWID_SIZE
 				+ LICENCE_SIGNATURE_SIZE;
 
@@ -328,7 +328,7 @@ public class Licence {
 		s.incrementPosition(Secure.SEC_RANDOM_SIZE);
 		s.setLittleEndian16(0);
 		s
-				.setLittleEndian16((Secure.SEC_MODULUS_SIZE + Secure.SEC_PADDING_SIZE));
+		.setLittleEndian16((Secure.SEC_MODULUS_SIZE + Secure.SEC_PADDING_SIZE));
 		s.copyFromByteArray(rsa_data, 0, s.getPosition(),
 				Secure.SEC_MODULUS_SIZE);
 		s.incrementPosition(Secure.SEC_MODULUS_SIZE);
@@ -353,7 +353,7 @@ public class Licence {
 
 	/**
 	 * Process an authorisation request
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing request details
 	 * @throws RdesktopException
@@ -393,8 +393,8 @@ public class Licence {
 
 		/* generate signature for a buffer of token and HWId */
 		System
-				.arraycopy(decrypt_token, 0, sealed_buffer, 0,
-						LICENCE_TOKEN_SIZE);
+		.arraycopy(decrypt_token, 0, sealed_buffer, 0,
+				LICENCE_TOKEN_SIZE);
 		System.arraycopy(hwid, 0, sealed_buffer, LICENCE_TOKEN_SIZE,
 				LICENCE_HWID_SIZE);
 
@@ -418,7 +418,7 @@ public class Licence {
 	/**
 	 * Handle a licence issued by the server, save to disk if
 	 * options.save_licence
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing issued licence
 	 * @throws CryptoException
@@ -459,13 +459,14 @@ public class Licence {
 
 		secure.licenceIssued = true;
 		logger.debug("Server issued Licence");
-		if (options.save_licence)
+		if (options.save_licence) {
 			save_licence(data, length - 2);
+		}
 	}
 
 	/**
 	 * Send a request for a new licence, or to approve a stored licence
-	 * 
+	 *
 	 * @param client_random
 	 * @param rsa_data
 	 * @param username
@@ -519,8 +520,8 @@ public class Licence {
 					userlen - 1);
 		} else {
 			buffer
-					.copyFromByteArray(username, 0, buffer.getPosition(),
-							userlen);
+			.copyFromByteArray(username, 0, buffer.getPosition(),
+					userlen);
 		}
 
 		buffer.incrementPosition(userlen);
@@ -533,8 +534,8 @@ public class Licence {
 					hostlen - 1);
 		} else {
 			buffer
-					.copyFromByteArray(hostname, 0, buffer.getPosition(),
-							hostlen);
+			.copyFromByteArray(hostname, 0, buffer.getPosition(),
+					hostlen);
 		}
 		buffer.incrementPosition(hostlen);
 		buffer.markEnd();
@@ -543,7 +544,7 @@ public class Licence {
 
 	/**
 	 * Load a licence from disk
-	 * 
+	 *
 	 * @return Raw byte data for stored licence
 	 */
 	private byte[] load_licence() {
@@ -554,7 +555,7 @@ public class Licence {
 
 	/**
 	 * Save a licence to disk
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing licence data
 	 * @param length
@@ -593,7 +594,7 @@ public class Licence {
 
 	/**
 	 * Generate a set of encryption keys
-	 * 
+	 *
 	 * @param client_key
 	 *            Array in which to store client key
 	 * @param server_key

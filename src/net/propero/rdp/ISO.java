@@ -1,6 +1,6 @@
 /* ISO.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: ISO layer of communication
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 package net.propero.rdp;
 
@@ -84,7 +84,7 @@ public class ISO {
 
 	/**
 	 * Initialise an ISO PDU
-	 * 
+	 *
 	 * @param length
 	 *            Desired length of PDU
 	 * @return Packet configured as ISO PDU, ready to write at higher level
@@ -102,7 +102,7 @@ public class ISO {
 
 	/**
 	 * Create a socket for this ISO object
-	 * 
+	 *
 	 * @param host
 	 *            Address of server
 	 * @param port
@@ -119,7 +119,7 @@ public class ISO {
 
 	/**
 	 * Connect to a server
-	 * 
+	 *
 	 * @param host
 	 *            Address of server
 	 * @param port
@@ -130,7 +130,7 @@ public class ISO {
 	 * @throws CryptoException
 	 */
 	public void connect(InetAddress host, int port) throws IOException,
-			RdesktopException, OrderException, CryptoException {
+	RdesktopException, OrderException, CryptoException {
 		int[] code = new int[1];
 		doSocketConnect(host, port);
 		rdpsock.setTcpNoDelay(options.low_latency);
@@ -159,7 +159,7 @@ public class ISO {
 
 	/**
 	 * Send a self contained iso-pdu
-	 * 
+	 *
 	 * @param type
 	 *            one of the following CONNECT_RESPONSE, DISCONNECT_REQUEST
 	 * @exception IOException
@@ -178,7 +178,7 @@ public class ISO {
 		buffer.setBigEndian16(0); // Destination reference ( 0 at CC and DR)
 
 		buffer.setBigEndian16(0); // source reference should be a reasonable
-									// address we use 0
+		// address we use 0
 		buffer.set8(0); // service class
 		buffer.copyToByteArray(packet, 0, 0, packet.length);
 		out.write(packet);
@@ -187,16 +187,17 @@ public class ISO {
 
 	/**
 	 * Send a packet to the server, wrapped in ISO PDU
-	 * 
+	 *
 	 * @param buffer
 	 *            Packet containing data to send to server
 	 * @throws RdesktopException
 	 * @throws IOException
 	 */
 	public void send(RdpPacket_Localised buffer) throws RdesktopException,
-			IOException {
-		if (rdpsock == null || out == null)
+	IOException {
+		if (rdpsock == null || out == null) {
 			return;
+		}
 		if (buffer.getEnd() < 0) {
 			throw new RdesktopException("No End Mark!");
 		} else {
@@ -212,8 +213,9 @@ public class ISO {
 			buffer.set8(DATA_TRANSFER);
 			buffer.set8(EOT);
 			buffer.copyToByteArray(packet, 0, 0, buffer.getEnd());
-			if (options.debug_hexdump)
+			if (options.debug_hexdump) {
 				dump.encode(packet, "SEND"/* System.out */);
+			}
 			out.write(packet);
 			out.flush();
 		}
@@ -221,7 +223,7 @@ public class ISO {
 
 	/**
 	 * Receive a data transfer message from the server
-	 * 
+	 *
 	 * @return Packet containing message (as ISO PDU)
 	 * @throws IOException
 	 * @throws RdesktopException
@@ -229,11 +231,12 @@ public class ISO {
 	 * @throws CryptoException
 	 */
 	public RdpPacket_Localised receive() throws IOException, RdesktopException,
-			OrderException, CryptoException {
+	OrderException, CryptoException {
 		int[] type = new int[1];
 		RdpPacket_Localised buffer = receiveMessage(type);
-		if (buffer == null)
+		if (buffer == null) {
 			return null;
+		}
 		if (type[0] != DATA_TRANSFER) {
 			throw new RdesktopException("Expected DT got:" + type[0]);
 		}
@@ -244,7 +247,7 @@ public class ISO {
 	/**
 	 * Receive a specified number of bytes from the server, and store in a
 	 * packet
-	 * 
+	 *
 	 * @param p
 	 *            Packet to append data to, null results in a new packet being
 	 *            created
@@ -266,8 +269,9 @@ public class ISO {
 		// try{ }
 		// catch(IOException e){ logger.warn("IOException: " + e.getMessage());
 		// return null; }
-		if (options.debug_hexdump)
+		if (options.debug_hexdump) {
 			dump.encode(packet, "RECEIVE" /* System.out */);
+		}
 
 		if (p == null) {
 			buffer = new RdpPacket_Localised(length);
@@ -289,7 +293,7 @@ public class ISO {
 
 	/**
 	 * Receive a message from the server
-	 * 
+	 *
 	 * @param type
 	 *            Array containing message type, stored in type[0]
 	 * @return Packet object containing data of message
@@ -299,7 +303,7 @@ public class ISO {
 	 * @throws CryptoException
 	 */
 	private RdpPacket_Localised receiveMessage(int[] type) throws IOException,
-			RdesktopException, OrderException, CryptoException {
+	RdesktopException, OrderException, CryptoException {
 		logger.debug("ISO.receiveMessage");
 		RdpPacket_Localised s = null;
 		int length, version;
@@ -307,8 +311,9 @@ public class ISO {
 		next_packet: while (true) {
 			logger.debug("next_packet");
 			s = tcp_recv(null, 4);
-			if (s == null)
+			if (s == null) {
 				return null;
+			}
 
 			version = s.get8();
 
@@ -324,14 +329,16 @@ public class ISO {
 			}
 
 			s = tcp_recv(s, length - 4);
-			if (s == null)
+			if (s == null) {
 				return null;
+			}
 			if ((version & 3) == 0) {
 				logger.debug("Processing rdp5 packet");
 				this.rdp.rdp5_process(s, (version & 0x80) != 0);
 				continue next_packet;
-			} else
+			} else {
 				break;
+			}
 		}
 
 		s.get8();
@@ -351,16 +358,20 @@ public class ISO {
 	 * Disconnect from an RDP session, closing all sockets
 	 */
 	public void disconnect() {
-		if (rdpsock == null)
+		if (rdpsock == null) {
 			return;
+		}
 		try {
 			sendMessage(DISCONNECT_REQUEST);
-			if (in != null)
+			if (in != null) {
 				in.close();
-			if (out != null)
+			}
+			if (out != null) {
 				out.close();
-			if (rdpsock != null)
+			}
+			if (rdpsock != null) {
 				rdpsock.close();
+			}
 		} catch (IOException e) {
 			logger.warn("ISO: Failed to disconnect", e);
 			in = null;
@@ -375,14 +386,15 @@ public class ISO {
 
 	/**
 	 * Send the server a connection request, detailing client protocol version
-	 * 
+	 *
 	 * @throws IOException
 	 */
 	void send_connection_request() throws IOException {
 
 		String uname = options.username;
-		if (uname.length() > 9)
+		if (uname.length() > 9) {
 			uname = uname.substring(0, 9);
+		}
 		int length = 11 + (options.username.length() > 0 ? ("Cookie: mstshash="
 				.length()
 				+ uname.length() + 2) : 0) + 8;
@@ -396,13 +408,13 @@ public class ISO {
 		buffer.set8(CONNECTION_REQUEST);
 		buffer.setBigEndian16(0); // Destination reference ( 0 at CC and DR)
 		buffer.setBigEndian16(0); // source reference should be a reasonable
-									// address we use 0
+		// address we use 0
 		buffer.set8(0); // service class
 		if (options.username.length() > 0) {
 			logger.debug("Including username");
 			buffer
-					.out_uint8p("Cookie: mstshash=", "Cookie: mstshash="
-							.length());
+			.out_uint8p("Cookie: mstshash=", "Cookie: mstshash="
+					.length());
 			buffer.out_uint8p(uname, uname.length());
 
 			buffer.set8(0x0d); // unknown

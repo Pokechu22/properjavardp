@@ -8,7 +8,7 @@ public interface RdesktopCallback {
 
 	/**
 	 * Retrieve the canvas associated with this.
-	 * 
+	 *
 	 * @return RdesktopCanvas object associated with this frame (non-null)
 	 */
 	public abstract RdesktopCanvas getCanvas();

@@ -207,7 +207,7 @@ public class DisconnectInfo {
 
 		/**
 		 * Gets the reason with the given code
-		 * 
+		 *
 		 * @param code
 		 *            The code
 		 * @return The given reason, or null if no such reason could be found.

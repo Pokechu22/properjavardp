@@ -11,7 +11,7 @@ package net.propero.rdp.crypto;
  * All rights reserved.
  * <p>
  * <b>$Revision$</b>
- * 
+ *
  * @author David Hopwood
  * @since Cryptix 2.2.2
  */
@@ -42,7 +42,7 @@ public abstract class BlockMessageDigest {
 
 	/**
 	 * Constructs a message digest with the specified algorithm name.
-	 * 
+	 *
 	 * @param algorithm
 	 *            the standard name of the digest algorithm.
 	 */
@@ -71,7 +71,7 @@ public abstract class BlockMessageDigest {
 
 	/**
 	 * <b>SPI</b>: Updates the message digest with a byte of new data.
-	 * 
+	 *
 	 * @param b
 	 *            the byte to be added.
 	 */
@@ -82,7 +82,7 @@ public abstract class BlockMessageDigest {
 
 	/**
 	 * <b>SPI</b>: Updates the message digest with new data.
-	 * 
+	 *
 	 * @param data
 	 *            the data to be added.
 	 * @param offset
@@ -93,9 +93,10 @@ public abstract class BlockMessageDigest {
 	public void engineUpdate(byte[] data, int offset, int length)
 			throws CryptoException {
 		count += length;
-		if (count > MAX_COUNT)
+		if (count > MAX_COUNT) {
 			throw new CryptoException(getAlgorithm()
 					+ ": Maximum input length exceeded");
+		}
 
 		int datalen = data_length;
 		int remainder;
@@ -117,7 +118,7 @@ public abstract class BlockMessageDigest {
 	/**
 	 * <b>SPI</b>: Calculates the final digest. BlockMessageDigest subclasses
 	 * should not usually override this method.
-	 * 
+	 *
 	 * @return the digest as a byte array.
 	 */
 	public byte[] engineDigest() {
@@ -134,7 +135,7 @@ public abstract class BlockMessageDigest {
 	 * <b>SPI</b> (for BlockMessageDigests only): Calculates the final digest.
 	 * <code>data[0..length-1]</code> contains the last incomplete input
 	 * block. <i>length</i> will be less than <code>engineDataLength()</code>.
-	 * 
+	 *
 	 * @param data
 	 *            the last incomplete block.
 	 * @param length

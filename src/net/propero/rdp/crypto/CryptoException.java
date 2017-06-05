@@ -10,7 +10,7 @@ package net.propero.rdp.crypto;
  * All rights reserved.
  * <p>
  * <b>$Revision$</b>
- * 
+ *
  * @author David Hopwood
  * @since Cryptix 2.2.2
  */

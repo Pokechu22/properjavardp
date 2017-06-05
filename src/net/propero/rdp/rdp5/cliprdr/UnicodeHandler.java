@@ -1,31 +1,31 @@
 /* UnicodeHandler.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
  *
  * Copyright (c) 2005 Propero Limited
  *
- * Purpose: 
- * 
+ * Purpose:
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 package net.propero.rdp.rdp5.cliprdr;
 
@@ -33,38 +33,44 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import net.propero.rdp.RdpPacket;
 import net.propero.rdp.RdpPacket_Localised;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class UnicodeHandler extends TypeHandler {
 	private static final Logger logger = LogManager.getLogger();
 
+	@Override
 	public boolean formatValid(int format) {
 		return (format == CF_UNICODETEXT);
 	}
 
+	@Override
 	public boolean mimeTypeValid(String mimeType) {
 		return mimeType.equals("text");
 	}
 
+	@Override
 	public int preferredFormat() {
 		return CF_UNICODETEXT;
 	}
 
+	@Override
 	public void handleData(RdpPacket data, int length, ClipInterface c) {
 		String thingy = "";
 		for (int i = 0; i < length; i += 2) {
 			int aByte = data.getLittleEndian16();
-			if (aByte != 0)
+			if (aByte != 0) {
 				thingy += (char) (aByte);
+			}
 		}
 		c.copyToClipboard(new StringSelection(thingy));
 		// return(new StringSelection(thingy));
 	}
 
+	@Override
 	public String name() {
 		return "CF_UNICODETEXT";
 	}
@@ -98,9 +104,10 @@ public class UnicodeHandler extends TypeHandler {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see net.propero.rdp.rdp5.cliprdr.TypeHandler#send_data(java.awt.datatransfer.Transferable)
 	 */
+	@Override
 	public void send_data(Transferable in, ClipInterface c) {
 		byte[] data = fromTransferable(in);
 		c.send_data(data, data.length);

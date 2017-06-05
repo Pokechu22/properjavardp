@@ -1,31 +1,31 @@
 /* ClipChannel.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
  *
  * Copyright (c) 2005 Propero Limited
  *
- * Purpose: 
- * 
+ * Purpose:
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 package net.propero.rdp.rdp5.cliprdr;
 
@@ -52,7 +52,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class ClipChannel extends VChannel implements ClipInterface,
-		ClipboardOwner, FocusListener {
+ClipboardOwner, FocusListener {
 
 	String[] types = { "unused", "CF_TEXT", "CF_BITMAP", "CF_METAFILEPICT",
 			"CF_SYLK", "CF_DIF", "CF_TIFF", "CF_OEMTEXT", "CF_DIB",
@@ -108,10 +108,12 @@ public class ClipChannel extends VChannel implements ClipInterface,
 	/*
 	 * VChannel inherited abstract methods
 	 */
+	@Override
 	public String name() {
 		return "cliprdr";
 	}
 
+	@Override
 	public int flags() {
 		return VChannels.CHANNEL_OPTION_INITIALIZED
 				| VChannels.CHANNEL_OPTION_ENCRYPT_RDP
@@ -122,8 +124,9 @@ public class ClipChannel extends VChannel implements ClipInterface,
 	/*
 	 * Data processing methods
 	 */
+	@Override
 	public void process(RdpPacket data) throws RdesktopException, IOException,
-			CryptoException {
+	CryptoException {
 
 		int type, status;
 		int length;
@@ -164,6 +167,7 @@ public class ClipChannel extends VChannel implements ClipInterface,
 
 	}
 
+	@Override
 	public void send_null(int type, int status) {
 		RdpPacket_Localised s;
 
@@ -186,7 +190,7 @@ public class ClipChannel extends VChannel implements ClipInterface,
 	}
 
 	void send_format_announce() throws RdesktopException, IOException,
-			CryptoException {
+	CryptoException {
 		Transferable clipData = clipboard.getContents(clipboard);
 		DataFlavor[] dataTypes = clipData.getTransferDataFlavors();
 
@@ -228,8 +232,9 @@ public class ClipChannel extends VChannel implements ClipInterface,
 		send_null(CLIPRDR_FORMAT_ACK, CLIPRDR_RESPONSE);
 		currentHandler = serverTypeList.getFirst();
 
-		if (currentHandler != null)
+		if (currentHandler != null) {
 			request_clipboard_data(currentHandler.preferredFormat());
+		}
 	}
 
 	void handle_data_request(RdpPacket data) {
@@ -255,21 +260,23 @@ public class ClipChannel extends VChannel implements ClipInterface,
 		// null)clipboard.setContents(currentHandler.handleData(data,
 		// length),this);
 		// currentHandler = null;
-		if (currentHandler != null)
+		if (currentHandler != null) {
 			currentHandler.handleData(data, length, this);
+		}
 		currentHandler = null;
 	}
 
 	void request_clipboard_data(int formatcode) throws RdesktopException,
-			IOException, CryptoException {
+	IOException, CryptoException {
 
 		RdpPacket_Localised s = this.secure.init(
 				options.encryption ? Secure.SEC_ENCRYPT : 0, 24);
 		s.setLittleEndian32(16); // length
 
 		int flags = VChannels.CHANNEL_FLAG_FIRST | VChannels.CHANNEL_FLAG_LAST;
-		if ((this.flags() & VChannels.CHANNEL_OPTION_SHOW_PROTOCOL) != 0)
+		if ((this.flags() & VChannels.CHANNEL_OPTION_SHOW_PROTOCOL) != 0) {
 			flags |= VChannels.CHANNEL_FLAG_SHOW_PROTOCOL;
+		}
 
 		s.setLittleEndian32(flags);
 		s.setLittleEndian16(CLIPRDR_DATA_REQUEST);
@@ -283,6 +290,7 @@ public class ClipChannel extends VChannel implements ClipInterface,
 				options.encryption ? Secure.SEC_ENCRYPT : 0, this.mcs_id());
 	}
 
+	@Override
 	public void send_data(byte[] data, int length) {
 		RdpPacket_Localised all = new RdpPacket_Localised(12 + length);
 
@@ -300,22 +308,26 @@ public class ClipChannel extends VChannel implements ClipInterface,
 			this.send_packet(all);
 		} catch (RdesktopException e) {
 			logger.warn("Failed to send clipboard data", e);
-			if (!options.noSystemExit)
+			if (!options.noSystemExit) {
 				System.exit(-1);
+			}
 		} catch (IOException e) {
 			logger.warn("Failed to send clipboard data", e);
-			if (!options.noSystemExit)
+			if (!options.noSystemExit) {
 				System.exit(-1);
+			}
 		} catch (CryptoException e) {
 			logger.warn("Failed to send clipboard data", e);
-			if (!options.noSystemExit)
+			if (!options.noSystemExit) {
 				System.exit(-1);
+			}
 		}
 	}
 
 	/*
 	 * FocusListener methods
 	 */
+	@Override
 	public void focusGained(FocusEvent arg0) {
 		// synchronise the clipboard types here, so the server knows what's
 		// available
@@ -328,6 +340,7 @@ public class ClipChannel extends VChannel implements ClipInterface,
 		}
 	}
 
+	@Override
 	public void focusLost(FocusEvent arg0) {
 	}
 
@@ -335,17 +348,20 @@ public class ClipChannel extends VChannel implements ClipInterface,
 	 * Support methods
 	 */
 	private void reset_bool(boolean[] x) {
-		for (int i = 0; i < x.length; i++)
+		for (int i = 0; i < x.length; i++) {
 			x[i] = false;
+		}
 	}
 
 	/*
 	 * ClipboardOwner methods
 	 */
+	@Override
 	public void lostOwnership(Clipboard arg0, Transferable arg1) {
 		logger.debug("Lost clipboard ownership");
 	}
 
+	@Override
 	public void copyToClipboard(Transferable t) {
 		clipboard.setContents(t, this);
 	}

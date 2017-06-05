@@ -1,6 +1,6 @@
 /* Input.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: Handles input events and sends relevant input data to server
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 
 package net.propero.rdp;
@@ -41,8 +41,8 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.Collections;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
 
 import net.propero.rdp.keymapping.KeyCode;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
@@ -140,7 +140,7 @@ public class Input {
 
 	/**
 	 * Create a new Input object with a given keymap object
-	 * 
+	 *
 	 * @param c
 	 *            Canvas on which to listen for input events
 	 * @param r
@@ -161,7 +161,7 @@ public class Input {
 
 	/**
 	 * Create a new Input object, using a keymap generated from a specified file
-	 * 
+	 *
 	 * @param c
 	 *            Canvas on which to listen for input events
 	 * @param r
@@ -174,8 +174,9 @@ public class Input {
 			newKeyMapper = new KeyCode_FileBased(options, keymapFile);
 		} catch (KeyMapException kmEx) {
 			logger.fatal("Failed to load keymaps!", kmEx);
-			if (!options.noSystemExit)
+			if (!options.noSystemExit) {
 				System.exit(-1);
+			}
 		}
 
 		this.canvas = c;
@@ -203,18 +204,18 @@ public class Input {
 	 */
 	private void configureDefaultFocusTraversalKeys() {
 		KeyboardFocusManager.getCurrentKeyboardFocusManager()
-				.setDefaultFocusTraversalKeys(
-						KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
-						Collections.emptySet());
+		.setDefaultFocusTraversalKeys(
+				KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
+				Collections.emptySet());
 		KeyboardFocusManager.getCurrentKeyboardFocusManager()
-				.setDefaultFocusTraversalKeys(
-							KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
-							Collections.emptySet());
+		.setDefaultFocusTraversalKeys(
+				KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
+				Collections.emptySet());
 	}
 
 	/**
 	 * Send a sequence of key actions to the server
-	 * 
+	 *
 	 * @param pressSequence
 	 *            String representing a sequence of key actions. Actions are
 	 *            represented as a pair of consecutive characters, the first
@@ -227,18 +228,19 @@ public class Input {
 		try {
 			String debugString = "Sending keypresses: ";
 			for (int i = 0; i < pressSequence.length(); i += 2) {
-				int scancode = (int) pressSequence.charAt(i);
-				int action = (int) pressSequence.charAt(i + 1);
+				int scancode = pressSequence.charAt(i);
+				int action = pressSequence.charAt(i + 1);
 				int flags = 0;
 
-				if (action == KeyCode_FileBased.UP)
+				if (action == KeyCode_FileBased.UP) {
 					flags = RDP_KEYRELEASE;
-				else if (action == KeyCode_FileBased.DOWN)
+				} else if (action == KeyCode_FileBased.DOWN) {
 					flags = RDP_KEYPRESS;
-				else if (action == KeyCode_FileBased.QUIETUP)
+				} else if (action == KeyCode_FileBased.QUIETUP) {
 					flags = RDP_KEYRELEASE | KBD_FLAG_QUIET;
-				else if (action == KeyCode_FileBased.QUIETDOWN)
+				} else if (action == KeyCode_FileBased.QUIETDOWN) {
 					flags = RDP_KEYPRESS | KBD_FLAG_QUIET;
+				}
 
 				long t = getTime();
 
@@ -247,14 +249,15 @@ public class Input {
 						+ ", "
 						+ ((action == KeyCode_FileBased.UP || action == KeyCode_FileBased.QUIETUP) ? "up"
 								: "down")
-						+ ((flags & KBD_FLAG_QUIET) != 0 ? " quiet" : "")
-						+ " at " + t + ")";
+								+ ((flags & KBD_FLAG_QUIET) != 0 ? " quiet" : "")
+								+ " at " + t + ")";
 
 				sendScancode(t, flags, scancode);
 			}
 
-			if (pressSequence.length() > 0)
+			if (pressSequence.length() > 0) {
 				logger.debug(debugString);
+			}
 		} catch (Exception ex) {
 			logger.warn("Failed to send key press sequence " + pressSequence, ex);
 			return;
@@ -264,13 +267,14 @@ public class Input {
 	/**
 	 * Retrieve the next "timestamp", by incrementing previous stamp (up to the
 	 * maximum value of an integer, at which the timestamp is reverted to 1)
-	 * 
+	 *
 	 * @return New timestamp value
 	 */
 	public static int getTime() {
 		time++;
-		if (time == Integer.MAX_VALUE)
+		if (time == Integer.MAX_VALUE) {
 			time = 1;
+		}
 		return time;
 	}
 
@@ -292,7 +296,7 @@ public class Input {
 
 	/**
 	 * Send a keyboard event to the server
-	 * 
+	 *
 	 * @param time
 	 *            Time stamp to identify this event
 	 * @param flags
@@ -317,25 +321,30 @@ public class Input {
 		if ((scancode & KeyCode.SCANCODE_EXTENDED) != 0) {
 			rdp.sendInput((int) time, RDP_INPUT_SCANCODE, flags | KBD_FLAG_EXT,
 					scancode & ~KeyCode.SCANCODE_EXTENDED, 0);
-		} else
+		} else {
 			rdp.sendInput((int) time, RDP_INPUT_SCANCODE, flags, scancode, 0);
+		}
 	}
 
 	/**
 	 * Release any modifier keys that may be depressed.
 	 */
 	public void clearKeys() {
-		if (!modifiersValid)
+		if (!modifiersValid) {
 			return;
+		}
 
 		altDown = false;
 		ctrlDown = false;
 
-		if (lastKeyEvent == null)
+		if (lastKeyEvent == null) {
 			return;
+		}
 
 		if (lastKeyEvent.isShiftDown())
+		{
 			sendScancode(getTime(), RDP_KEYRELEASE, 0x2a); // shift
+		}
 		if (lastKeyEvent.isAltDown() || serverAltDown) {
 			sendScancode(getTime(), RDP_KEYRELEASE, 0x38); // ALT
 			sendScancode(getTime(), RDP_KEYPRESS | KBD_FLAG_QUIET, 0x38); // ALT
@@ -359,11 +368,13 @@ public class Input {
 	 * Send keypress events for any modifier keys that are currently down
 	 */
 	public void setKeys() {
-		if (!modifiersValid)
+		if (!modifiersValid) {
 			return;
+		}
 
-		if (lastKeyEvent == null)
+		if (lastKeyEvent == null) {
 			return;
+		}
 
 		if (lastKeyEvent.isShiftDown()) {
 			sendScancode(getTime(), RDP_KEYPRESS, 0x2a); // shift
@@ -393,6 +404,7 @@ public class Input {
 		 * Handle a keyPressed event, sending any relevant keypresses to the
 		 * server
 		 */
+		@Override
 		public void keyPressed(KeyEvent e) {
 			lastKeyEvent = e;
 			modifiersValid = true;
@@ -418,6 +430,7 @@ public class Input {
 		 * Handle a keyTyped event, sending any relevant keypresses to the
 		 * server
 		 */
+		@Override
 		public void keyTyped(KeyEvent e) {
 			lastKeyEvent = e;
 			modifiersValid = true;
@@ -433,8 +446,10 @@ public class Input {
 
 			if (rdp != null) {
 				if (!handleSpecialKeys(time, e, true))
+				{
 					sendKeyPresses(newKeyMapper.getKeyStrokes(e));
-				// sendScancode(time, RDP_KEYPRESS, keys.getScancode(e));
+					// sendScancode(time, RDP_KEYPRESS, keys.getScancode(e));
+				}
 			}
 		}
 
@@ -442,6 +457,7 @@ public class Input {
 		 * Handle a keyReleased event, sending any relevent key events to the
 		 * server
 		 */
+		@Override
 		public void keyReleased(KeyEvent e) {
 			// Some java versions have keys that don't generate keyPresses -
 			// we added the key to the vector in keyPressed so here we check for
@@ -462,8 +478,10 @@ public class Input {
 					+ ((char) e.getKeyCode()) + "'");
 			if (rdp != null) {
 				if (!handleSpecialKeys(time, e, false))
+				{
 					sendKeyPresses(newKeyMapper.getKeyStrokes(e));
-				// sendScancode(time, RDP_KEYRELEASE, keys.getScancode(e));
+					// sendScancode(time, RDP_KEYRELEASE, keys.getScancode(e));
+				}
 			}
 		}
 
@@ -471,7 +489,7 @@ public class Input {
 
 	/**
 	 * Act on any keyboard shortcuts that a specified KeyEvent may describe
-	 * 
+	 *
 	 * @param time
 	 *            Time stamp for event to send to server
 	 * @param e
@@ -482,11 +500,14 @@ public class Input {
 	 *         false otherwise
 	 */
 	public boolean handleShortcutKeys(long time, KeyEvent e, boolean pressed) {
-		if (!e.isAltDown())
+		if (!e.isAltDown()) {
 			return false;
+		}
 
 		if (!altDown)
+		{
 			return false; // all of the below have ALT on
+		}
 
 		switch (e.getKeyCode()) {
 
@@ -501,15 +522,15 @@ public class Input {
 			((RdesktopFrame) canvas.getParent()).toggleFullScreen();
 			break;
 
-		/*
-		 * The below case block handles "real" ALT+TAB events. Once the TAB in
-		 * an ALT+TAB combination has been pressed, the TAB is sent to the
-		 * server with the quiet flag on, as is the subsequent ALT-up.
-		 * 
-		 * This ensures that the initial ALT press is "undone" by the server.
-		 * 
-		 * --- Tom Elliott, 7/04/05
-		 */
+			/*
+			 * The below case block handles "real" ALT+TAB events. Once the TAB in
+			 * an ALT+TAB combination has been pressed, the TAB is sent to the
+			 * server with the quiet flag on, as is the subsequent ALT-up.
+			 *
+			 * This ensures that the initial ALT press is "undone" by the server.
+			 *
+			 * --- Tom Elliott, 7/04/05
+			 */
 
 		case KeyEvent.VK_TAB: // Alt+Tab received, quiet combination
 
@@ -520,13 +541,15 @@ public class Input {
 				// Alt
 			}
 
-			if (pressed)
+			if (pressed) {
 				logger.debug("Alt + Tab pressed, ignoring, releasing tab");
+			}
 			break;
 		case KeyEvent.VK_PAGE_UP: // Alt + PgUp = Alt-Tab
 			sendScancode(time, pressed ? RDP_KEYPRESS : RDP_KEYRELEASE, 0x0f); // TAB
-			if (pressed)
+			if (pressed) {
 				logger.debug("shortcut pressed: sent ALT+TAB");
+			}
 			break;
 		case KeyEvent.VK_PAGE_DOWN: // Alt + PgDown = Alt-Shift-Tab
 			if (pressed) {
@@ -541,8 +564,9 @@ public class Input {
 			break;
 		case KeyEvent.VK_INSERT: // Alt + Insert = Alt + Esc
 			sendScancode(time, pressed ? RDP_KEYPRESS : RDP_KEYRELEASE, 0x01); // ESC
-			if (pressed)
+			if (pressed) {
 				logger.debug("shortcut pressed: sent ALT+ESC");
+			}
 			break;
 		case KeyEvent.VK_HOME: // Alt + Home = Ctrl + Esc (Start)
 			if (pressed) {
@@ -562,8 +586,9 @@ public class Input {
 			if (ctrlDown) {
 				sendScancode(time, pressed ? RDP_KEYPRESS : RDP_KEYRELEASE,
 						0x53 | KeyCode.SCANCODE_EXTENDED); // DEL
-				if (pressed)
+				if (pressed) {
 					logger.debug("shortcut pressed: sent CTRL+ALT+DEL");
+				}
 			}
 			break;
 		case KeyEvent.VK_DELETE: // Alt + Delete = Menu
@@ -636,7 +661,7 @@ public class Input {
 
 	/**
 	 * Deal with modifier keys as control, alt or caps lock
-	 * 
+	 *
 	 * @param time
 	 *            Time stamp for key event
 	 * @param e
@@ -646,8 +671,9 @@ public class Input {
 	 * @return
 	 */
 	public boolean handleSpecialKeys(long time, KeyEvent e, boolean pressed) {
-		if (handleShortcutKeys(time, e, pressed))
+		if (handleShortcutKeys(time, e, pressed)) {
 			return true;
+		}
 
 		switch (e.getKeyCode()) {
 		case KeyEvent.VK_CONTROL:
@@ -657,22 +683,26 @@ public class Input {
 			altDown = pressed;
 			return false;
 		case KeyEvent.VK_CAPS_LOCK:
-			if (pressed && options.caps_sends_up_and_down)
+			if (pressed && options.caps_sends_up_and_down) {
 				capsLockOn = !capsLockOn;
+			}
 			if (!options.caps_sends_up_and_down) {
-				if (pressed)
+				if (pressed) {
 					capsLockOn = true;
-				else
+				} else {
 					capsLockOn = false;
+				}
 			}
 			return false;
 		case KeyEvent.VK_NUM_LOCK:
-			if (pressed)
+			if (pressed) {
 				numLockOn = !numLockOn;
+			}
 			return false;
 		case KeyEvent.VK_SCROLL_LOCK:
-			if (pressed)
+			if (pressed) {
 				scrollLockOn = !scrollLockOn;
+			}
 			return false;
 		case KeyEvent.VK_PAUSE: // untested
 			if (pressed) { // E1 1D 45 E1 9D C5
@@ -694,23 +724,23 @@ public class Input {
 			}
 			break;
 
-		// Removed, as java on MacOS send the option key as VK_META
-		/*
-		 * case KeyEvent.VK_META: // Windows key logger.debug("Windows key
-		 * received"); if(pressed){ sendScancode(time, RDP_KEYPRESS, 0x1d); //
-		 * left ctrl sendScancode(time, RDP_KEYPRESS, 0x01); // escape } else{
-		 * sendScancode(time, RDP_KEYRELEASE, 0x01); // escape
-		 * sendScancode(time, RDP_KEYRELEASE, 0x1d); // left ctrl } break;
-		 */
+			// Removed, as java on MacOS send the option key as VK_META
+			/*
+			 * case KeyEvent.VK_META: // Windows key logger.debug("Windows key
+			 * received"); if(pressed){ sendScancode(time, RDP_KEYPRESS, 0x1d); //
+			 * left ctrl sendScancode(time, RDP_KEYPRESS, 0x01); // escape } else{
+			 * sendScancode(time, RDP_KEYRELEASE, 0x01); // escape
+			 * sendScancode(time, RDP_KEYRELEASE, 0x1d); // left ctrl } break;
+			 */
 
-		// haven't found a way to detect BREAK key in java - VK_BREAK doesn't
-		// exist
-		/*
-		 * case KeyEvent.VK_BREAK: if(pressed){
-		 * sendScancode(time,RDP_KEYPRESS,(KeyCode.SCANCODE_EXTENDED | 0x46));
-		 * sendScancode(time,RDP_KEYPRESS,(KeyCode.SCANCODE_EXTENDED | 0xc6)); } //
-		 * do nothing on release break;
-		 */
+			// haven't found a way to detect BREAK key in java - VK_BREAK doesn't
+			// exist
+			/*
+			 * case KeyEvent.VK_BREAK: if(pressed){
+			 * sendScancode(time,RDP_KEYPRESS,(KeyCode.SCANCODE_EXTENDED | 0x46));
+			 * sendScancode(time,RDP_KEYPRESS,(KeyCode.SCANCODE_EXTENDED | 0xc6)); } //
+			 * do nothing on release break;
+			 */
 		default:
 			return false; // not handled - use sendScancode instead
 		}
@@ -735,8 +765,9 @@ public class Input {
 	 * <p>I don't think this is an issue anymore, so I'm not testing the OS.
 	 */
 	protected void doLockKeys() {
-		if (!options.useLockingKeyState)
+		if (!options.useLockingKeyState) {
 			return;
+		}
 		logger.debug("doLockKeys");
 
 		try {
@@ -770,7 +801,7 @@ public class Input {
 	/**
 	 * Handle pressing of the middle mouse button, sending relevent event data
 	 * to the server
-	 * 
+	 *
 	 * @param e
 	 *            MouseEvent detailing circumstances under which middle button
 	 *            was pressed
@@ -795,7 +826,7 @@ public class Input {
 	/**
 	 * Handle release of the middle mouse button, sending relevent event data to
 	 * the server
-	 * 
+	 *
 	 * @param e
 	 *            MouseEvent detailing circumstances under which middle button
 	 *            was released
@@ -812,9 +843,11 @@ public class Input {
 			super();
 		}
 
+		@Override
 		public void mousePressed(MouseEvent e) {
-			if (e.getY() != 0)
+			if (e.getY() != 0) {
 				((RdesktopFrame) canvas.getParent()).hideMenu();
+			}
 
 			int time = getTime();
 			if (rdp != null) {
@@ -833,6 +866,7 @@ public class Input {
 			}
 		}
 
+		@Override
 		public void mouseReleased(MouseEvent e) {
 			int time = getTime();
 			if (rdp != null) {
@@ -855,6 +889,7 @@ public class Input {
 			super();
 		}
 
+		@Override
 		public void mouseMoved(MouseEvent e) {
 			int time = getTime();
 
@@ -869,8 +904,10 @@ public class Input {
 
 			// TODO: complete menu show/hide section
 			if (e.getY() == 0)
+			{
 				((RdesktopFrame) canvas.getParent()).showMenu();
-			// else ((RdesktopFrame_Localised) canvas.getParent()).hideMenu();
+				// else ((RdesktopFrame_Localised) canvas.getParent()).hideMenu();
+			}
 
 			if (rdp != null) {
 				rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_MOVE, e.getX(),
@@ -878,6 +915,7 @@ public class Input {
 			}
 		}
 
+		@Override
 		public void mouseDragged(MouseEvent e) {
 			int time = getTime();
 			// if(logger.isInfoEnabled()) logger.info("mouseMoved to
@@ -890,6 +928,7 @@ public class Input {
 	}
 
 	private class RdesktopMouseWheelAdapter implements MouseWheelListener {
+		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
 			int time = getTime();
 			// if(logger.isInfoEnabled()) logger.info("mousePressed at "+time);

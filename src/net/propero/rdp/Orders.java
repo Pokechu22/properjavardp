@@ -1,6 +1,6 @@
 /* Orders.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: Encapsulates an RDP order
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 package net.propero.rdp;
 
@@ -278,7 +278,7 @@ public class Orders {
 							+ order.encodingNumber
 							+ " is already registered to "
 							+ BY_ENCODING_NUMBER[order.encodingNumber]
-							+ "; can't register " + order + " over it!");
+									+ "; can't register " + order + " over it!");
 				}
 				// Don't check BY_NEGOCIATION_NUMBER, as (sadly) it's registered
 				// twice for some things
@@ -344,7 +344,7 @@ public class Orders {
 		BRUSH(0x07),
 		/** Cache Bitmap - Revision 3 (section 2.2.2.2.1.2.8) Secondary Drawing Order with a compressed bitmap. */
 		BITMAP_COMPRESSED_REV3(0x08);
-	
+
 		public final int id;
 
 		/**
@@ -451,7 +451,7 @@ public class Orders {
 	}
 
 	/**
-	 * All primary orders that are supported 
+	 * All primary orders that are supported
 	 */
 	private final EnumSet<PrimaryOrder> supportedPrimaryOrders;
 
@@ -534,7 +534,7 @@ public class Orders {
 
 	/**
 	 * Process a set of orders sent by the server
-	 * 
+	 *
 	 * @param data
 	 *            Packet packet containing orders
 	 * @param next_packet
@@ -588,7 +588,7 @@ public class Orders {
 	/**
 	 * Register an RdesktopCanvas with this Orders object. This surface is where
 	 * all drawing orders will be carried out.
-	 * 
+	 *
 	 * @param surface
 	 *            Surface to register
 	 */
@@ -752,7 +752,7 @@ public class Orders {
 
 	/**
 	 * Process a dest blit order, and perform blit on drawing surface
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing description of the order
 	 * @param destblt
@@ -780,7 +780,7 @@ public class Orders {
 
 	/**
 	 * Parse data describing a pattern blit, and perform blit on drawing surface
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing blit data
 	 * @param patblt
@@ -811,7 +811,7 @@ public class Orders {
 
 	/**
 	 * Parse data describing a screen blit, and perform blit on drawing surface
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing blit data
 	 * @param screenblt
@@ -841,7 +841,7 @@ public class Orders {
 
 	/**
 	 * Parse data describing a line order, and draw line on drawing surface
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing line order data
 	 * @param line
@@ -879,7 +879,7 @@ public class Orders {
 	/**
 	 * Parse data describing a rectangle order, and draw the rectangle to the
 	 * drawing surface
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing rectangle order
 	 * @param rect
@@ -913,7 +913,7 @@ public class Orders {
 	/**
 	 * Parse data describing a desktop save order, either saving the desktop to
 	 * cache, or drawing a section to screen
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing desktop save order
 	 * @param desksave
@@ -927,7 +927,7 @@ public class Orders {
 	 */
 	private void processDeskSave(RdpPacket_Localised data,
 			DeskSaveOrder desksave, int present, boolean delta)
-			throws RdesktopException {
+					throws RdesktopException {
 		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
 
 		readOptionalField("savedBitmapPosition", aggregate, 0, present, desksave::setOffset, data::getLittleEndian32);
@@ -946,9 +946,9 @@ public class Orders {
 		if (desksave.getAction() == 0) {
 			int[] pixel = surface.getImage(desksave.getLeft(), desksave
 					.getTop(), width, height);
-			cache.putDesktop((int) desksave.getOffset(), width, height, pixel);
+			cache.putDesktop(desksave.getOffset(), width, height, pixel);
 		} else {
-			int[] pixel = cache.getDesktopInt((int) desksave.getOffset(),
+			int[] pixel = cache.getDesktopInt(desksave.getOffset(),
 					width, height);
 			surface.putImage(desksave.getLeft(), desksave.getTop(), width,
 					height, pixel);
@@ -958,7 +958,7 @@ public class Orders {
 	/**
 	 * Process data describing a memory blit, and perform blit on drawing
 	 * surface
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing mem blit order
 	 * @param memblt
@@ -993,7 +993,7 @@ public class Orders {
 	/**
 	 * Parse data describing a tri blit order, and perform blit on drawing
 	 * surface
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing tri blit order
 	 * @param triblt
@@ -1027,7 +1027,7 @@ public class Orders {
 
 	/**
 	 * Parse data describing a multi-line order, and draw to registered surface
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing polyline order
 	 * @param polyline
@@ -1052,8 +1052,9 @@ public class Orders {
 		readOptionalField("deltaListSize", aggregate, 6, present, polyline::setDataSize, data::get8);
 		readOptionalTypedField("deltaList", aggregate, 6, present, polyline::setData, () -> {
 			byte[] databytes = new byte[polyline.getDataSize()];
-			for (int i = 0; i < databytes.length; i++)
+			for (int i = 0; i < databytes.length; i++) {
 				databytes[i] = (byte) data.get8();
+			}
 			return databytes;
 		});
 
@@ -1064,7 +1065,7 @@ public class Orders {
 
 	/**
 	 * Process a text2 order and output to drawing surface
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing text2 order
 	 * @param text2
@@ -1121,7 +1122,7 @@ public class Orders {
 
 	/**
 	 * Parse a description for a bounding box
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing order defining bounding box
 	 * @param bounds
@@ -1257,7 +1258,7 @@ public class Orders {
 
 	/**
 	 * Process a raw bitmap and store it in the bitmap cache
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing raw bitmap data
 	 * @throws RdesktopException
@@ -1274,7 +1275,7 @@ public class Orders {
 		int cache_idx = data.getLittleEndian16();
 		int pdata = data.getPosition();
 		data.incrementPosition(bufsize);
-	
+
 		byte[] inverted = new byte[width * height * Bpp];
 		int pinverted = (height - 1) * (width * Bpp);
 		for (int y = 0; y < height; y++) {
@@ -1284,14 +1285,14 @@ public class Orders {
 			pinverted -= width * Bpp;
 			pdata += width * Bpp;
 		}
-	
+
 		cache.putBitmap(cache_id, cache_idx, new Bitmap(Bitmap.convertImage(options,
 				inverted, Bpp), width, height, 0, 0), 0);
 	}
 
 	/**
 	 * Process and store details of a colour cache
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing cache information
 	 * @throws RdesktopException
@@ -1299,16 +1300,16 @@ public class Orders {
 	private void processColorCache(RdpPacket_Localised data)
 			throws RdesktopException {
 		byte[] palette = null;
-	
+
 		byte[] red = null;
 		byte[] green = null;
 		byte[] blue = null;
 		int j = 0;
-	
+
 		int cache_id = data.get8();
 		int n_colors = data.getLittleEndian16(); // Number of Colors in
 		// Palette
-	
+
 		palette = new byte[n_colors * 4];
 		red = new byte[n_colors];
 		green = new byte[n_colors];
@@ -1329,7 +1330,7 @@ public class Orders {
 
 	/**
 	 * Process a compressed bitmap and store in the bitmap cache
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing compressed bitmap
 	 * @throws RdesktopException
@@ -1338,9 +1339,9 @@ public class Orders {
 			throws RdesktopException {
 		int bufsize, pad2, row_size, final_size, size;
 		int pad1;
-	
+
 		bufsize = pad2 = row_size = final_size = size = 0;
-	
+
 		int cache_id = data.get8();
 		pad1 = data.get8(); // pad
 		int width = data.get8();
@@ -1349,15 +1350,15 @@ public class Orders {
 		int Bpp = (bpp + 7) / 8;
 		bufsize = data.getLittleEndian16(); // bufsize
 		int cache_idx = data.getLittleEndian16();
-	
+
 		/*
 		 * data.incrementPosition(2); // pad int size =
 		 * data.getLittleEndian16(); data.incrementPosition(4); // row_size,
 		 * final_size
 		 */
-	
+
 		if (options.use_rdp5) {
-	
+
 			/* Begin compressedBitmapData */
 			pad2 = data.getLittleEndian16(); // in_uint16_le(s, pad2); /* pad
 			// */
@@ -1366,7 +1367,7 @@ public class Orders {
 			// row_size);
 			final_size = data.getLittleEndian16(); // in_uint16_le(s,
 			// final_size);
-	
+
 		} else {
 			data.incrementPosition(2); // pad
 			size = data.getLittleEndian16();
@@ -1377,33 +1378,35 @@ public class Orders {
 			// this is what's in rdesktop, but doesn't seem to work
 			// size = bufsize;
 		}
-	
+
 		// logger.info("BMPCACHE(cx=" + width + ",cy=" + height + ",id=" +
 		// cache_id + ",idx=" + cache_idx + ",bpp=" + bpp + ",size=" + size +
 		// ",pad1=" + pad1 + ",bufsize=" + bufsize + ",pad2=" + pad2 + ",rs=" +
 		// row_size + ",fs=" + final_size + ")");
-	
+
 		if (Bpp == 1) {
 			byte[] pixel = Bitmap.decompress(options, width, height, size, data, Bpp);
-			if (pixel != null)
+			if (pixel != null) {
 				cache.putBitmap(cache_id, cache_idx, new Bitmap(Bitmap
 						.convertImage(options, pixel, Bpp), width, height, 0, 0), 0);
-			else
+			} else {
 				logger.warn("Failed to decompress bitmap");
+			}
 		} else {
 			int[] pixel = Bitmap.decompressInt(options, width, height, size, data, Bpp);
-			if (pixel != null)
+			if (pixel != null) {
 				cache.putBitmap(cache_id, cache_idx, new Bitmap(pixel, width,
 						height, 0, 0), 0);
-			else
+			} else {
 				logger.warn("Failed to decompress bitmap");
+			}
 		}
 	}
 
 	/**
 	 * Process a bitmap cache v2 order, storing a bitmap in the main cache, and
 	 * the persistant cache if so required
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing order and bitmap data
 	 * @param flags
@@ -1420,7 +1423,7 @@ public class Orders {
 		int cache_id, cache_idx_low, width, height, Bpp;
 		int cache_idx, bufsize;
 		byte[] bmpdata, bitmap_id;
-	
+
 		bitmap_id = new byte[8]; /* prevent compiler warning */
 		cache_id = flags & ID_MASK;
 		Bpp = ((flags & MODE_MASK) >> MODE_SHIFT) - 2;
@@ -1429,7 +1432,7 @@ public class Orders {
 			bitmap_id = new byte[8];
 			data.copyToByteArray(bitmap_id, 0, data.getPosition(), 8);
 		}
-	
+
 		if ((flags & SQUARE) != 0) {
 			width = data.get8(); // in_uint8(s, width);
 			height = width;
@@ -1437,33 +1440,34 @@ public class Orders {
 			width = data.get8(); // in_uint8(s, width);
 			height = data.get8(); // in_uint8(s, height);
 		}
-	
+
 		bufsize = data.getBigEndian16(); // in_uint16_be(s, bufsize);
 		bufsize &= BUFSIZE_MASK;
 		cache_idx = data.get8(); // in_uint8(s, cache_idx);
-	
+
 		if ((cache_idx & LONG_FORMAT) != 0) {
 			cache_idx_low = data.get8(); // in_uint8(s, cache_idx_low);
 			cache_idx = ((cache_idx ^ LONG_FORMAT) << 8) + cache_idx_low;
 		}
-	
+
 		// in_uint8p(s, data, bufsize);
-	
+
 		logger.info("BMPCACHE2(compr=" + compressed + ",flags=" + flags
 				+ ",cx=" + width + ",cy=" + height + ",id=" + cache_id
 				+ ",idx=" + cache_idx + ",Bpp=" + Bpp + ",bs=" + bufsize + ")");
-	
+
 		bmpdata = new byte[width * height * Bpp];
 		int[] bmpdataInt = new int[width * height];
-	
+
 		if (compressed) {
-			if (Bpp == 1)
+			if (Bpp == 1) {
 				bmpdataInt = Bitmap.convertImage(options, Bitmap.decompress(options, width,
 						height, bufsize, data, Bpp), Bpp);
-			else
+			} else {
 				bmpdataInt = Bitmap.decompressInt(options, width, height, bufsize, data,
 						Bpp);
-	
+			}
+
 			if (bmpdataInt == null) {
 				logger.debug("Failed to decompress bitmap data");
 				// xfree(bmpdata);
@@ -1472,44 +1476,47 @@ public class Orders {
 			bitmap = new Bitmap(bmpdataInt, width, height, 0, 0);
 		} else {
 			for (y = 0; y < height; y++)
+			{
 				data.copyToByteArray(bmpdata, y * (width * Bpp),
 						(height - y - 1) * (width * Bpp), width * Bpp); // memcpy(&bmpdata[(height
-			// - y -
-			// 1) *
-			// (width
-			// *
-			// Bpp)],
-			// &data[y
-			// *
-			// (width
-			// *
-			// Bpp)],
-			// width
-			// *
-			// Bpp);
-	
+				// - y -
+				// 1) *
+				// (width
+				// *
+				// Bpp)],
+				// &data[y
+				// *
+				// (width
+				// *
+				// Bpp)],
+				// width
+				// *
+				// Bpp);
+			}
+
 			bitmap = new Bitmap(Bitmap.convertImage(options, bmpdata, Bpp), width,
 					height, 0, 0);
 		}
-	
+
 		// bitmap = ui_create_bitmap(width, height, bmpdata);
-	
+
 		if (bitmap != null) {
 			cache.putBitmap(cache_id, cache_idx, bitmap, 0);
 			// cache_put_bitmap(cache_id, cache_idx, bitmap, 0);
-			if ((flags & PERSIST) != 0)
+			if ((flags & PERSIST) != 0) {
 				cache.pstCache.pstcache_put_bitmap(cache_id, cache_idx, bitmap_id,
 						width, height, width * height * Bpp, bmpdata);
+			}
 		} else {
 			logger.debug("process_bmpcache2: ui_create_bitmap failed");
 		}
-	
+
 		// xfree(bmpdata);
 	}
 
 	/**
 	 * Process a font caching order, and store font in the cache
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing font cache order, with data for a series of
 	 *            glyphs representing a font
@@ -1518,15 +1525,15 @@ public class Orders {
 	private void processFontCache(RdpPacket_Localised data)
 			throws RdesktopException {
 		Glyph glyph = null;
-	
+
 		int font = 0, nglyphs = 0;
 		int character = 0, offset = 0, baseline = 0, width = 0, height = 0;
 		int datasize = 0;
 		byte[] fontdata = null;
-	
+
 		font = data.get8();
 		nglyphs = data.get8();
-	
+
 		for (int i = 0; i < nglyphs; i++) {
 			character = data.getLittleEndian16();
 			offset = data.getLittleEndian16();
@@ -1535,7 +1542,7 @@ public class Orders {
 			height = data.getLittleEndian16();
 			datasize = (height * ((width + 7) / 8) + 3) & ~3;
 			fontdata = new byte[datasize];
-	
+
 			data.copyToByteArray(fontdata, 0, data.getPosition(), datasize);
 			data.incrementPosition(datasize);
 			glyph = new Glyph(font, character, offset, baseline, width, height,
@@ -1592,7 +1599,7 @@ public class Orders {
 
 	/**
 	 * Read a colour value from a packet
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing colour value at current read position
 	 * @return Callback to read the int value
@@ -1634,7 +1641,7 @@ public class Orders {
 
 	/**
 	 * Parse a pen definition
-	 * 
+	 *
 	 * @param data
 	 *            Packet containing pen description at current read position
 	 * @param pen
@@ -1654,7 +1661,7 @@ public class Orders {
 
 	/**
 	 * Set current cache
-	 * 
+	 *
 	 * @param cache
 	 *            Cache object to set as current global cache
 	 */
@@ -1665,7 +1672,7 @@ public class Orders {
 	/**
 	 * Interpret an integer as a 16-bit two's complement number, based on its
 	 * binary representation
-	 * 
+	 *
 	 * @param val
 	 *            Integer interpretation of binary number
 	 * @return 16-bit two's complement value of input
@@ -1676,7 +1683,7 @@ public class Orders {
 
 	/**
 	 * Draw a text2 order to the drawing surface
-	 * 
+	 *
 	 * @param text2
 	 *            Text2Order describing text to be drawn
 	 * @param clipcx
@@ -1733,80 +1740,80 @@ public class Orders {
 				} else {
 					throw new RdesktopException();
 				}
-				length -= i + 3;
-				ptext = i + 3;
-				i = 0;
-				break;
+			length -= i + 3;
+			ptext = i + 3;
+			i = 0;
+			break;
 
 			case (0xfe):
 				entry = cache.getText(text[ptext + i + 1] & 0x000000ff);
-				if (entry != null) {
-					if ((entry.getData()[1] == 0)
-							&& ((text2.getFlags() & TEXT2_IMPLICIT_X) == 0)) {
-						if ((text2.getFlags() & 0x04) != 0) {
-							y += text[ptext + i + 2] & 0x000000ff;
-						} else {
-							x += text[ptext + i + 2] & 0x000000ff;
-						}
+			if (entry != null) {
+				if ((entry.getData()[1] == 0)
+						&& ((text2.getFlags() & TEXT2_IMPLICIT_X) == 0)) {
+					if ((text2.getFlags() & 0x04) != 0) {
+						y += text[ptext + i + 2] & 0x000000ff;
+					} else {
+						x += text[ptext + i + 2] & 0x000000ff;
 					}
 				}
-				if (i + 2 < length) {
-					i += 3;
-				} else {
-					i += 2;
-				}
-				length -= i;
-				ptext = i;
-				i = 0;
-				// break;
+			}
+			if (i + 2 < length) {
+				i += 3;
+			} else {
+				i += 2;
+			}
+			length -= i;
+			ptext = i;
+			i = 0;
+			// break;
 
-				byte[] data = entry.getData();
-				for (int j = 0; j < entry.getSize(); j++) {
-					glyph = cache
-							.getFont(text2.getFont(), data[j] & 0x000000ff);
-					if ((text2.getFlags() & TEXT2_IMPLICIT_X) == 0) {
-						offset = data[++j] & 0x000000ff;
-						if ((offset & 0x80) != 0) {
-							if ((text2.getFlags() & TEXT2_VERTICAL) != 0) {
-								int var = this
-										.twosComplement16((data[j + 1] & 0xff)
-												| ((data[j + 2] & 0xff) << 8));
-								y += var;
-								j += 2;
-							} else {
-								int var = this
-										.twosComplement16((data[j + 1] & 0xff)
-												| ((data[j + 2] & 0xff) << 8));
-								x += var;
-								j += 2;
-							}
+			byte[] data = entry.getData();
+			for (int j = 0; j < entry.getSize(); j++) {
+				glyph = cache
+						.getFont(text2.getFont(), data[j] & 0x000000ff);
+				if ((text2.getFlags() & TEXT2_IMPLICIT_X) == 0) {
+					offset = data[++j] & 0x000000ff;
+					if ((offset & 0x80) != 0) {
+						if ((text2.getFlags() & TEXT2_VERTICAL) != 0) {
+							int var = this
+									.twosComplement16((data[j + 1] & 0xff)
+											| ((data[j + 2] & 0xff) << 8));
+							y += var;
+							j += 2;
 						} else {
-							if ((text2.getFlags() & TEXT2_VERTICAL) != 0) {
-								y += offset;
-							} else {
-								x += offset;
-							}
+							int var = this
+									.twosComplement16((data[j + 1] & 0xff)
+											| ((data[j + 2] & 0xff) << 8));
+							x += var;
+							j += 2;
 						}
-					}
-					if (glyph != null) {
-						// if((text2.getFlags() & TEXT2_VERTICAL) != 0)
-						// logger.info("Drawing glyph: (" + (x +
-						// (short)glyph.getOffset()) + ", " + (y +
-						// (short)glyph.getBaseLine()) + ")" );
-						surface.drawGlyph(text2.getMixmode(), x
-								+ (short) glyph.getOffset(), y
-								+ (short) glyph.getBaseLine(),
-								glyph.getWidth(), glyph.getHeight(), glyph
-										.getFontData(), text2
-										.getBackgroundColor(), text2
-										.getForegroundColor());
-
-						if ((text2.getFlags() & TEXT2_IMPLICIT_X) != 0) {
-							x += glyph.getWidth();
+					} else {
+						if ((text2.getFlags() & TEXT2_VERTICAL) != 0) {
+							y += offset;
+						} else {
+							x += offset;
 						}
 					}
 				}
-				break;
+				if (glyph != null) {
+					// if((text2.getFlags() & TEXT2_VERTICAL) != 0)
+					// logger.info("Drawing glyph: (" + (x +
+					// (short)glyph.getOffset()) + ", " + (y +
+					// (short)glyph.getBaseLine()) + ")" );
+					surface.drawGlyph(text2.getMixmode(), x
+							+ (short) glyph.getOffset(), y
+							+ (short) glyph.getBaseLine(),
+							glyph.getWidth(), glyph.getHeight(), glyph
+							.getFontData(), text2
+							.getBackgroundColor(), text2
+							.getForegroundColor());
+
+					if ((text2.getFlags() & TEXT2_IMPLICIT_X) != 0) {
+						x += glyph.getWidth();
+					}
+				}
+			}
+			break;
 
 			default:
 				glyph = cache.getFont(text2.getFont(),
@@ -1843,11 +1850,12 @@ public class Orders {
 							+ (short) glyph.getOffset(), y
 							+ (short) glyph.getBaseLine(), glyph.getWidth(),
 							glyph.getHeight(), glyph.getFontData(), text2
-									.getBackgroundColor(), text2
-									.getForegroundColor());
+							.getBackgroundColor(), text2
+							.getForegroundColor());
 
-					if ((text2.getFlags() & TEXT2_IMPLICIT_X) != 0)
+					if ((text2.getFlags() & TEXT2_IMPLICIT_X) != 0) {
 						x += glyph.getWidth();
+					}
 				}
 				i++;
 				break;

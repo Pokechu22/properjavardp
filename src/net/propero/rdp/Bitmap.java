@@ -1,6 +1,6 @@
 /* Bitmap.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -9,24 +9,24 @@
  *
  * Purpose: Provide a class for storage of Bitmap images, along with
  *          static methods for decompression and conversion of bitmaps.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- *          
+ *
  */
 
 package net.propero.rdp;
@@ -55,10 +55,12 @@ public class Bitmap {
 	protected static Logger logger = LogManager.getLogger(Rdp.class);
 
 	static int convertTo24(Options options, int colour) {
-		if (options.server_bpp == 15)
+		if (options.server_bpp == 15) {
 			return convert15to24(colour);
-		if (options.server_bpp == 16)
+		}
+		if (options.server_bpp == 16) {
 			return convert16to24(colour);
+		}
 		return colour;
 	}
 
@@ -88,7 +90,7 @@ public class Bitmap {
 
 	/**
 	 * Convert byte array representing a bitmap into integer array of pixels
-	 * 
+	 *
 	 * @param bitmap
 	 *            Byte array of bitmap data
 	 * @param Bpp
@@ -99,15 +101,16 @@ public class Bitmap {
 		int[] out = new int[bitmap.length / Bpp];
 
 		for (int i = 0; i < out.length; i++) {
-			if (Bpp == 1)
+			if (Bpp == 1) {
 				out[i] = bitmap[i] & 0xFF;
-			else if (Bpp == 2)
+			} else if (Bpp == 2) {
 				out[i] = ((bitmap[i * Bpp + 1] & 0xFF) << 8)
 						| (bitmap[i * Bpp] & 0xFF);
-			else if (Bpp == 3)
+			} else if (Bpp == 3) {
 				out[i] = ((bitmap[i * Bpp + 2] & 0xFF) << 16)
 						| ((bitmap[i * Bpp + 1] & 0xFF) << 8)
 						| (bitmap[i * Bpp] & 0xFF);
+			}
 			out[i] = Bitmap.convertTo24(options, out[i]);
 		}
 		return out;
@@ -115,7 +118,7 @@ public class Bitmap {
 
 	/**
 	 * Constructor for Bitmap based on integer pixel values
-	 * 
+	 *
 	 * @param data
 	 *            Array of pixel data, one integer per pixel. Should have a
 	 *            length of width*height.
@@ -138,7 +141,7 @@ public class Bitmap {
 
 	/**
 	 * Constructor for Bitmap based on
-	 * 
+	 *
 	 * @param data
 	 *            Array of pixel data, each pixel represented by Bpp bytes.
 	 *            Should have a length of width*height*Bpp.
@@ -164,7 +167,7 @@ public class Bitmap {
 	/**
 	 * Retrieve data representing this Bitmap, as an array of integer pixel
 	 * values
-	 * 
+	 *
 	 * @return Bitmap pixel data
 	 */
 	public int[] getBitmapData() {
@@ -173,7 +176,7 @@ public class Bitmap {
 
 	/**
 	 * Retrieve width of the bitmap represented by this object
-	 * 
+	 *
 	 * @return Bitmap width
 	 */
 	public int getWidth() {
@@ -182,7 +185,7 @@ public class Bitmap {
 
 	/**
 	 * Retrieve height of the bitmap represented by this object
-	 * 
+	 *
 	 * @return Bitmap height
 	 */
 	public int getHeight() {
@@ -191,7 +194,7 @@ public class Bitmap {
 
 	/**
 	 * Retrieve desired x-coordinate of the bitmap represented by this object
-	 * 
+	 *
 	 * @return x-coordinate of this bitmap
 	 */
 	public int getX() {
@@ -200,7 +203,7 @@ public class Bitmap {
 
 	/**
 	 * Retrieve desired y-coordinate of the bitmap represented by this object
-	 * 
+	 *
 	 * @return y-coordinate of this bitmap
 	 */
 	public int getY() {
@@ -223,12 +226,12 @@ public class Bitmap {
 
 			int r24 = (full >> 7) & 0xF8;
 			r24 |= r24 >> 5;
-			int g24 = (full >> 2) & 0xF8;
-			g24 |= g24 >> 5;
-			int b24 = (lower << 3) & 0xFF;
-			b24 |= b24 >> 5;
+						int g24 = (full >> 2) & 0xF8;
+						g24 |= g24 >> 5;
+				int b24 = (lower << 3) & 0xFF;
+				b24 |= b24 >> 5;
 
-			return (r24 << 16) | (g24 << 8) | b24;
+				return (r24 << 16) | (g24 << 8) | b24;
 
 		} else if (options.server_bpp == 16) {
 			int lower = packet.get8();
@@ -237,12 +240,12 @@ public class Bitmap {
 
 			int r24 = (full >> 8) & 0xF8;
 			r24 |= r24 >> 5;
-			int g24 = (full >> 3) & 0xFC;
-			g24 |= g24 >> 6;
-			int b24 = (lower << 3) & 0xFF;
-			b24 |= b24 >> 5;
+				int g24 = (full >> 3) & 0xFC;
+				g24 |= g24 >> 6;
+		int b24 = (lower << 3) & 0xFF;
+		b24 |= b24 >> 5;
 
-			return (r24 << 16) | (g24 << 8) | b24;
+		return (r24 << 16) | (g24 << 8) | b24;
 
 		} else {
 			int[] vals = new int[Bpp];
@@ -710,7 +713,7 @@ public class Bitmap {
 	/**
 	 * Decompress bitmap data from packet and output directly to supplied image
 	 * object
-	 * 
+	 *
 	 * @param width
 	 *            Width of bitmap to decompress
 	 * @param height
@@ -739,23 +742,23 @@ public class Bitmap {
 
 		decompress(options, width, height, data, size, Bpp,
 				new DecompressionCallback() {
-					@Override
-					public void setPixel(int x, int y, int color) {
-						w.setRGB(left + x, top + y, color);
-					}
+			@Override
+			public void setPixel(int x, int y, int color) {
+				w.setRGB(left + x, top + y, color);
+			}
 
-					@Override
-					public int getPixel(int x, int y) {
-						return w.getRGB(left + x, top + y);
-					}
-				});
+			@Override
+			public int getPixel(int x, int y) {
+				return w.getRGB(left + x, top + y);
+			}
+		});
 
 		return w;
 	}
 
 	/**
 	 * Decompress bitmap data from packet and output as an Image
-	 * 
+	 *
 	 * @param width
 	 *            Width of bitmap
 	 * @param height
@@ -773,34 +776,35 @@ public class Bitmap {
 	 */
 	public static Image decompressImg(Options options, int width, int height, int size,
 			RdpPacket_Localised data, int Bpp, IndexColorModel cm)
-			throws RdesktopException {
+					throws RdesktopException {
 
 		WrappedImage w;
 
-		if (cm == null)
+		if (cm == null) {
 			w = new WrappedImage(width, height, BufferedImage.TYPE_INT_RGB);
-		else
+		} else {
 			w = new WrappedImage(width, height, BufferedImage.TYPE_INT_RGB, cm);
+		}
 
 		decompress(options, width, height, data, size, Bpp,
 				new DecompressionCallback() {
-					@Override
-					public void setPixel(int x, int y, int color) {
-						w.setRGB(x, y, color);
-					}
+			@Override
+			public void setPixel(int x, int y, int color) {
+				w.setRGB(x, y, color);
+			}
 
-					@Override
-					public int getPixel(int x, int y) {
-						return w.getRGB(x, y);
-					}
-				});
+			@Override
+			public int getPixel(int x, int y) {
+				return w.getRGB(x, y);
+			}
+		});
 
 		return w.getBufferedImage();
 	}
 
 	/**
 	 * Decompress bitmap data from packet and store in array of integers
-	 * 
+	 *
 	 * @param width
 	 *            Width of bitmap
 	 * @param height
@@ -821,23 +825,23 @@ public class Bitmap {
 
 		decompress(options, width, height, data, size, Bpp,
 				new DecompressionCallback() {
-					@Override
-					public void setPixel(int x, int y, int color) {
-						pixel[(y * width) + x] = color;
-					}
+			@Override
+			public void setPixel(int x, int y, int color) {
+				pixel[(y * width) + x] = color;
+			}
 
-					@Override
-					public int getPixel(int x, int y) {
-						return pixel[(y * width) + x];
-					}
-				});
+			@Override
+			public int getPixel(int x, int y) {
+				return pixel[(y * width) + x];
+			}
+		});
 
 		return pixel;
 	}
 
 	/**
 	 * Decompress bitmap data from packet and store in array of bytes
-	 * 
+	 *
 	 * @param width
 	 *            Width of bitmap
 	 * @param height
@@ -858,16 +862,16 @@ public class Bitmap {
 
 		decompress(options, width, height, data, size, Bpp,
 				new DecompressionCallback() {
-					@Override
-					public void setPixel(int x, int y, int color) {
-						pixel[(y * width) + x] = (byte) color;
-					}
+			@Override
+			public void setPixel(int x, int y, int color) {
+				pixel[(y * width) + x] = (byte) color;
+			}
 
-					@Override
-					public int getPixel(int x, int y) {
-						return (byte) pixel[(y * width) + x];
-					}
-				});
+			@Override
+			public int getPixel(int x, int y) {
+				return pixel[(y * width) + x];
+			}
+		});
 
 		return pixel;
 	}

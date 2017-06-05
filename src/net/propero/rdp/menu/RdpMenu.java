@@ -1,6 +1,6 @@
 /* RdpMenu.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: Menu bar for main frame
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 package net.propero.rdp.menu;
 
@@ -46,7 +46,7 @@ public class RdpMenu extends MenuBar {
 
 	/**
 	 * Initialise the properJavaRDP menu bar and attach to an RdesktopFrame
-	 * 
+	 *
 	 * @param parent
 	 *            Menu is attached to this frame
 	 */
@@ -71,31 +71,39 @@ public class RdpMenu extends MenuBar {
 		if (!options.fullscreen) {
 			mi = new MenuItem("Fullscreen Mode");
 			mi.disable();
-		} else
+		} else {
 			mi = new MenuItem("Windowed Mode");
+		}
 
 		m.add(mi);
 		this.add(m);
 	}
 
 	public boolean action(Event event, Object arg) {
-		if (arg == "Turn Caps-Lock On")
+		if (arg == "Turn Caps-Lock On") {
 			((MenuItem) event.target).setLabel("Turn Caps-Lock Off");
-		if (arg == "Turn Caps-Lock Off")
+		}
+		if (arg == "Turn Caps-Lock Off") {
 			((MenuItem) event.target).setLabel("Turn Caps-Lock On");
+		}
 
-		if (arg == "Turn Num-Lock On")
+		if (arg == "Turn Num-Lock On") {
 			((MenuItem) event.target).setLabel("Turn Num-Lock Off");
-		if (arg == "Turn Num-Lock Off")
+		}
+		if (arg == "Turn Num-Lock Off") {
 			((MenuItem) event.target).setLabel("Turn Num-Lock On");
+		}
 
-		if (arg == "Turn Scroll-Lock On")
+		if (arg == "Turn Scroll-Lock On") {
 			((MenuItem) event.target).setLabel("Turn Scroll-Lock Off");
-		if (arg == "Turn Scroll-Lock Off")
+		}
+		if (arg == "Turn Scroll-Lock Off") {
 			((MenuItem) event.target).setLabel("Turn Scroll-Lock On");
+		}
 
-		if (arg == "Exit")
+		if (arg == "Exit") {
 			Rdesktop.exit(0, parent.rdp, parent, true);
+		}
 
 		if (arg == "Fullscreen Mode") {
 			parent.goFullScreen();

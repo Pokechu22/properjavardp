@@ -1,6 +1,6 @@
 /* JRdpLoader.java
  * Component: ProperJavaRDP
- * 
+ *
  * Revision: $Revision$
  * Author: $Author$
  * Date: $Date$
@@ -8,24 +8,24 @@
  * Copyright (c) 2005 Propero Limited
  *
  * Purpose: Launch ProperJavaRDP with settings from a config file
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
- * 
+ *
  * (See gpl.txt for details of the GNU General Public License.)
- * 
+ *
  */
 package net.propero.rdp.loader;
 
@@ -34,11 +34,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import net.propero.rdp.Rdesktop;
 import net.propero.rdp.RdesktopException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class JRdpLoader {
 
@@ -46,11 +46,11 @@ public class JRdpLoader {
 
 	// Set of identifiers to be found within the launch file
 	private static String[] identifiers = { "--user", "--password", "--domain",
-			"--fullscreen", "--geometry", "--use_rdp5" };
+		"--fullscreen", "--geometry", "--use_rdp5" };
 
 	// Set of command-line options mapping to the launch file identifiers
 	private static String[] pairs = { "-u", "-p", "-d", "-f", "-g",
-			"--use_rdp5" };
+	"--use_rdp5" };
 
 	public static void main(String args[]) {
 
@@ -78,26 +78,29 @@ public class JRdpLoader {
 					String value = "";
 					while (stok.hasMoreTokens()) {
 						value += stok.nextToken();
-						if (stok.hasMoreTokens())
+						if (stok.hasMoreTokens()) {
 							value += " ";
+						}
 					}
 
-					if (identifier.equals("--server"))
+					if (identifier.equals("--server")) {
 						server = value;
-					else if (identifier.equals("--port"))
+					} else if (identifier.equals("--port")) {
 						port = value;
-					else {
+					} else {
 						String p = getParam(identifier);
-						if (p != null)
+						if (p != null) {
 							outArgs += p + " " + value + " ";
+						}
 					}
 				}
 			}
 
 			if (server != null && server != "") {
 				outArgs += server;
-				if (port != null && port != "")
+				if (port != null && port != "") {
 					outArgs += ":" + port;
+				}
 
 				String[] finArgs = outArgs.split(" ");
 
