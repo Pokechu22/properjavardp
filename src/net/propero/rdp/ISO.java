@@ -35,6 +35,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import net.propero.rdp.crypto.CryptoException;
@@ -43,7 +44,7 @@ import net.propero.rdp.rdp5.Rdp5;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public abstract class ISO {
+public class ISO {
 	static Logger logger = LogManager.getLogger(ISO.class);
 
 	private HexDump dump = null;
@@ -110,7 +111,10 @@ public abstract class ISO {
 	 */
 	protected void doSocketConnect(InetAddress host, int port)
 			throws IOException {
-		this.rdpsock = new Socket(host, port);
+		int timeout_ms = 3000; // timeout in milliseconds
+
+		rdpsock = new Socket();
+		rdpsock.connect(new InetSocketAddress(host, port), timeout_ms);
 	}
 
 	/**

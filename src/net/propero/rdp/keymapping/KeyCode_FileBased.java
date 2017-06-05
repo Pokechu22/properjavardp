@@ -50,7 +50,7 @@ import net.propero.rdp.Options;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public abstract class KeyCode_FileBased {
+public class KeyCode_FileBased {
 
 	private Map<Integer, MapDef> keysCurrentlyDown = new HashMap<>();
 
@@ -81,7 +81,16 @@ public abstract class KeyCode_FileBased {
 	private List<MapDef> keyMap = new ArrayList<>();
 
 	private void updateCapsLock(KeyEvent e) {
-
+		if (options.useLockingKeyState) {
+			try {
+				options.useLockingKeyState = true;
+				capsLockDown = e.getComponent().getToolkit()
+						.getLockingKeyState(KeyEvent.VK_CAPS_LOCK);
+			} catch (Exception uoe) {
+				logger.warn("Failed to update caps lock; disabling key locking", uoe);
+				options.useLockingKeyState = false;
+			}
+		}
 	}
 
 	protected final Options options;

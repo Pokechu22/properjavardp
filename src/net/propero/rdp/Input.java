@@ -30,12 +30,17 @@
 
 package net.propero.rdp;
 
+import java.awt.KeyboardFocusManager;
+import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.util.Collections;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -43,18 +48,10 @@ import net.propero.rdp.keymapping.KeyCode;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
 import net.propero.rdp.keymapping.KeyMapException;
 
-
-
-
-
-
-
-
-//import org.apache.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public abstract class Input {
+public class Input {
 
 	protected static Logger logger = LogManager.getLogger(Input.class);
 
@@ -139,7 +136,6 @@ public abstract class Input {
 
 	protected Rdp rdp = null;
 
-	private KeyCode keys = null;
 	protected final Options options;
 
 	/**
@@ -153,14 +149,14 @@ public abstract class Input {
 	 *            Key map to use in handling keyboard events
 	 */
 	public Input(Options options, RdesktopCanvas c, Rdp r, KeyCode_FileBased k) {
-		newKeyMapper = k;
-		canvas = c;
-		rdp = r;
-		//if (options.debug_keyboard)
-		//	logger.setLevel(Level.DEBUG);
+		this.newKeyMapper = k;
+		this.canvas = c;
+		this.rdp = r;
 		addInputListeners();
-		pressedKeys = new HashSet<>();
+		this.pressedKeys = new HashSet<>();
 		this.options = options;
+
+		this.configureDefaultFocusTraversalKeys();
 	}
 
 	/**
@@ -175,20 +171,20 @@ public abstract class Input {
 	 */
 	public Input(Options options, RdesktopCanvas c, Rdp r, String keymapFile) {
 		try {
-			newKeyMapper = new KeyCode_FileBased_Localised(options, keymapFile);
+			newKeyMapper = new KeyCode_FileBased(options, keymapFile);
 		} catch (KeyMapException kmEx) {
 			logger.fatal("Failed to load keymaps!", kmEx);
 			if (!options.noSystemExit)
 				System.exit(-1);
 		}
 
-		canvas = c;
-		rdp = r;
-		//if (options.debug_keyboard)
-		//	logger.setLevel(Level.DEBUG);
+		this.canvas = c;
+		this.rdp = r;
 		addInputListeners();
-		pressedKeys = new HashSet<>();
+		this.pressedKeys = new HashSet<>();
 		this.options = options;
+
+		this.configureDefaultFocusTraversalKeys();
 	}
 
 	/**
@@ -198,6 +194,22 @@ public abstract class Input {
 		canvas.addMouseListener(new RdesktopMouseAdapter());
 		canvas.addMouseMotionListener(new RdesktopMouseMotionAdapter());
 		canvas.addKeyListener(new RdesktopKeyAdapter());
+		canvas.addMouseWheelListener(new RdesktopMouseWheelAdapter());
+	}
+
+	/**
+	 * Configures focus traversal keys, so that tab and shift-tab have no
+	 * special meaning.
+	 */
+	private void configureDefaultFocusTraversalKeys() {
+		KeyboardFocusManager.getCurrentKeyboardFocusManager()
+				.setDefaultFocusTraversalKeys(
+						KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
+						Collections.emptySet());
+		KeyboardFocusManager.getCurrentKeyboardFocusManager()
+				.setDefaultFocusTraversalKeys(
+							KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
+							Collections.emptySet());
 	}
 
 	/**
@@ -337,6 +349,10 @@ public abstract class Input {
 			// // ctrl
 		}
 
+		if (lastKeyEvent.isAltGraphDown()) {
+			sendScancode(getTime(), RDP_KEYRELEASE,
+					0x38 | KeyCode.SCANCODE_EXTENDED); // r.alt
+		}
 	}
 
 	/**
@@ -349,12 +365,19 @@ public abstract class Input {
 		if (lastKeyEvent == null)
 			return;
 
-		if (lastKeyEvent.isShiftDown())
+		if (lastKeyEvent.isShiftDown()) {
 			sendScancode(getTime(), RDP_KEYPRESS, 0x2a); // shift
-		if (lastKeyEvent.isAltDown())
+		}
+		if (lastKeyEvent.isAltDown()) {
 			sendScancode(getTime(), RDP_KEYPRESS, 0x38); // l.alt
-		if (lastKeyEvent.isControlDown())
+		}
+		if (lastKeyEvent.isControlDown()) {
 			sendScancode(getTime(), RDP_KEYPRESS, 0x1d); // l.ctrl
+		}
+		if (lastKeyEvent.isAltGraphDown()) {
+			sendScancode(getTime(), RDP_KEYPRESS,
+					0x38 | KeyCode.SCANCODE_EXTENDED); // r.alt
+		}
 	}
 
 	class RdesktopKeyAdapter extends KeyAdapter {
@@ -475,7 +498,7 @@ public abstract class Input {
 		case KeyEvent.VK_ENTER:
 			sendScancode(time, RDP_KEYRELEASE, 0x38);
 			altDown = false;
-			((RdesktopFrame_Localised) canvas.getParent()).toggleFullScreen();
+			((RdesktopFrame) canvas.getParent()).toggleFullScreen();
 			break;
 
 		/*
@@ -591,6 +614,20 @@ public abstract class Input {
 				}
 			}
 			break;
+		case KeyEvent.VK_MINUS: // for laptops that can't do Ctrl+Alt+Minus
+			if (ctrlDown) {
+				if (pressed) {
+					sendScancode(time, RDP_KEYRELEASE, 0x1d); // Ctrl
+					sendScancode(time, RDP_KEYPRESS,
+							0x37 | KeyCode.SCANCODE_EXTENDED); // PrtSc
+					logger.debug("shortcut pressed: sent ALT+PRTSC");
+				} else {
+					sendScancode(time, RDP_KEYRELEASE,
+							0x37 | KeyCode.SCANCODE_EXTENDED); // PrtSc
+					sendScancode(time, RDP_KEYPRESS, 0x1d); // Ctrl
+				}
+			}
+			break;
 		default:
 			return false;
 		}
@@ -690,7 +727,44 @@ public abstract class Input {
 		doLockKeys(); // ensure lock key states are correct
 	}
 
+	/**
+	 * Previously:
+	 * <blockquote>doesn't work on Java 1.4.1_02 or 1.4.2 on Linux, there is a bug in
+	 * java....<br>
+	 * does work on the same version on Windows.</blockquote>
+	 * <p>I don't think this is an issue anymore, so I'm not testing the OS.
+	 */
 	protected void doLockKeys() {
+		if (!options.useLockingKeyState)
+			return;
+		logger.debug("doLockKeys");
+
+		try {
+			Toolkit tk = Toolkit.getDefaultToolkit();
+			if (tk.getLockingKeyState(KeyEvent.VK_CAPS_LOCK) != capsLockOn) {
+				capsLockOn = !capsLockOn;
+				logger.debug("CAPS LOCK toggle");
+				sendScancode(getTime(), RDP_KEYPRESS, 0x3a);
+				sendScancode(getTime(), RDP_KEYRELEASE, 0x3a);
+
+			}
+			if (tk.getLockingKeyState(KeyEvent.VK_NUM_LOCK) != numLockOn) {
+				numLockOn = !numLockOn;
+				logger.debug("NUM LOCK toggle");
+				sendScancode(getTime(), RDP_KEYPRESS, 0x45);
+				sendScancode(getTime(), RDP_KEYRELEASE, 0x45);
+
+			}
+			if (tk.getLockingKeyState(KeyEvent.VK_SCROLL_LOCK) != scrollLockOn) {
+				scrollLockOn = !scrollLockOn;
+				logger.debug("SCROLL LOCK toggle");
+				sendScancode(getTime(), RDP_KEYPRESS, 0x46);
+				sendScancode(getTime(), RDP_KEYRELEASE, 0x46);
+			}
+		} catch (Exception e) {
+			options.useLockingKeyState = false;
+			logger.warn("Failed to handle key locking; disabling key locking!", e);
+		}
 	}
 
 	/**
@@ -740,7 +814,7 @@ public abstract class Input {
 
 		public void mousePressed(MouseEvent e) {
 			if (e.getY() != 0)
-				((RdesktopFrame_Localised) canvas.getParent()).hideMenu();
+				((RdesktopFrame) canvas.getParent()).hideMenu();
 
 			int time = getTime();
 			if (rdp != null) {
@@ -795,7 +869,7 @@ public abstract class Input {
 
 			// TODO: complete menu show/hide section
 			if (e.getY() == 0)
-				((RdesktopFrame_Localised) canvas.getParent()).showMenu();
+				((RdesktopFrame) canvas.getParent()).showMenu();
 			// else ((RdesktopFrame_Localised) canvas.getParent()).hideMenu();
 
 			if (rdp != null) {
@@ -811,6 +885,22 @@ public abstract class Input {
 			if (rdp != null) {
 				rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_MOVE, e.getX(),
 						e.getY());
+			}
+		}
+	}
+
+	private class RdesktopMouseWheelAdapter implements MouseWheelListener {
+		public void mouseWheelMoved(MouseWheelEvent e) {
+			int time = getTime();
+			// if(logger.isInfoEnabled()) logger.info("mousePressed at "+time);
+			if (rdp != null) {
+				if (e.getWheelRotation() < 0) { // up
+					rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_BUTTON4
+							| MOUSE_FLAG_DOWN, e.getX(), e.getY());
+				} else { // down
+					rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_BUTTON5
+							| MOUSE_FLAG_DOWN, e.getX(), e.getY());
+				}
 			}
 		}
 	}

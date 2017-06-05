@@ -30,12 +30,15 @@
  */
 package net.propero.rdp;
 
+import java.awt.AWTException;
 import java.awt.Canvas;
 import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Robot;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
 import java.awt.image.MemoryImageSource;
@@ -58,8 +61,10 @@ import org.apache.logging.log4j.Logger;
 
 // import org.apache.log4j.NDC;
 
-public abstract class RdesktopCanvas extends Canvas {
-	protected static Logger logger = LogManager.getLogger(RdesktopCanvas.class);
+public class RdesktopCanvas extends Canvas {
+	private static final long serialVersionUID = -6806580381785981945L;
+
+	private static Logger logger = LogManager.getLogger();
 
 	private RasterOp rop = null;
 
@@ -72,6 +77,8 @@ public abstract class RdesktopCanvas extends Canvas {
 	// unsetBusyCursor
 
 	private Input input = null;
+
+	private Robot robot = null;
 
 	public static final int ROP2_COPY = 0xc;
 
@@ -148,7 +155,23 @@ public abstract class RdesktopCanvas extends Canvas {
 		update(g);
 	}
 
-	public abstract void update(Graphics g);
+	public void addNotify() {
+		super.addNotify();
+
+		if (robot == null) {
+			try {
+				robot = new Robot();
+			} catch (AWTException e) {
+				logger.warn("Pointer movement not allowed", e);
+			}
+		}
+	}
+
+	public void update(Graphics g) {
+		Rectangle r = g.getClipBounds();
+		g.drawImage(backstore.getSubimage(r.x, r.y, r.width, r.height), r.x,
+				r.y, null);
+	}
 
 	/**
 	 * Register a colour palette with this canvas
@@ -171,9 +194,9 @@ public abstract class RdesktopCanvas extends Canvas {
 	 */
 	public void registerCommLayer(Rdp rdp) {
 		this.rdp = rdp;
-		if (fbKeys != null)
-			input = new Input_Localised(options, this, rdp, fbKeys);
-
+		if (fbKeys != null) {
+			input = new Input(options, this, rdp, fbKeys);
+		}
 	}
 
 	/**
@@ -186,7 +209,7 @@ public abstract class RdesktopCanvas extends Canvas {
 		this.fbKeys = keys;
 		if (rdp != null) {
 			// rdp and keys have been registered...
-			input = new Input_Localised(options, this, rdp, keys);
+			input = new Input(options, this, rdp, keys);
 		}
 	}
 
@@ -378,7 +401,10 @@ public abstract class RdesktopCanvas extends Canvas {
 	 *            y coordinate for mouse move
 	 */
 	public void movePointer(int x, int y) {
-		// need Java 1.3+ to move mouse with Robot
+		Point p = this.getLocationOnScreen();
+		x = x + p.x;
+		y = y + p.y;
+		robot.mouseMove(x, y);
 	}
 
 	/**
@@ -1282,9 +1308,11 @@ public abstract class RdesktopCanvas extends Canvas {
 	 */
 	protected Cursor createCustomCursor(Image wincursor, Point p, String s,
 			int cache_idx) {
-		if (cache_idx == 1)
+		// TODO: This doesn't do anything with the cache - is that right?
+		/*if (cache_idx == 1)
 			return Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-		return Cursor.getDefaultCursor();
+		return Cursor.getDefaultCursor();*/
+		return Toolkit.getDefaultToolkit().createCustomCursor(wincursor, p, "");
 	}
 
 	/**

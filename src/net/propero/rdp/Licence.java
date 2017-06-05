@@ -546,11 +546,10 @@ public class Licence {
 	 * 
 	 * @return Raw byte data for stored licence
 	 */
-	byte[] load_licence() {
+	private byte[] load_licence() {
 		logger.debug("load_licence");
-		// String home = "/root"; // getenv("HOME");
 
-		return (new LicenceStore_Localised(options)).load_licence();
+		return LicenceStore.load_licence(options);
 	}
 
 	/**
@@ -561,7 +560,7 @@ public class Licence {
 	 * @param length
 	 *            Length of licence
 	 */
-	void save_licence(RdpPacket_Localised data, int length) {
+	private void save_licence(RdpPacket_Localised data, int length) {
 		logger.debug("save_licence");
 		int len;
 		int startpos = data.getPosition();
@@ -589,21 +588,7 @@ public class Licence {
 		byte[] databytes = new byte[len];
 		data.copyToByteArray(databytes, 0, data.getPosition(), len);
 
-		new LicenceStore_Localised(options).save_licence(databytes);
-
-		/*
-		 * String dirpath = options.licence_path;//home+"/.rdesktop"; String
-		 * filepath = dirpath +"/licence."+options.hostname;
-		 * 
-		 * File file = new File(dirpath); file.mkdir(); try{ FileOutputStream fd =
-		 * new FileOutputStream(filepath);
-		 *  // write to the licence file byte[] databytes = new byte[len];
-		 * data.copyToByteArray(databytes,0,data.getPosition(),len);
-		 * fd.write(databytes); fd.close(); logger.info("Stored licence at " +
-		 * filepath); } catch(FileNotFoundException
-		 * e){logger.info("save_licence: file path not valid!");}
-		 * catch(IOException e){logger.warn("IOException in save_licence");}
-		 */
+		LicenceStore.save_licence(options, databytes);
 	}
 
 	/**

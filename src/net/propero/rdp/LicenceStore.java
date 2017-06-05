@@ -29,32 +29,34 @@
  */
 package net.propero.rdp;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.prefs.Preferences;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public abstract class LicenceStore {
+public class LicenceStore {
+	private LicenceStore() { throw new AssertionError(); }
 
-	static Logger logger = LogManager.getLogger(Licence.class);
-
-	protected final Options options;
-	protected LicenceStore(Options options) {
-		this.options = options;
-	}
+	private static Logger logger = LogManager.getLogger();
 
 	/**
 	 * Load a licence from a file
 	 * 
 	 * @return Licence data stored in file
 	 */
-	public byte[] load_licence() {
+	public static byte[] load_licence(Options options) {
+		Preferences prefs = Preferences.userNodeForPackage(LicenceStore.class);
+		byte[] data = prefs.getByteArray("licence." + options.hostname, null);
+
+		if (data != null) {
+			return data;
+		}
+
+		// Try original version in case it didn't load:
 		String path = options.licence_path + "/licence." + options.hostname;
-		byte[] data = null;
 		try (FileInputStream fd = new FileInputStream(path)) {
 			data = new byte[fd.available()];
 			fd.read(data);
@@ -63,6 +65,9 @@ public abstract class LicenceStore {
 		} catch (IOException e) {
 			logger.warn("IOException in load_licence", e);
 		}
+
+		// Well, the old format is present; migrate it by resaving:
+		save_licence(options, data);
 		return data;
 	}
 
@@ -72,26 +77,30 @@ public abstract class LicenceStore {
 	 * @param databytes
 	 *            Licence data to store
 	 */
-	public void save_licence(byte[] databytes) {
+	public static void save_licence(Options options, byte[] databytes) {
+		Preferences prefs = Preferences.userNodeForPackage(LicenceStore.class);
+		prefs.putByteArray("licence." + options.hostname, databytes);
+
+		// Original version for saving, for reference only:
 		/* set and create the directory -- if it doesn't exist. */
 		// String home = "/root";
-		String dirpath = options.licence_path;// home+"/.rdesktop";
-		String filepath = dirpath + "/licence." + options.hostname;
-
-		File file = new File(dirpath);
-		file.mkdir();
-		try {
-			FileOutputStream fd = new FileOutputStream(filepath);
-
-			/* write to the licence file */
-			fd.write(databytes);
-			fd.close();
-			logger.info("Stored licence at " + filepath);
-		} catch (FileNotFoundException e) {
-			logger.warn("save_licence: file path not valid!", e);
-		} catch (IOException e) {
-			logger.warn("IOException in save_licence", e);
-		}
+//		String dirpath = options.licence_path;// home+"/.rdesktop";
+//		String filepath = dirpath + "/licence." + options.hostname;
+//
+//		File file = new File(dirpath);
+//		file.mkdir();
+//		try {
+//			FileOutputStream fd = new FileOutputStream(filepath);
+//
+//			/* write to the licence file */
+//			fd.write(databytes);
+//			fd.close();
+//			logger.info("Stored licence at " + filepath);
+//		} catch (FileNotFoundException e) {
+//			logger.warn("save_licence: file path not valid!", e);
+//		} catch (IOException e) {
+//			logger.warn("IOException in save_licence", e);
+//		}
 	}
 
 }

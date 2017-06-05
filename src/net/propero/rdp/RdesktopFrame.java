@@ -35,6 +35,8 @@ import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.FlowLayout;
 import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
 import java.awt.Label;
 import java.awt.Panel;
@@ -58,9 +60,11 @@ import org.apache.logging.log4j.Logger;
 
 // import javax.swing.Box;
 
-public abstract class RdesktopFrame extends Frame implements RdesktopCallback {
+public class RdesktopFrame extends Frame implements RdesktopCallback {
 
-	static Logger logger = LogManager.getLogger(RdesktopFrame.class);
+	private static final long serialVersionUID = -886909197782887125L;
+
+	private static Logger logger = LogManager.getLogger(RdesktopFrame.class);
 
 	public RdesktopCanvas canvas = null;
 
@@ -86,18 +90,48 @@ public abstract class RdesktopFrame extends Frame implements RdesktopCallback {
 
 	protected boolean inFullscreen = false;
 
-	/**
-	 * Switch to fullscreen mode
-	 */
 	public void goFullScreen() {
+		if (!options.fullscreen)
+			return;
+
 		inFullscreen = true;
+
+		if (this.isDisplayable())
+			this.dispose();
+		this.setVisible(false);
+		this.setLocation(0, 0);
+		this.setUndecorated(true);
+		this.setVisible(true);
+		// setExtendedState (Frame.MAXIMIZED_BOTH);
+		// GraphicsEnvironment env =
+		// GraphicsEnvironment.getLocalGraphicsEnvironment();
+		// GraphicsDevice myDevice = env.getDefaultScreenDevice();
+		// if (myDevice.isFullScreenSupported())
+		// myDevice.setFullScreenWindow(this);
+
+		this.pack();
 	}
 
-	/**
-	 * Exit fullscreen mode
-	 */
 	public void leaveFullScreen() {
+		if (!options.fullscreen)
+			return;
+
 		inFullscreen = false;
+
+		if (this.isDisplayable())
+			this.dispose();
+
+		GraphicsEnvironment env = GraphicsEnvironment
+				.getLocalGraphicsEnvironment();
+		GraphicsDevice myDevice = env.getDefaultScreenDevice();
+		if (myDevice.isFullScreenSupported())
+			myDevice.setFullScreenWindow(null);
+
+		this.setLocation(10, 10);
+		this.setUndecorated(false);
+		this.setVisible(true);
+		// setExtendedState (Frame.NORMAL);
+		this.pack();
 	}
 
 	/**
@@ -156,7 +190,7 @@ public abstract class RdesktopFrame extends Frame implements RdesktopCallback {
 	public RdesktopFrame(Options options) {
 		super();
 		this.options = options;
-		this.canvas = new RdesktopCanvas_Localised(options, options.width,
+		this.canvas = new RdesktopCanvas(options, options.width,
 				options.height);
 		add(this.canvas);
 		setTitle(options.windowTitle);

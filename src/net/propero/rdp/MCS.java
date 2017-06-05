@@ -94,7 +94,7 @@ public class MCS {
 	public MCS(Options options, VChannels channels, Secure secure, Rdp5 rdp) {
 		this.channels = channels;
 		this.secure = secure;
-		IsoLayer = new ISO_Localised(options, rdp);
+		IsoLayer = new ISO(options, rdp);
 	}
 
 	/**

@@ -371,7 +371,7 @@ public class Rdesktop {
 			options.caps_sends_up_and_down = false;
 
 		Rdp5 RdpLayer = null;
-		RdesktopFrame window = new RdesktopFrame_Localised(options);
+		RdesktopFrame window = new RdesktopFrame(options);
 		window.setClip(clipChannel);
 
 		// Configure a keyboard layout
@@ -383,10 +383,10 @@ public class Rdesktop {
 			// logger.info("istr = " + istr);
 			if (istr == null) {
 				logger.debug("Loading keymap from filename");
-				keyMap = new KeyCode_FileBased_Localised(options, keyMapPath + mapFile);
+				keyMap = new KeyCode_FileBased(options, keyMapPath + mapFile);
 			} else {
 				logger.debug("Loading keymap from InputStream");
-				keyMap = new KeyCode_FileBased_Localised(options, istr);
+				keyMap = new KeyCode_FileBased(options, istr);
 			}
 			if (istr != null)
 				istr.close();

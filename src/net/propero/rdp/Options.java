@@ -166,8 +166,6 @@ public class Options {
 			| Rdp.RDP5_NO_MENUANIMATIONS | Rdp.RDP5_NO_THEMING
 			| Rdp.RDP5_NO_WALLPAPER;
 
-	public boolean save_graphics = false;
-
 	// -------------------------
 
 	// Previously under Common.  True if run in an applet.
