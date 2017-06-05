@@ -31,7 +31,6 @@ import net.propero.rdp.MCS;
 import net.propero.rdp.Options;
 import net.propero.rdp.RdesktopException;
 import net.propero.rdp.RdpPacket_Localised;
-import net.propero.rdp.crypto.CryptoException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -185,10 +184,9 @@ public class VChannels {
 	 *            Number specified for channel
 	 * @throws RdesktopException
 	 * @throws IOException
-	 * @throws CryptoException
 	 */
 	public void channel_process(RdpPacket_Localised data, int mcsChannel)
-			throws RdesktopException, IOException, CryptoException {
+			throws RdesktopException, IOException {
 
 		int length, flags;
 		VChannel channel = null;

@@ -29,7 +29,6 @@ import net.propero.rdp.OrderException;
 import net.propero.rdp.RdesktopException;
 import net.propero.rdp.Rdp;
 import net.propero.rdp.RdpPacket_Localised;
-import net.propero.rdp.crypto.CryptoException;
 
 /**
  * Handle RDP5 orders
@@ -58,10 +57,9 @@ public class Rdp5 extends Rdp {
 	 *            True if packet is encrypted
 	 * @throws RdesktopException
 	 * @throws OrderException
-	 * @throws CryptoException
 	 */
 	public void rdp5_process(RdpPacket_Localised s, boolean e)
-			throws RdesktopException, OrderException, CryptoException {
+			throws RdesktopException, OrderException {
 		rdp5_process(s, e, false);
 	}
 
@@ -76,11 +74,9 @@ public class Rdp5 extends Rdp {
 	 *            True if packet is of the "short" form
 	 * @throws RdesktopException
 	 * @throws OrderException
-	 * @throws CryptoException
 	 */
 	public void rdp5_process(RdpPacket_Localised s, boolean encryption,
-			boolean shortform) throws RdesktopException, OrderException,
-			CryptoException {
+			boolean shortform) throws RdesktopException, OrderException {
 		logger.debug("Processing RDP 5 order");
 
 		int length, count;

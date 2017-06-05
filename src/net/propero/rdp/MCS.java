@@ -27,7 +27,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetAddress;
 
-import net.propero.rdp.crypto.CryptoException;
 import net.propero.rdp.rdp5.Rdp5;
 import net.propero.rdp.rdp5.VChannels;
 
@@ -106,11 +105,9 @@ public class MCS {
 	 * @throws IOException
 	 * @throws RdesktopException
 	 * @throws OrderException
-	 * @throws CryptoException
 	 */
 	public void connect(InetAddress host, int port, RdpPacket_Localised data)
-			throws IOException, RdesktopException, OrderException,
-			CryptoException {
+			throws IOException, RdesktopException, OrderException {
 		logger.debug("MCS.connect");
 		IsoLayer.connect(host, port);
 
@@ -210,10 +207,9 @@ public class MCS {
 	 * @throws IOException
 	 * @throws RdesktopException
 	 * @throws OrderException
-	 * @throws CryptoException
 	 */
 	public RdpPacket_Localised receive(int[] channel) throws IOException,
-	RdesktopException, OrderException, CryptoException {
+	RdesktopException, OrderException {
 		logger.debug("receive");
 		int opcode = 0, appid = 0, length = 0;
 		RdpPacket_Localised buffer = IsoLayer.receive();
@@ -472,11 +468,9 @@ public class MCS {
 	 * @throws IOException
 	 * @throws RdesktopException
 	 * @throws OrderException
-	 * @throws CryptoException
 	 */
 	public void receiveConnectResponse(RdpPacket_Localised data)
-			throws IOException, RdesktopException, OrderException,
-			CryptoException {
+			throws IOException, RdesktopException, OrderException {
 
 		logger.debug("MCS.receiveConnectResponse");
 
@@ -586,8 +580,7 @@ public class MCS {
 	 * @throws IOException
 	 * @throws RdesktopException
 	 */
-	public void receive_cjcf() throws IOException, RdesktopException,
-	OrderException, CryptoException {
+	public void receive_cjcf() throws IOException, RdesktopException, OrderException {
 		logger.debug("receive_cjcf");
 		int opcode = 0, result = 0;
 		RdpPacket_Localised buffer = IsoLayer.receive();
@@ -620,10 +613,9 @@ public class MCS {
 	 * @throws IOException
 	 * @throws RdesktopException
 	 * @throws OrderException
-	 * @throws CryptoException
 	 */
 	public int receive_aucf() throws IOException, RdesktopException,
-	OrderException, CryptoException {
+	OrderException {
 		logger.debug("receive_aucf");
 		int opcode = 0, result = 0, UserID = 0;
 		RdpPacket_Localised buffer = IsoLayer.receive();

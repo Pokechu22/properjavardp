@@ -38,7 +38,6 @@ import net.propero.rdp.RdesktopException;
 import net.propero.rdp.RdpPacket;
 import net.propero.rdp.RdpPacket_Localised;
 import net.propero.rdp.Secure;
-import net.propero.rdp.crypto.CryptoException;
 import net.propero.rdp.rdp5.VChannel;
 import net.propero.rdp.rdp5.VChannels;
 
@@ -119,8 +118,7 @@ ClipboardOwner, FocusListener {
 	 * Data processing methods
 	 */
 	@Override
-	public void process(RdpPacket data) throws RdesktopException, IOException,
-	CryptoException {
+	public void process(RdpPacket data) throws RdesktopException, IOException {
 
 		int type, status;
 		int length;
@@ -178,13 +176,10 @@ ClipboardOwner, FocusListener {
 			logger.warn("Failed to nullify clipboard data", e);
 		} catch (IOException e) {
 			logger.warn("Failed to nullify clipboard data", e);
-		} catch (CryptoException e) {
-			logger.warn("Failed to nullify clipboard data", e);
 		}
 	}
 
-	void send_format_announce() throws RdesktopException, IOException,
-	CryptoException {
+	void send_format_announce() throws RdesktopException, IOException {
 		Transferable clipData = clipboard.getContents(clipboard);
 		DataFlavor[] dataTypes = clipData.getTransferDataFlavors();
 
@@ -210,7 +205,7 @@ ClipboardOwner, FocusListener {
 	}
 
 	private void handle_clip_format_announce(RdpPacket data, int length)
-			throws RdesktopException, IOException, CryptoException {
+			throws RdesktopException, IOException {
 		TypeHandlerList serverTypeList = new TypeHandlerList();
 
 		// System.out.print("Available types: ");
@@ -260,8 +255,7 @@ ClipboardOwner, FocusListener {
 		currentHandler = null;
 	}
 
-	void request_clipboard_data(int formatcode) throws RdesktopException,
-	IOException, CryptoException {
+	void request_clipboard_data(int formatcode) throws RdesktopException, IOException {
 
 		RdpPacket_Localised s = this.secure.init(
 				options.encryption ? Secure.SEC_ENCRYPT : 0, 24);
@@ -306,11 +300,6 @@ ClipboardOwner, FocusListener {
 				System.exit(-1);
 			}
 		} catch (IOException e) {
-			logger.warn("Failed to send clipboard data", e);
-			if (!options.noSystemExit) {
-				System.exit(-1);
-			}
-		} catch (CryptoException e) {
 			logger.warn("Failed to send clipboard data", e);
 			if (!options.noSystemExit) {
 				System.exit(-1);

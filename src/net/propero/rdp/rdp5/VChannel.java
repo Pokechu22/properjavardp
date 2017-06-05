@@ -31,7 +31,6 @@ import net.propero.rdp.RdesktopException;
 import net.propero.rdp.RdpPacket;
 import net.propero.rdp.RdpPacket_Localised;
 import net.propero.rdp.Secure;
-import net.propero.rdp.crypto.CryptoException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -76,10 +75,8 @@ public abstract class VChannel {
 	 *            Packet sent to this channel
 	 * @throws RdesktopException
 	 * @throws IOException
-	 * @throws CryptoException
 	 */
-	public abstract void process(RdpPacket data) throws RdesktopException,
-	IOException, CryptoException;
+	public abstract void process(RdpPacket data) throws RdesktopException, IOException;
 
 	public int mcs_id() {
 		return mcs_id;
@@ -121,10 +118,8 @@ public abstract class VChannel {
 	 *            Packet to be sent
 	 * @throws RdesktopException
 	 * @throws IOException
-	 * @throws CryptoException
 	 */
-	public void send_packet(RdpPacket_Localised data) throws RdesktopException,
-	IOException, CryptoException {
+	public void send_packet(RdpPacket_Localised data) throws RdesktopException, IOException {
 		if (secure == null) {
 			return;
 		}

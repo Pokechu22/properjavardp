@@ -35,7 +35,6 @@ import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
 
 import net.propero.rdp.Orders.PrimaryOrder;
-import net.propero.rdp.crypto.CryptoException;
 import net.propero.rdp.rdp5.Rdp5;
 import net.propero.rdp.rdp5.VChannels;
 
@@ -458,10 +457,9 @@ public class Rdp {
 	 *            Type of data
 	 * @throws RdesktopException
 	 * @throws IOException
-	 * @throws CryptoException
 	 */
 	private void sendData(RdpPacket_Localised data, int data_pdu_type)
-			throws RdesktopException, IOException, CryptoException {
+			throws RdesktopException, IOException {
 
 		synchronized (this.SecureLayer) {
 			int length;
@@ -493,11 +491,10 @@ public class Rdp {
 	 * @return Packet received from RDP layer
 	 * @throws IOException
 	 * @throws RdesktopException
-	 * @throws CryptoException
 	 * @throws OrderException
 	 */
 	private RdpPacket_Localised receive(int[] type) throws IOException,
-	RdesktopException, CryptoException, OrderException {
+	RdesktopException, OrderException {
 		int length = 0;
 
 		if ((this.stream == null) || (this.next_packet >= this.stream.getEnd())) {
@@ -577,8 +574,6 @@ public class Rdp {
 			throw new ConnectionException(e.getMessage(), e);
 		} catch (OrderException e) {
 			throw new ConnectionException(e.getMessage(), e);
-		} catch (CryptoException e) {
-			throw new ConnectionException(e.getMessage(), e);
 		}
 
 	}
@@ -607,11 +602,9 @@ public class Rdp {
 	 * @throws IOException
 	 * @throws RdesktopException
 	 * @throws OrderException
-	 * @throws CryptoException
 	 */
 	public DisconnectInfo mainLoop()
-			throws IOException, RdesktopException, OrderException,
-			CryptoException {
+			throws IOException, RdesktopException, OrderException {
 		int[] type = new int[1];
 
 		RdpPacket_Localised data = null;
@@ -692,11 +685,10 @@ public class Rdp {
 	 *            Starting working directory for session
 	 * @throws RdesktopException
 	 * @throws IOException
-	 * @throws CryptoException
 	 */
 	private void sendLogonInfo(int flags, String domain, String username,
 			String password, String command, String directory)
-					throws RdesktopException, IOException, CryptoException {
+					throws RdesktopException, IOException {
 
 		int len_ip = 2 * "127.0.0.1".length();
 		int len_dll = 2 * "C:\\WINNT\\System32\\mstscax.dll".length();
@@ -887,11 +879,10 @@ public class Rdp {
 	 *            Packet containing demand at current read position
 	 * @throws RdesktopException
 	 * @throws IOException
-	 * @throws CryptoException
 	 * @throws OrderException
 	 */
 	private void processDemandActive(RdpPacket_Localised data)
-			throws RdesktopException, IOException, CryptoException,
+			throws RdesktopException, IOException,
 			OrderException {
 		int type[] = new int[1];
 		int len_src_descriptor, len_combined_caps;
@@ -1020,8 +1011,7 @@ public class Rdp {
 		}
 	}
 
-	private void sendConfirmActive() throws RdesktopException, IOException,
-	CryptoException {
+	private void sendConfirmActive() throws RdesktopException, IOException {
 		int caplen = Capset.GENERAL.getLength() + Capset.BITMAP.getLength() + Capset.ORDER.getLength()
 				+ Capset.BITMAPCACHE.getLength() + Capset.COLORCACHE.getLength()
 				+ Capset.ACTIVATION.getLength() + Capset.CONTROL.getLength() + Capset.POINTER.getLength()
@@ -1328,8 +1318,7 @@ public class Rdp {
 		data.incrementPosition(/* RDP_CAPLEN_UNKNOWN */length - 4);
 	}
 
-	private void sendSynchronize() throws RdesktopException, IOException,
-	CryptoException {
+	private void sendSynchronize() throws RdesktopException, IOException {
 		RdpPacket_Localised data = this.initData(4);
 
 		data.setLittleEndian16(1); // type
@@ -1340,8 +1329,7 @@ public class Rdp {
 		this.sendData(data, RDP_DATA_PDU_SYNCHRONISE);
 	}
 
-	private void sendControl(int action) throws RdesktopException, IOException,
-	CryptoException {
+	private void sendControl(int action) throws RdesktopException, IOException {
 
 		RdpPacket_Localised data = this.initData(8);
 
@@ -1382,17 +1370,13 @@ public class Rdp {
 		} catch (RdesktopException r) {
 			logger.warn("Error sending input packet", r);
 			this.callback.error(r, this);
-		} catch (CryptoException c) {
-			logger.warn("Unexpected CryptoException", c);
-			this.callback.error(c, this);
 		} catch (IOException i) {
 			logger.warn("Unexpected IOException", i);
 			this.callback.error(i, this);
 		}
 	}
 
-	private void sendFonts(int seq) throws RdesktopException, IOException,
-	CryptoException {
+	private void sendFonts(int seq) throws RdesktopException, IOException {
 
 		RdpPacket_Localised data = this.initData(8);
 

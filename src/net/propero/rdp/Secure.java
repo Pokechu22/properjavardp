@@ -31,7 +31,6 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.StringTokenizer;
 
-import net.propero.rdp.crypto.CryptoException;
 import net.propero.rdp.rdp5.Rdp5;
 import net.propero.rdp.rdp5.VChannels;
 
@@ -43,7 +42,7 @@ import org.bouncycastle.crypto.engines.RC4Engine;
 import org.bouncycastle.crypto.params.KeyParameter;
 
 /**
- * "Secure" layer of communication
+ * Secure layer of communication
  */
 public class Secure {
 	boolean readCert = false;
@@ -190,12 +189,11 @@ public class Secure {
 	 * @throws IOException
 	 * @throws RdesktopException
 	 * @throws SocketException
-	 * @throws CryptoException
 	 * @throws OrderException
 	 */
 	public void connect(InetAddress host, int port)
 			throws UnknownHostException, IOException, RdesktopException,
-			SocketException, CryptoException, OrderException {
+			SocketException, OrderException {
 		if (options.hostname == "") {
 			InetAddress localhost = InetAddress.getLocalHost();
 			String name = localhost.getHostName();
@@ -222,10 +220,9 @@ public class Secure {
 	 * @throws IOException
 	 * @throws RdesktopException
 	 * @throws OrderException
-	 * @throws CryptoException
 	 */
 	public void connect(InetAddress host) throws IOException,
-	RdesktopException, OrderException, CryptoException {
+	RdesktopException, OrderException {
 		this.connect(host, options.port);
 	}
 
@@ -383,7 +380,7 @@ public class Secure {
 	 *            Data received from server
 	 */
 	public void processMcsData(RdpPacket_Localised mcs_data)
-			throws RdesktopException, CryptoException {
+			throws RdesktopException {
 		logger.debug("Secure.processMcsData");
 		int tag = 0, len = 0, length = 0, nexttag = 0;
 
@@ -442,8 +439,7 @@ public class Secure {
 		}
 	}
 
-	public void establishKey() throws RdesktopException, IOException,
-	CryptoException {
+	public void establishKey() throws RdesktopException, IOException {
 		int length = server_public_key_len + SEC_PADDING_SIZE;
 		int flags = SEC_CLIENT_RANDOM;
 		RdpPacket_Localised buffer = this.init(flags, length + 4);
@@ -460,7 +456,7 @@ public class Secure {
 	}
 
 	public void processCryptInfo(RdpPacket_Localised data)
-			throws RdesktopException, CryptoException {
+			throws RdesktopException {
 		int rc4_key_size = 0;
 
 		rc4_key_size = this.parseCryptInfo(data);
@@ -541,10 +537,9 @@ public class Secure {
 	 *            Encryption flags
 	 * @throws RdesktopException
 	 * @throws IOException
-	 * @throws CryptoException
 	 */
 	public void send(RdpPacket_Localised sec_data, int flags)
-			throws RdesktopException, IOException, CryptoException {
+			throws RdesktopException, IOException {
 		send_to_channel(sec_data, flags, MCS.MCS_GLOBAL_CHANNEL);
 	}
 
@@ -559,10 +554,9 @@ public class Secure {
 	 *            Channel over which to send data
 	 * @throws RdesktopException
 	 * @throws IOException
-	 * @throws CryptoException
 	 */
 	public void send_to_channel(RdpPacket_Localised sec_data, int flags,
-			int channel) throws RdesktopException, IOException, CryptoException {
+			int channel) throws RdesktopException, IOException {
 		int datalength = 0;
 		byte[] signature = null;
 		byte[] data;
@@ -608,10 +602,9 @@ public class Secure {
 	 * @param datalength
 	 *            Length of data to sign
 	 * @return Signature for data
-	 * @throws CryptoException
 	 */
 	public byte[] sign(byte[] session_key, int length, int keylen, byte[] data,
-			int datalength) throws CryptoException {
+			int datalength) {
 		byte[] shasig = new byte[20];
 		byte[] md5sig = new byte[16];
 		byte[] lenhdr = new byte[4];
@@ -646,9 +639,8 @@ public class Secure {
 	 * @param length
 	 *            Number of bytes to encrypt (from start of array)
 	 * @return Encrypted data
-	 * @throws CryptoException
 	 */
-	public byte[] encrypt(byte[] data, int length) throws CryptoException {
+	public byte[] encrypt(byte[] data, int length) {
 		byte[] buffer = new byte[length];
 		if (this.enc_count == 4096) {
 			sec_encrypt_key = this.update(this.sec_encrypt_key,
@@ -671,9 +663,8 @@ public class Secure {
 	 * @param data
 	 *            Data to encrypt
 	 * @return Encrypted data
-	 * @throws CryptoException
 	 */
-	public byte[] encrypt(byte[] data) throws CryptoException {
+	public byte[] encrypt(byte[] data) {
 		byte[] buffer = new byte[data.length];
 		if (this.enc_count == 4096) {
 			sec_encrypt_key = this.update(this.sec_encrypt_key,
@@ -699,9 +690,8 @@ public class Secure {
 	 * @param length
 	 *            Number of bytes to decrypt (from start of array)
 	 * @return Decrypted data
-	 * @throws CryptoException
 	 */
-	public byte[] decrypt(byte[] data, int length) throws CryptoException {
+	public byte[] decrypt(byte[] data, int length) {
 		byte[] buffer = new byte[length];
 		if (this.dec_count == 4096) {
 			sec_decrypt_key = this.update(this.sec_decrypt_key,
@@ -724,9 +714,8 @@ public class Secure {
 	 * @param data
 	 *            Data to decrypt
 	 * @return Decrypted data
-	 * @throws CryptoException
 	 */
-	public byte[] decrypt(byte[] data) throws CryptoException {
+	public byte[] decrypt(byte[] data) {
 		byte[] buffer = new byte[data.length];
 		if (this.dec_count == 4096) {
 			sec_decrypt_key = this.update(this.sec_decrypt_key,
@@ -1010,8 +999,7 @@ public class Secure {
 		}
 	}
 
-	public byte[] hash48(byte[] in, byte[] salt1, byte[] salt2, int salt)
-			throws CryptoException {
+	public byte[] hash48(byte[] in, byte[] salt1, byte[] salt2, int salt) {
 		byte[] shasig = new byte[20];
 		byte[] pad = new byte[4];
 		byte[] out = new byte[48];
@@ -1036,8 +1024,7 @@ public class Secure {
 		return out;
 	}
 
-	public byte[] hash16(byte[] in, byte[] salt1, byte[] salt2, int in_position)
-			throws CryptoException {
+	public byte[] hash16(byte[] in, byte[] salt1, byte[] salt2, int in_position) {
 
 		md5.reset();
 		md5.update(in, in_position, 16);
@@ -1064,9 +1051,8 @@ public class Secure {
 	 * @param key
 	 * @param update_key
 	 * @return
-	 * @throws CryptoException
 	 */
-	public byte[] update(byte[] key, byte[] update_key) throws CryptoException {
+	public byte[] update(byte[] key, byte[] update_key) {
 		byte[] shasig = new byte[20];
 		byte[] update = new byte[this.keylength]; // changed from 8 - rdesktop
 		// 1.2.0
@@ -1123,11 +1109,9 @@ public class Secure {
 	 * @return Packet representing received Secure PDU
 	 * @throws RdesktopException
 	 * @throws IOException
-	 * @throws CryptoException
 	 * @throws OrderException
 	 */
-	public RdpPacket_Localised receive() throws RdesktopException, IOException,
-	CryptoException, OrderException {
+	public RdpPacket_Localised receive() throws RdesktopException, IOException, OrderException {
 		int sec_flags = 0;
 		RdpPacket_Localised buffer = null;
 		while (true) {
@@ -1176,9 +1160,8 @@ public class Secure {
 	 * @param rc4_key_size
 	 *            Size of keys to generate (1 if 40-bit encryption, otherwise
 	 *            128-bit)
-	 * @throws CryptoException
 	 */
-	public void generate_keys(int rc4_key_size) throws CryptoException {
+	public void generate_keys(int rc4_key_size) {
 		byte[] session_key = new byte[48];
 		byte[] temp_hash = new byte[48];
 		byte[] input = new byte[48];

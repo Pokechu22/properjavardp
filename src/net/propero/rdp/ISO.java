@@ -32,7 +32,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-import net.propero.rdp.crypto.CryptoException;
 import net.propero.rdp.rdp5.Rdp5;
 
 import org.apache.logging.log4j.LogManager;
@@ -124,10 +123,9 @@ public class ISO {
 	 * @throws IOException
 	 * @throws RdesktopException
 	 * @throws OrderException
-	 * @throws CryptoException
 	 */
 	public void connect(InetAddress host, int port) throws IOException,
-	RdesktopException, OrderException, CryptoException {
+	RdesktopException, OrderException {
 		int[] code = new int[1];
 		doSocketConnect(host, port);
 		rdpsock.setTcpNoDelay(options.low_latency);
@@ -225,10 +223,9 @@ public class ISO {
 	 * @throws IOException
 	 * @throws RdesktopException
 	 * @throws OrderException
-	 * @throws CryptoException
 	 */
 	public RdpPacket_Localised receive() throws IOException, RdesktopException,
-	OrderException, CryptoException {
+	OrderException {
 		int[] type = new int[1];
 		RdpPacket_Localised buffer = receiveMessage(type);
 		if (buffer == null) {
@@ -297,10 +294,9 @@ public class ISO {
 	 * @throws IOException
 	 * @throws RdesktopException
 	 * @throws OrderException
-	 * @throws CryptoException
 	 */
 	private RdpPacket_Localised receiveMessage(int[] type) throws IOException,
-	RdesktopException, OrderException, CryptoException {
+	RdesktopException, OrderException {
 		logger.debug("ISO.receiveMessage");
 		RdpPacket_Localised s = null;
 		int length, version;
