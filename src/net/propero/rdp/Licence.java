@@ -28,10 +28,11 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import net.propero.rdp.crypto.CryptoException;
-import net.propero.rdp.crypto.RC4;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bouncycastle.crypto.engines.RC4Engine;
+import org.bouncycastle.crypto.params.KeyParameter;
 
 /**
  * Handles request, receipt and processing of licences
@@ -189,13 +190,13 @@ public class Licence {
 						hwid, hwid.length);
 
 				/* now crypt the hwid */
-				RC4 rc4_licence = new RC4();
+				RC4Engine rc4_licence = new RC4Engine();
 				byte[] crypt_key = new byte[this.licence_key.length];
 				byte[] crypt_hwid = new byte[LICENCE_HWID_SIZE];
 				System.arraycopy(this.licence_key, 0, crypt_key, 0,
 						this.licence_key.length);
-				rc4_licence.engineInitEncrypt(crypt_key);
-				rc4_licence.crypt(hwid, 0, LICENCE_HWID_SIZE, crypt_hwid, 0);
+				rc4_licence.init(true, new KeyParameter(crypt_key));
+				rc4_licence.processBytes(hwid, 0, LICENCE_HWID_SIZE, crypt_hwid, 0);
 
 				present(null_data, null_data, licence_data,
 						licence_data.length, crypt_hwid, signature);
@@ -368,7 +369,7 @@ public class Licence {
 		byte[] crypt_hwid = new byte[LICENCE_HWID_SIZE];
 		byte[] sealed_buffer = new byte[LICENCE_TOKEN_SIZE + LICENCE_HWID_SIZE];
 		byte[] out_sig = new byte[LICENCE_SIGNATURE_SIZE];
-		RC4 rc4_licence = new RC4();
+		RC4Engine rc4_licence = new RC4Engine();
 		byte[] crypt_key = null;
 
 		/* parse incoming packet and save encrypted token */
@@ -381,9 +382,8 @@ public class Licence {
 		crypt_key = new byte[this.licence_key.length];
 		System.arraycopy(this.licence_key, 0, crypt_key, 0,
 				this.licence_key.length);
-		rc4_licence.engineInitDecrypt(crypt_key);
-		rc4_licence.crypt(this.in_token, 0, LICENCE_TOKEN_SIZE, decrypt_token,
-				0);
+		rc4_licence.init(false, new KeyParameter(crypt_key));
+		rc4_licence.processBytes(this.in_token, 0, LICENCE_TOKEN_SIZE, decrypt_token, 0);
 
 		/* construct HWID */
 		byte[] hwid = this.generate_hwid();
@@ -406,8 +406,8 @@ public class Licence {
 		/* now crypt the hwid */
 		System.arraycopy(this.licence_key, 0, crypt_key, 0,
 				this.licence_key.length);
-		rc4_licence.engineInitEncrypt(crypt_key);
-		rc4_licence.crypt(hwid, 0, LICENCE_HWID_SIZE, crypt_hwid, 0);
+		rc4_licence.init(true, new KeyParameter(crypt_key));
+		rc4_licence.processBytes(hwid, 0, LICENCE_HWID_SIZE, crypt_hwid, 0);
 
 		this.send_authresp(out_token, crypt_hwid, out_sig);
 	}
@@ -423,7 +423,7 @@ public class Licence {
 	public void process_issue(RdpPacket_Localised data) throws CryptoException {
 		int length = 0;
 		int check = 0;
-		RC4 rc4_licence = new RC4();
+		RC4Engine rc4_licence = new RC4Engine();
 		byte[] key = new byte[this.licence_key.length];
 		System.arraycopy(this.licence_key, 0, key, 0, this.licence_key.length);
 
@@ -434,10 +434,10 @@ public class Licence {
 			return;
 		}
 
-		rc4_licence.engineInitDecrypt(key);
+		rc4_licence.init(false, new KeyParameter(key));
 		byte[] buffer = new byte[length];
 		data.copyToByteArray(buffer, 0, data.getPosition(), length);
-		rc4_licence.crypt(buffer, 0, length, buffer, 0);
+		rc4_licence.processBytes(buffer, 0, length, buffer, 0);
 		data.copyFromByteArray(buffer, 0, data.getPosition(), length);
 
 		check = data.getLittleEndian16();

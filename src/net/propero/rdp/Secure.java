@@ -31,19 +31,19 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.StringTokenizer;
 
-import net.propero.rdp.crypto.BlockMessageDigest;
 import net.propero.rdp.crypto.CryptoException;
-import net.propero.rdp.crypto.MD5;
-import net.propero.rdp.crypto.RC4;
-import net.propero.rdp.crypto.SHA1;
 import net.propero.rdp.rdp5.Rdp5;
 import net.propero.rdp.rdp5.VChannels;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bouncycastle.crypto.digests.MD5Digest;
+import org.bouncycastle.crypto.digests.SHA1Digest;
+import org.bouncycastle.crypto.engines.RC4Engine;
+import org.bouncycastle.crypto.params.KeyParameter;
 
 /**
- * Secure layer of communication
+ * "Secure" layer of communication
  */
 public class Secure {
 	boolean readCert = false;
@@ -93,21 +93,21 @@ public class Secure {
 
 	private static final int SEC_RSA_MAGIC = 0x31415352; /* RSA1 */
 
-	protected MCS McsLayer = null;
+	protected final MCS McsLayer;
 
 	// private String hostname=null;
 	// private String username=null;
 	boolean licenceIssued = false;
 
-	private RC4 rc4_enc = null;
+	private final RC4Engine rc4_enc;
 
-	private RC4 rc4_dec = null;
+	private final RC4Engine rc4_dec;
 
-	private RC4 rc4_update = null;
+	private final RC4Engine rc4_update;
 
-	private BlockMessageDigest sha1 = null;
+	private final SHA1Digest sha1;
 
-	private BlockMessageDigest md5 = null;
+	private final MD5Digest md5;
 
 	private int keylength = 0;
 
@@ -163,11 +163,11 @@ public class Secure {
 		this.options = options;
 		this.licence = new Licence(options, this);
 		McsLayer = new MCS(options, channels, this, rdp);
-		rc4_dec = new RC4();
-		rc4_enc = new RC4();
-		rc4_update = new RC4();
-		sha1 = new SHA1();
-		md5 = new MD5();
+		rc4_dec = new RC4Engine();
+		rc4_enc = new RC4Engine();
+		rc4_update = new RC4Engine();
+		sha1 = new SHA1Digest();
+		md5 = new MD5Digest();
 		sec_sign_key = new byte[16]; // changed from 8 - rdesktop 1.2.0
 		sec_decrypt_key = new byte[16];
 		sec_encrypt_key = new byte[16];
@@ -619,20 +619,20 @@ public class Secure {
 
 		this.setLittleEndian32(lenhdr, datalength);
 
-		sha1.engineReset();
-		sha1.engineUpdate(session_key, 0, keylen/* length */);
-		sha1.engineUpdate(pad_54, 0, 40);
-		sha1.engineUpdate(lenhdr, 0, 4);
-		sha1.engineUpdate(data, 0, datalength);
-		shasig = sha1.engineDigest();
-		sha1.engineReset();
+		sha1.reset();
+		sha1.update(session_key, 0, keylen/* length */);
+		sha1.update(pad_54, 0, 40);
+		sha1.update(lenhdr, 0, 4);
+		sha1.update(data, 0, datalength);
+		sha1.doFinal(shasig, 0);
+		sha1.reset();
 
-		md5.engineReset();
-		md5.engineUpdate(session_key, 0, keylen/* length */);
-		md5.engineUpdate(pad_92, 0, 48);
-		md5.engineUpdate(shasig, 0, 20);
-		md5sig = md5.engineDigest();
-		md5.engineReset();
+		md5.reset();
+		md5.update(session_key, 0, keylen/* length */);
+		md5.update(pad_92, 0, 48);
+		md5.update(shasig, 0, 20);
+		md5.doFinal(md5sig, 0);
+		md5.reset();
 
 		System.arraycopy(md5sig, 0, signature, 0, length);
 		return signature;
@@ -649,18 +649,18 @@ public class Secure {
 	 * @throws CryptoException
 	 */
 	public byte[] encrypt(byte[] data, int length) throws CryptoException {
-		byte[] buffer = null;
+		byte[] buffer = new byte[length];
 		if (this.enc_count == 4096) {
 			sec_encrypt_key = this.update(this.sec_encrypt_key,
 					this.sec_encrypt_update_key);
 			byte[] key = new byte[this.keylength];
 			System.arraycopy(this.sec_encrypt_key, 0, key, 0, this.keylength);
-			this.rc4_enc.engineInitEncrypt(key);
+			this.rc4_enc.init(true, new KeyParameter(key));
 			// logger.debug("Packet enc_count="+enc_count);
 			this.enc_count = 0;
 		}
 		// this.rc4.engineInitEncrypt(this.rc4_encrypt_key);
-		buffer = this.rc4_enc.crypt(data, 0, length);
+		this.rc4_enc.processBytes(data, 0, length, buffer, 0);
 		this.enc_count++;
 		return buffer;
 	}
@@ -674,19 +674,19 @@ public class Secure {
 	 * @throws CryptoException
 	 */
 	public byte[] encrypt(byte[] data) throws CryptoException {
-		byte[] buffer = null;
+		byte[] buffer = new byte[data.length];
 		if (this.enc_count == 4096) {
 			sec_encrypt_key = this.update(this.sec_encrypt_key,
 					this.sec_encrypt_update_key);
 			byte[] key = new byte[this.keylength];
 			System.arraycopy(this.sec_encrypt_key, 0, key, 0, this.keylength);
-			this.rc4_enc.engineInitEncrypt(key);
+			this.rc4_enc.init(true, new KeyParameter(key));
 			// logger.debug("Packet enc_count="+enc_count);
 			this.enc_count = 0;
 		}
 		// this.rc4.engineInitEncrypt(this.rc4_encrypt_key);
 
-		buffer = this.rc4_enc.crypt(data);
+		this.rc4_enc.processBytes(data, 0, data.length, buffer, 0);
 		this.enc_count++;
 		return buffer;
 	}
@@ -702,18 +702,18 @@ public class Secure {
 	 * @throws CryptoException
 	 */
 	public byte[] decrypt(byte[] data, int length) throws CryptoException {
-		byte[] buffer = null;
+		byte[] buffer = new byte[length];
 		if (this.dec_count == 4096) {
 			sec_decrypt_key = this.update(this.sec_decrypt_key,
 					this.sec_decrypt_update_key);
 			byte[] key = new byte[this.keylength];
 			System.arraycopy(this.sec_decrypt_key, 0, key, 0, this.keylength);
-			this.rc4_dec.engineInitDecrypt(key);
+			this.rc4_dec.init(false, new KeyParameter(key));
 			// logger.debug("Packet dec_count="+dec_count);
 			this.dec_count = 0;
 		}
 		// this.rc4.engineInitDecrypt(this.rc4_decrypt_key);
-		buffer = this.rc4_dec.crypt(data, 0, length);
+		this.rc4_dec.processBytes(data, 0, length, buffer, 0);
 		this.dec_count++;
 		return buffer;
 	}
@@ -727,19 +727,19 @@ public class Secure {
 	 * @throws CryptoException
 	 */
 	public byte[] decrypt(byte[] data) throws CryptoException {
-		byte[] buffer = null;
+		byte[] buffer = new byte[data.length];
 		if (this.dec_count == 4096) {
 			sec_decrypt_key = this.update(this.sec_decrypt_key,
 					this.sec_decrypt_update_key);
 			byte[] key = new byte[this.keylength];
 			System.arraycopy(this.sec_decrypt_key, 0, key, 0, this.keylength);
-			this.rc4_dec.engineInitDecrypt(key);
+			this.rc4_dec.init(false, new KeyParameter(key));
 			// logger.debug("Packet dec_count="+dec_count);
 			this.dec_count = 0;
 		}
 		// this.rc4.engineInitDecrypt(this.rc4_decrypt_key);
 
-		buffer = this.rc4_dec.crypt(data);
+		this.rc4_dec.processBytes(data, 0, data.length, buffer, 0);
 		this.dec_count++;
 		return buffer;
 	}
@@ -1021,16 +1021,16 @@ public class Secure {
 			for (int j = 0; j <= i; j++) {
 				pad[j] = (byte) (salt + i);
 			}
-			sha1.engineUpdate(pad, 0, i + 1);
-			sha1.engineUpdate(in, 0, 48);
-			sha1.engineUpdate(salt1, 0, 32);
-			sha1.engineUpdate(salt2, 0, 32);
-			shasig = sha1.engineDigest();
-			sha1.engineReset();
+			sha1.update(pad, 0, i + 1);
+			sha1.update(in, 0, 48);
+			sha1.update(salt1, 0, 32);
+			sha1.update(salt2, 0, 32);
+			sha1.doFinal(shasig, 0);
+			sha1.reset();
 
-			md5.engineUpdate(in, 0, 48);
-			md5.engineUpdate(shasig, 0, 20);
-			System.arraycopy(md5.engineDigest(), 0, out, i * 16, 16);
+			md5.update(in, 0, 48);
+			md5.update(shasig, 0, 20);
+			md5.doFinal(out, i * 16); // TODO: make sure this doesn't clobber anything
 		}
 
 		return out;
@@ -1039,10 +1039,13 @@ public class Secure {
 	public byte[] hash16(byte[] in, byte[] salt1, byte[] salt2, int in_position)
 			throws CryptoException {
 
-		md5.engineUpdate(in, in_position, 16);
-		md5.engineUpdate(salt1, 0, 32);
-		md5.engineUpdate(salt2, 0, 32);
-		return md5.engineDigest();
+		md5.reset();
+		md5.update(in, in_position, 16);
+		md5.update(salt1, 0, 32);
+		md5.update(salt2, 0, 32);
+		byte[] result = new byte[16];
+		md5.doFinal(result, 0);
+		return result;
 	}
 
 	/**
@@ -1069,26 +1072,26 @@ public class Secure {
 		// 1.2.0
 		byte[] thekey = new byte[key.length];
 
-		sha1.engineReset();
-		sha1.engineUpdate(update_key, 0, keylength);
-		sha1.engineUpdate(pad_54, 0, 40);
-		sha1.engineUpdate(key, 0, keylength); // changed from 8 - rdesktop
+		sha1.reset();
+		sha1.update(update_key, 0, keylength);
+		sha1.update(pad_54, 0, 40);
+		sha1.update(key, 0, keylength); // changed from 8 - rdesktop
 		// 1.2.0
-		shasig = sha1.engineDigest();
-		sha1.engineReset();
+		sha1.doFinal(shasig, 0);
+		sha1.reset();
 
-		md5.engineReset();
-		md5.engineUpdate(update_key, 0, keylength); // changed from 8 - rdesktop
+		md5.reset();
+		md5.update(update_key, 0, keylength); // changed from 8 - rdesktop
 		// 1.2.0
-		md5.engineUpdate(pad_92, 0, 48);
-		md5.engineUpdate(shasig, 0, 20);
-		thekey = md5.engineDigest();
-		md5.engineReset();
+		md5.update(pad_92, 0, 48);
+		md5.update(shasig, 0, 20);
+		md5.doFinal(thekey, 0);
+		md5.reset();
 
 		System.arraycopy(thekey, 0, update, 0, this.keylength);
-		rc4_update.engineInitDecrypt(update);
+		rc4_update.init(false, new KeyParameter(update));
 		// added
-		thekey = rc4_update.crypt(thekey, 0, this.keylength);
+		rc4_update.processBytes(thekey, 0, this.keylength, thekey, 0);
 
 		if (this.keylength == 8) {
 			this.make40bit(thekey);
@@ -1214,9 +1217,9 @@ public class Secure {
 
 		byte[] key = new byte[this.keylength];
 		System.arraycopy(this.sec_encrypt_key, 0, key, 0, this.keylength);
-		rc4_enc.engineInitEncrypt(key);
+		rc4_enc.init(true, new KeyParameter(key));
 		System.arraycopy(this.sec_decrypt_key, 0, key, 0, this.keylength);
-		rc4_dec.engineInitDecrypt(key);
+		rc4_dec.init(false, new KeyParameter(key));
 	}
 
 	/**
