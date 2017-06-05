@@ -23,8 +23,6 @@ package net.propero.rdp.crypto;
  * href="http://www.systemics.com/docs/cryptix/">Cryptix Development Team</a>.
  * <br>
  * All rights reserved.
- * <p>
- * <b>$Revision$</b>
  *
  * @author Raif S. Naffah
  * @author David Hopwood

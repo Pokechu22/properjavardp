@@ -1,15 +1,7 @@
 /* WrappedImage.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Adds functionality to the BufferedImage class, allowing
- *          manipulation of colour indices, making the RGB values
- *          invisible (in the case of Indexed Colour only).
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +30,11 @@ import java.awt.image.IndexColorModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Adds functionality to the BufferedImage class, allowing manipulation of
+ * colour indices, making the RGB values invisible (in the case of Indexed
+ * Colour only).
+ */
 public class WrappedImage {
 	static Logger logger = LogManager.getLogger(RdesktopCanvas.class);
 

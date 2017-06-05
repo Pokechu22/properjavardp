@@ -1,13 +1,7 @@
 /* Rdp5.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Handle RDP5 orders
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +31,9 @@ import net.propero.rdp.Rdp;
 import net.propero.rdp.RdpPacket_Localised;
 import net.propero.rdp.crypto.CryptoException;
 
+/**
+ * Handle RDP5 orders
+ */
 public class Rdp5 extends Rdp {
 
 	private VChannels channels;

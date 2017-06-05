@@ -1,13 +1,7 @@
 /* TestChannel.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Dummy RDP5 channel for testing purposes
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,10 +27,9 @@ import net.propero.rdp.Options;
 import net.propero.rdp.RdpPacket;
 
 /**
- * @author Tom Elliott
+ * Dummy RDP5 channel for testing purposes
  *
- * TODO To change the template for this generated type comment go to Window -
- * Preferences - Java - Code Style - Code Templates
+ * @author Tom Elliott
  */
 public class TestChannel extends VChannel {
 

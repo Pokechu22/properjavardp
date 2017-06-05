@@ -1,13 +1,7 @@
 /* KeyMapException.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: General exception for keymapping operations
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,18 +23,10 @@
  */
 package net.propero.rdp.keymapping;
 
-/*
- * Created on 20-Apr-2005
- *
- * TODO To change the template for this generated file go to Window -
- * Preferences - Java - Code Style - Code Templates
- */
-
 /**
- * @author Tom Elliott
+ * General exception for keymapping operations
  *
- * TODO To change the template for this generated type comment go to Window -
- * Preferences - Java - Code Style - Code Templates
+ * @author Tom Elliott
  */
 public class KeyMapException extends Exception {
 

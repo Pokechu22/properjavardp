@@ -1,13 +1,7 @@
 /* JRdpLoader.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Launch ProperJavaRDP with settings from a config file
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +34,9 @@ import net.propero.rdp.RdesktopException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Launch ProperJavaRDP with settings from a config file
+ */
 public class JRdpLoader {
 
 	private static final Logger logger = LogManager.getLogger();

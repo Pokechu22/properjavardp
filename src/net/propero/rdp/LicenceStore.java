@@ -1,13 +1,7 @@
 /* LicenceStore.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Handle saving and loading of licences
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +31,9 @@ import java.util.prefs.Preferences;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Handle saving and loading of licences
+ */
 public class LicenceStore {
 	private LicenceStore() { throw new AssertionError(); }
 

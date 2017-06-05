@@ -1,13 +1,7 @@
 /* VChannel.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Abstract class for RDP5 channels
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +36,9 @@ import net.propero.rdp.crypto.CryptoException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Abstract class for RDP5 channels
+ */
 public abstract class VChannel {
 
 	protected static Logger logger = LogManager.getLogger(Input.class);

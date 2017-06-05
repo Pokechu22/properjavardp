@@ -1,15 +1,7 @@
 /* RdpPacket.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Encapsulates data from a single received packet.
- *          Provides methods for reading from and writing to
- *          an individual packet at all relevant levels.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,12 +21,15 @@
  * (See gpl.txt for details of the GNU General Public License.)
  *
  */
-// Created on 03-Sep-2003
 package net.propero.rdp;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Encapsulates data from a single received packet. Provides methods for reading
+ * from and writing to an individual packet at all relevant levels.
+ */
 public abstract class RdpPacket {
 	static Logger logger = LogManager.getLogger(RdpPacket.class);
 

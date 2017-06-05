@@ -1,13 +1,7 @@
 /* MCS.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: MCS Layer of communication
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +34,9 @@ import net.propero.rdp.rdp5.VChannels;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * MCS Layer of communication
+ */
 public class MCS {
 	static Logger logger = LogManager.getLogger(MCS.class);
 

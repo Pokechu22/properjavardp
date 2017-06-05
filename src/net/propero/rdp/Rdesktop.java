@@ -1,13 +1,7 @@
 /* Rdesktop.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Main class, launches session
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,6 +44,9 @@ import net.propero.rdp.tools.SendEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Main class, launches session
+ */
 public class Rdesktop {
 
 	static Logger logger = LogManager.getLogger("net.propero.rdp");

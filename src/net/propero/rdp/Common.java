@@ -1,14 +1,7 @@
 /* Common.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Provide a static interface to individual network layers
- *          and UI components
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +23,11 @@
  */
 package net.propero.rdp;
 
+/**
+ * Provided a static interface to individual network layers and UI components.
+ * However, a static interface is bad for future plans, so this class will soon
+ * be removed.
+ */
 @Deprecated
 public class Common {
 

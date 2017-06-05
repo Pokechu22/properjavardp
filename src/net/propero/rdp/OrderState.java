@@ -1,14 +1,7 @@
 /* OrderState.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Storage of current order state, which may consist of one of each of a number of
- *          order types.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +36,10 @@ import net.propero.rdp.orders.ScreenBltOrder;
 import net.propero.rdp.orders.Text2Order;
 import net.propero.rdp.orders.TriBltOrder;
 
+/**
+ * Storage of current order state, which may consist of one of each of a number
+ * of order types.
+ */
 class OrderState {
 	private PrimaryOrder order_type = PrimaryOrder.DSTBLT;
 

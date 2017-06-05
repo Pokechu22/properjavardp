@@ -1,14 +1,7 @@
 /* RdesktopCanvas.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Canvas component, handles drawing requests from server,
- *          and passes user input to Input class.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,8 +52,10 @@ import net.propero.rdp.orders.TriBltOrder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-// import org.apache.log4j.NDC;
-
+/**
+ * Canvas component, handles drawing requests from server, and passes user input
+ * to Input class.
+ */
 public class RdesktopCanvas extends Canvas {
 	private static final long serialVersionUID = -6806580381785981945L;
 

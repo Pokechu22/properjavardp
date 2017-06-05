@@ -1,13 +1,7 @@
 /* Cache.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Handle caching of bitmaps, cursors, colour maps, text and fonts
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +29,9 @@ import java.awt.image.IndexColorModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Handle caching of bitmaps, cursors, colour maps, text and fonts.
+ */
 public class Cache {
 
 	protected static Logger logger = LogManager.getLogger(Rdp.class);

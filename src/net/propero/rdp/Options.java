@@ -1,13 +1,7 @@
-/* options.java
+/* Options.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: <del>Global static</del> storage of user-definable options
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +25,9 @@ package net.propero.rdp;
 
 import java.awt.image.DirectColorModel;
 
+/**
+ * <del>Global static</del> storage of user-definable options
+ */
 public class Options {
 
 	public static final int DIRECT_BITMAP_DECOMPRESSION = 0;

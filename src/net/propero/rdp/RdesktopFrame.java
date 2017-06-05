@@ -1,13 +1,7 @@
 /* RdesktopFrame.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Window for RDP session
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,8 +52,9 @@ import net.propero.rdp.rdp5.cliprdr.ClipChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-// import javax.swing.Box;
-
+/**
+ * Window for RDP session
+ */
 public class RdesktopFrame extends Frame implements RdesktopCallback {
 
 	private static final long serialVersionUID = -886909197782887125L;

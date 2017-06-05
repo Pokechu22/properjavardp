@@ -1,13 +1,7 @@
 /* RdpApplet.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Provide an applet interface to ProperJavaRDP
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,6 +45,9 @@ import net.propero.rdp.RdesktopException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Provide an applet interface to ProperJavaRDP
+ */
 public class RdpApplet extends Applet {
 
 	private static final long serialVersionUID = 583386592743649642L;

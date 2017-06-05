@@ -1,13 +1,7 @@
 /* RdpMenu.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Menu bar for main frame
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +32,9 @@ import net.propero.rdp.Options;
 import net.propero.rdp.Rdesktop;
 import net.propero.rdp.RdesktopFrame;
 
+/**
+ * Menu bar for main frame
+ */
 public class RdpMenu extends MenuBar {
 
 	private static final long serialVersionUID = 4400808258398800489L;

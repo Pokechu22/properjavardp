@@ -1,13 +1,7 @@
 /* RdesktopException.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: General exception class for ProperJavaRDP
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +23,9 @@
  */
 package net.propero.rdp;
 
+/**
+ * General exception class for ProperJavaRDP
+ */
 public class RdesktopException extends Exception {
 
 	private static final long serialVersionUID = 2839110732850220601L;

@@ -1,13 +1,7 @@
 /* Licence.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Handles request, receipt and processing of licences
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +33,9 @@ import net.propero.rdp.crypto.RC4;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Handles request, receipt and processing of licences
+ */
 public class Licence {
 	private Secure secure = null;
 

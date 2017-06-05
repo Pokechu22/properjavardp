@@ -1,13 +1,7 @@
 /* ISO.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: ISO layer of communication
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +38,9 @@ import net.propero.rdp.rdp5.Rdp5;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Purpose: ISO layer of communication
+ */
 public class ISO {
 	static Logger logger = LogManager.getLogger(ISO.class);
 

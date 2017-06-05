@@ -1,13 +1,7 @@
 /* Orders.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Encapsulates an RDP order
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +23,9 @@
  */
 package net.propero.rdp;
 
+/**
+ * Encapsulates an RDP order
+ */
 import java.awt.image.IndexColorModel;
 import java.io.IOException;
 import java.util.Arrays;

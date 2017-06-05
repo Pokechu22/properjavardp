@@ -1,13 +1,7 @@
 /* Input.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Handles input events and sends relevant input data to server
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,6 +45,9 @@ import net.propero.rdp.keymapping.KeyMapException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Handles input events and sends relevant input data to server
+ */
 public class Input {
 
 	protected static Logger logger = LogManager.getLogger(Input.class);

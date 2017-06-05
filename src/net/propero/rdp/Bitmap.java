@@ -1,14 +1,7 @@
 /* Bitmap.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Provide a class for storage of Bitmap images, along with
- *          static methods for decompression and conversion of bitmaps.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +31,10 @@ import java.awt.image.IndexColorModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Provide a class for storage of Bitmap images, along with static methods for
+ * decompression and conversion of bitmaps.
+ */
 public class Bitmap {
 
 	public int usage;

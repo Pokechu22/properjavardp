@@ -1,14 +1,7 @@
 /* HexDump.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Manages debug information for all data
- *          sent and received, outputting in hex format
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,10 +23,13 @@
  */
 package net.propero.rdp;
 
-//import org.apache.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Manages debug information for all data sent and received, outputting in hex
+ * format
+ */
 public class HexDump {
 	static Logger logger = LogManager.getLogger(HexDump.class);
 

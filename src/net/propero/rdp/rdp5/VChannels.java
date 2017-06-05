@@ -1,13 +1,7 @@
 /* VChannels.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Static store for all registered channels
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +36,9 @@ import net.propero.rdp.crypto.CryptoException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Static store for all registered channels
+ */
 public class VChannels {
 
 	protected static Logger logger = LogManager.getLogger(Input.class);

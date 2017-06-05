@@ -1,14 +1,8 @@
 /* Secure.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
  * Copyright (c) 2008 IsmAvatar <cmagicj@nni.com>
- *
- * Purpose: Secure layer of communication
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +42,9 @@ import net.propero.rdp.rdp5.VChannels;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Secure layer of communication
+ */
 public class Secure {
 	boolean readCert = false;
 

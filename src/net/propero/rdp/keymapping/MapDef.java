@@ -1,13 +1,7 @@
 /* MapDef.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Encapsulates an individual key mapping
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +30,9 @@ import java.util.StringTokenizer;
 
 import net.propero.rdp.Options;
 
+/**
+ * Encapsulates an individual key mapping
+ */
 public class MapDef {
 
 	// Flag masks for use in generating an integer modifiers value (for text

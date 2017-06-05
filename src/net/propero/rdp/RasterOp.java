@@ -1,13 +1,7 @@
 /* RasterOp.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Set of operations used in displaying raster graphics
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,12 +21,14 @@
  * (See gpl.txt for details of the GNU General Public License.)
  *
  */
-// Created on 01-Jul-2003
 package net.propero.rdp;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Set of operations used in displaying raster graphics
+ */
 public class RasterOp {
 	static Logger logger = LogManager.getLogger(RdesktopCanvas.class);
 

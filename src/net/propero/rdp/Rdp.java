@@ -1,13 +1,7 @@
 /* Rdp.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Rdp layer of communication
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +43,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
 
+/**
+ * Rdp layer of communication
+ */
 public class Rdp {
 
 	public static final boolean SAVE_DESKTOP = true; // Configuration?

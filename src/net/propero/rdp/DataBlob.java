@@ -1,14 +1,7 @@
 /* DataBlob.java
  * Component: ProperJavaRDP
  *
- * Revision: $Revision$
- * Author: $Author$
- * Date: $Date$
- *
  * Copyright (c) 2005 Propero Limited
- *
- * Purpose: Encapsulates Blobs of byte data, of arbitrary size (although
- *          data cannot be changed once set)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +23,10 @@
  */
 package net.propero.rdp;
 
+/**
+ * Encapsulates Blobs of byte data, of arbitrary size (although data cannot be
+ * changed once set (not really though))
+ */
 public class DataBlob {
 
 	private byte[] data = null;
