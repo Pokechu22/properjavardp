@@ -35,6 +35,7 @@ import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
 
 import net.propero.rdp.Orders.PrimaryOrder;
+import net.propero.rdp.api.RdesktopCallback;
 import net.propero.rdp.rdp5.Rdp5;
 import net.propero.rdp.rdp5.VChannels;
 

@@ -45,6 +45,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import net.propero.rdp.api.RdesktopCallback;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
 import net.propero.rdp.menu.RdpMenu;
 import net.propero.rdp.rdp5.cliprdr.ClipChannel;

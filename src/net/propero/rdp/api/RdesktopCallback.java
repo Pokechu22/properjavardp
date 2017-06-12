@@ -1,4 +1,7 @@
-package net.propero.rdp;
+package net.propero.rdp.api;
+
+import net.propero.rdp.RdesktopCanvas;
+import net.propero.rdp.Rdp;
 
 public interface RdesktopCallback {
 	/**
