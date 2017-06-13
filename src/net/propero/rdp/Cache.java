@@ -53,7 +53,7 @@ public class Cache {
 	private IndexColorModel[] colourcache = new IndexColorModel[RDPCACHE_COLOURMAPSIZE];
 
 	public Cache(Options options) {
-		this.pstCache = new PstCache(options);
+		this.pstCache = new PstCache(options, this);
 	}
 
 	final PstCache pstCache;

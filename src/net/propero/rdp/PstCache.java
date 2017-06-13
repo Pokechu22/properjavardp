@@ -42,8 +42,11 @@ class PstCache {
 	public static final int MAX_CELL_SIZE = 0x1000; /* pixels */
 
 	private final Options options;
-	public PstCache(Options options) {
+	private final Cache cache;
+
+	public PstCache(Options options, Cache cache) {
 		this.options = options;
+		this.cache = cache;
 	}
 
 	public boolean IS_PERSISTENT(int id) {
@@ -126,7 +129,7 @@ class PstCache {
 
 		bitmap = new Bitmap(options, celldata, c.width, c.height, 0, 0, options.Bpp);
 		// bitmap = ui_create_bitmap(cellhdr.width, cellhdr.height, celldata);
-		Orders.cache.putBitmap(cache_id, cache_idx, bitmap, c.stamp);
+		this.cache.putBitmap(cache_id, cache_idx, bitmap, c.stamp);
 
 		// xfree(celldata);
 		return true;

@@ -23,9 +23,6 @@
  */
 package net.propero.rdp;
 
-/**
- * Encapsulates an RDP order
- */
 import java.awt.image.IndexColorModel;
 import java.io.IOException;
 import java.util.Arrays;
@@ -53,14 +50,17 @@ import net.propero.rdp.orders.TriBltOrder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Parses and tracks RDP orders, and then delegates the actual drawing.
+ */
 public class Orders {
 	static Logger logger = LogManager.getLogger(Orders.class);
 
 	private OrderState os = null;
 
-	private RdesktopCanvas surface = null;
+	private OrderSurface surface = null;
 
-	public static Cache cache = null;
+	public Cache cache = null;
 
 	/* RDP_BMPCACHE2_ORDER */
 	private static final int ID_MASK = 0x0007;
@@ -589,7 +589,7 @@ public class Orders {
 	 * @param surface
 	 *            Surface to register
 	 */
-	public void registerDrawingSurface(RdesktopCanvas surface) {
+	public void registerDrawingSurface(OrderSurface surface) {
 		this.surface = surface;
 		surface.registerCache(cache);
 	}
@@ -1663,7 +1663,7 @@ public class Orders {
 	 *            Cache object to set as current global cache
 	 */
 	public void registerCache(Cache cache) {
-		Orders.cache = cache;
+		this.cache = cache;
 	}
 
 	/**

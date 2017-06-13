@@ -277,7 +277,8 @@ public class Rdp {
 
 	private RdesktopCallback callback = null;
 
-	private RdesktopCanvas surface = null;
+	private RdesktopCanvas canvas = null;
+	private OrderSurface surface = null;
 
 	protected Orders orders = null;
 
@@ -347,7 +348,7 @@ public class Rdp {
 			logger.warn(msg);
 			options.width = width;
 			options.height = height;
-			this.surface.sizeChanged();
+			this.canvas.sizeChanged();
 		}
 	}
 
@@ -1406,7 +1407,7 @@ public class Rdp {
 		y = data.getLittleEndian16();
 
 		if (data.getPosition() <= data.getEnd()) {
-			surface.movePointer(x, y);
+			canvas.movePointer(x, y);
 		}
 		break;
 
@@ -1435,7 +1436,7 @@ public class Rdp {
 		switch (system_pointer_type) {
 		case RDP_NULL_POINTER:
 			logger.debug("RDP_NULL_POINTER");
-			surface.setCursor(null);
+			canvas.setCursor(null);
 			break;
 
 		default:
@@ -1456,8 +1457,8 @@ public class Rdp {
 		int minX, minY, maxX, maxY;
 
 		maxX = maxY = 0;
-		minX = surface.getWidth();
-		minY = surface.getHeight();
+		minX = canvas.getWidth();
+		minY = canvas.getHeight();
 
 		n_updates = data.getLittleEndian16();
 
@@ -1556,7 +1557,7 @@ public class Rdp {
 				}
 			}
 		}
-		surface.repaint(minX, minY, maxX - minX + 1, maxY - minY + 1);
+		canvas.repaint(minX, minY, maxX - minX + 1, maxY - minY + 1); // TODO: Should this be needed?
 	}
 
 	protected void processPalette(RdpPacket data) {
@@ -1591,8 +1592,9 @@ public class Rdp {
 	public void registerDrawingSurface(RdesktopCallback callback) {
 		this.callback = callback;
 		RdesktopCanvas ds = callback.getCanvas();
-		this.surface = ds;
-		orders.registerDrawingSurface(ds);
+		this.canvas = ds;
+		this.surface = canvas.surface;
+		orders.registerDrawingSurface(this.surface);
 	}
 
 	/* Process a null system pointer PDU */
@@ -1600,7 +1602,7 @@ public class Rdp {
 			throws RdesktopException {
 		// FIXME: We should probably set another cursor here,
 		// like the X window system base cursor or something.
-		surface.setCursor(cache.getCursor(0));
+		canvas.setCursor(cache.getCursor(0));
 	}
 
 	protected void process_colour_pointer_pdu(RdpPacket data)
@@ -1623,10 +1625,10 @@ public class Rdp {
 		data.incrementPosition(datalen);
 		data.copyToByteArray(mask, 0, data.getPosition(), masklen);
 		data.incrementPosition(masklen);
-		cursor = surface.createCursor(x, y, width, height, mask, pixel,
+		cursor = canvas.createCursor(x, y, width, height, mask, pixel,
 				cache_idx);
 		// logger.info("Creating and setting cursor " + cache_idx);
-		surface.setCursor(cursor);
+		canvas.setCursor(cursor);
 		cache.putCursor(cache_idx, cursor);
 	}
 
@@ -1635,6 +1637,6 @@ public class Rdp {
 		logger.debug("Rdp.RDP_POINTER_CACHED");
 		int cache_idx = data.getLittleEndian16();
 		// logger.info("Setting cursor "+cache_idx);
-		surface.setCursor(cache.getCursor(cache_idx));
+		canvas.setCursor(cache.getCursor(cache_idx));
 	}
 }
