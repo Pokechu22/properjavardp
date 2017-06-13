@@ -403,32 +403,6 @@ public class MCS {
 	public void sendConnectInitial(RdpPacket data)
 			throws IOException, RdesktopException {
 		LOGGER.debug("MCS.sendConnectInitial");
-		if (false) {
-			int length = 7 + (3 * 34) + 4 + data.getEnd();
-			RdpPacket buffer = IsoLayer.init(length + 5);
-
-			sendBerHeader(buffer, CONNECT_INITIAL, length);
-			sendBerHeader(buffer, BER_TAG_OCTET_STRING, 0); // calling domain
-			sendBerHeader(buffer, BER_TAG_OCTET_STRING, 0); // called domain
-
-			sendBerHeader(buffer, BER_TAG_BOOLEAN, 1);
-			buffer.set8(255); // upward flag
-
-			sendDomainParams(buffer, 2, 2, 0, 0xffff); // target parameters
-			sendDomainParams(buffer, 1, 1, 1, 0x420); // minimun parameters
-			sendDomainParams(buffer, 0xffff, 0xfc17, 0xffff, 0xffff); // maximum
-			// parameters
-
-			sendBerHeader(buffer, BER_TAG_OCTET_STRING, data.getEnd());
-
-			data.copyToPacket(buffer, 0, buffer.getPosition(), data.getEnd());
-			buffer.incrementPosition(data.getEnd());
-			buffer.markEnd();
-			IsoLayer.send(buffer);
-			return;
-		}
-
-		LOGGER.debug("MCS.sendConnectInitial");
 		int datalen = data.getEnd();
 		int length = 9 + domainParamSize(34, 2, 0, 0xffff)
 				+ domainParamSize(1, 1, 1, 0x420)

@@ -24,12 +24,13 @@
 package net.propero.rdp.keymapping;
 
 import java.awt.event.KeyEvent;
-import java.io.DataInputStream;
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -124,24 +125,17 @@ public class KeyCode_FileBased {
 	 * @throws KeyMapException
 	 */
 	public void readMapFile(InputStream fstream) throws KeyMapException {
-		// logger.info("Stream-based keycode reader");
-		int lineNum = 0; // current line number being parsed
-		String line = ""; // contents of line being parsed
-
 		if (fstream == null) {
 			throw new KeyMapException("Could not find specified keymap file");
 		}
 
+		int lineNum = 0; // current line number being parsed
+
 		boolean mapCodeSet = false;
 
-		try {
-			DataInputStream in = new DataInputStream(fstream);
-
-			if (in == null) {
-				LOGGER.warn("in == null");
-			}
-
-			while (in.available() != 0) {
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(fstream))) {
+			String line;
+			while ((line = in.readLine()) != null) {
 				lineNum++;
 				line = in.readLine();
 

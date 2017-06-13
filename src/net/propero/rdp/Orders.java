@@ -1464,43 +1464,20 @@ public class Orders {
 			}
 			bitmap = new Bitmap(bmpdataInt, width, height, 0, 0);
 		} else {
-			for (y = 0; y < height; y++)
-			{
+			for (y = 0; y < height; y++) {
 				data.copyToByteArray(bmpdata, y * (width * Bpp),
-						(height - y - 1) * (width * Bpp), width * Bpp); // memcpy(&bmpdata[(height
-				// - y -
-				// 1) *
-				// (width
-				// *
-				// Bpp)],
-				// &data[y
-				// *
-				// (width
-				// *
-				// Bpp)],
-				// width
-				// *
-				// Bpp);
+						(height - y - 1) * (width * Bpp), width * Bpp);
 			}
 
 			bitmap = new Bitmap(Bitmap.convertImage(options, bmpdata, Bpp), width,
 					height, 0, 0);
 		}
 
-		// bitmap = ui_create_bitmap(width, height, bmpdata);
-
-		if (bitmap != null) {
-			cache.putBitmap(cache_id, cache_idx, bitmap, 0);
-			// cache_put_bitmap(cache_id, cache_idx, bitmap, 0);
-			if ((flags & PERSIST) != 0) {
-				cache.pstCache.pstcache_put_bitmap(cache_id, cache_idx, bitmap_id,
-						width, height, width * height * Bpp, bmpdata);
-			}
-		} else {
-			LOGGER.debug("process_bmpcache2: ui_create_bitmap failed");
+		cache.putBitmap(cache_id, cache_idx, bitmap, 0);
+		if ((flags & PERSIST) != 0) {
+			cache.pstCache.pstcache_put_bitmap(cache_id, cache_idx, bitmap_id,
+					width, height, width * height * Bpp, bmpdata);
 		}
-
-		// xfree(bmpdata);
 	}
 
 	/**

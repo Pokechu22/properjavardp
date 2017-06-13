@@ -55,7 +55,6 @@ import net.propero.rdp.Options;
 import net.propero.rdp.OrderSurface;
 import net.propero.rdp.Rdesktop;
 import net.propero.rdp.Rdp;
-import net.propero.rdp.Options.OS;
 import net.propero.rdp.api.RdesktopCallback;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
 import net.propero.rdp.rdp5.cliprdr.ClipChannel;
