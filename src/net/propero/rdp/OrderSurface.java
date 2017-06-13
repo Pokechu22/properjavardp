@@ -440,7 +440,6 @@ public class OrderSurface {
 	 */
 	public void drawLineVerticalHorizontal(int x1, int y1, int x2, int y2,
 			int color, int opcode) {
-		int pbackstore;
 		int i;
 		// only vertical or horizontal lines
 		if (y1 == y2) { // HORIZONTAL
@@ -452,10 +451,8 @@ public class OrderSurface {
 					if (x2 > this.right) {
 						x2 = this.right;
 					}
-					pbackstore = y1 * this.width + x1;
 					for (i = 0; i < x2 - x1; i++) {
 						rop.do_pixel(opcode, backstore, x1 + i, y1, color);
-						pbackstore++;
 					}
 					repaint(x1, y1, x2 - x1 + 1, 1);
 				} else { // x dec, y1=y2
@@ -465,10 +462,8 @@ public class OrderSurface {
 					if (x1 > this.right) {
 						x1 = this.right;
 					}
-					pbackstore = y1 * this.width + x1;
 					for (i = 0; i < x1 - x2; i++) {
 						rop.do_pixel(opcode, backstore, x2 + i, y1, color);
-						pbackstore--;
 					}
 					repaint(x2, y1, x1 - x2 + 1, 1);
 				}
@@ -482,10 +477,8 @@ public class OrderSurface {
 					if (y2 > this.bottom) {
 						y2 = this.bottom;
 					}
-					pbackstore = y1 * this.width + x1;
 					for (i = 0; i < y2 - y1; i++) {
 						rop.do_pixel(opcode, backstore, x1, y1 + i, color);
-						pbackstore += this.width;
 					}
 					repaint(x1, y1, 1, y2 - y1 + 1);
 				} else { // x1=x2, y dec
@@ -495,10 +488,8 @@ public class OrderSurface {
 					if (y1 > this.bottom) {
 						y1 = this.bottom;
 					}
-					pbackstore = y1 * this.width + x1;
 					for (i = 0; i < y1 - y2; i++) {
 						rop.do_pixel(opcode, backstore, x1, y2 + i, color);
-						pbackstore -= this.width;
 					}
 					repaint(x1, y2, 1, y1 - y2 + 1);
 				}
@@ -1078,7 +1069,6 @@ public class OrderSurface {
 
 		newcy = clipbottom - newy + 1;
 
-		int pbackstore = (newy * this.width) + x;
 		pdata = bytes_per_row * (newy - y); // offset y, but not x
 
 		if (mixmode == MIX_TRANSPARENT) { // FillStippled
@@ -1099,7 +1089,6 @@ public class OrderSurface {
 				}
 				pdata++;
 				index = 0x80;
-				pbackstore += this.width;
 				if (pdata == data.length) {
 					pdata = 0;
 				}
@@ -1125,7 +1114,6 @@ public class OrderSurface {
 				}
 				pdata++;
 				index = 0x80;
-				pbackstore += this.width;
 				if (pdata == data.length) {
 					pdata = 0;
 				}
