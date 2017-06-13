@@ -276,8 +276,6 @@ public class Rdp {
 	protected Secure SecureLayer = null;
 
 	private RdesktopCallback callback = null;
-
-	private RdesktopCanvas canvas = null;
 	private OrderSurface surface = null;
 
 	protected Orders orders = null;
@@ -348,7 +346,8 @@ public class Rdp {
 			logger.warn(msg);
 			options.width = width;
 			options.height = height;
-			this.canvas.sizeChanged();
+			this.callback.sizeChanged(width, height);
+			this.surface.sizeChanged();
 		}
 	}
 
@@ -1407,7 +1406,7 @@ public class Rdp {
 		y = data.getLittleEndian16();
 
 		if (data.getPosition() <= data.getEnd()) {
-			canvas.movePointer(x, y);
+			callback.movePointer(x, y);
 		}
 		break;
 
@@ -1436,7 +1435,7 @@ public class Rdp {
 		switch (system_pointer_type) {
 		case RDP_NULL_POINTER:
 			logger.debug("RDP_NULL_POINTER");
-			canvas.setCursor(null);
+			callback.setCursor(null);
 			break;
 
 		default:
@@ -1457,8 +1456,8 @@ public class Rdp {
 		int minX, minY, maxX, maxY;
 
 		maxX = maxY = 0;
-		minX = canvas.getWidth();
-		minY = canvas.getHeight();
+		minX = options.width;
+		minY = options.height;
 
 		n_updates = data.getLittleEndian16();
 
@@ -1591,8 +1590,7 @@ public class Rdp {
 	public void registerDrawingSurface(RdesktopCallback callback) {
 		this.callback = callback;
 		RdesktopCanvas ds = callback.getCanvas();
-		this.canvas = ds;
-		this.surface = canvas.surface;
+		this.surface = ds.surface;
 		orders.registerDrawingSurface(this.surface);
 	}
 
@@ -1601,7 +1599,7 @@ public class Rdp {
 			throws RdesktopException {
 		// FIXME: We should probably set another cursor here,
 		// like the X window system base cursor or something.
-		canvas.setCursor(cache.getCursor(0));
+		callback.setCursor(cache.getCursor(0));
 	}
 
 	protected void process_colour_pointer_pdu(RdpPacket data)
@@ -1624,10 +1622,10 @@ public class Rdp {
 		data.incrementPosition(datalen);
 		data.copyToByteArray(mask, 0, data.getPosition(), masklen);
 		data.incrementPosition(masklen);
-		cursor = canvas.createCursor(x, y, width, height, mask, pixel,
+		cursor = callback.createCursor(x, y, width, height, mask, pixel,
 				cache_idx);
 		// logger.info("Creating and setting cursor " + cache_idx);
-		canvas.setCursor(cursor);
+		callback.setCursor(cursor);
 		cache.putCursor(cache_idx, cursor);
 	}
 
@@ -1636,6 +1634,6 @@ public class Rdp {
 		logger.debug("Rdp.RDP_POINTER_CACHED");
 		int cache_idx = data.getLittleEndian16();
 		// logger.info("Setting cursor "+cache_idx);
-		canvas.setCursor(cache.getCursor(cache_idx));
+		callback.setCursor(cache.getCursor(cache_idx));
 	}
 }

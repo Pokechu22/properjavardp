@@ -23,7 +23,9 @@
  */
 package net.propero.rdp;
 
+import java.awt.AWTException;
 import java.awt.Button;
+import java.awt.Cursor;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Event;
@@ -32,8 +34,11 @@ import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Label;
 import java.awt.Panel;
+import java.awt.Point;
+import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -44,6 +49,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.MemoryImageSource;
 
 import net.propero.rdp.api.RdesktopCallback;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
@@ -68,6 +74,8 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 
 	public RdpMenu menu = null;
 
+	private Robot robot = null;
+
 	/**
 	 * Register the clipboard channel
 	 *
@@ -84,6 +92,19 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 			return menu.action(event, arg);
 		}
 		return false;
+	}
+
+	@Override
+	public void addNotify() {
+		super.addNotify();
+
+		if (robot == null) {
+			try {
+				robot = new Robot();
+			} catch (AWTException e) {
+				logger.warn("Pointer movement not allowed", e);
+			}
+		}
 	}
 
 	protected boolean inFullscreen = false;
@@ -491,8 +512,114 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 		centreWindow(this);
 	}
 
+	/**
+	 * Move the mouse pointer (only available in Java 1.3+)
+	 *
+	 * @param x
+	 *            x coordinate for mouse move
+	 * @param y
+	 *            y coordinate for mouse move
+	 */
+	public void movePointer(int x, int y) {
+		Point p = this.getLocationOnScreen();
+		x = x + p.x;
+		y = y + p.y;
+		robot.mouseMove(x, y);
+	}
+
+	public Cursor createCursor(int x, int y, int w, int h, byte[] andmask,
+			byte[] xormask, int cache_idx) {
+		int pxormask = 0;
+		int pandmask = 0;
+		Point p = new Point(x, y);
+		int size = w * h;
+		int scanline = w / 8;
+		int offset = 0;
+		byte[] mask = new byte[size];
+		int[] cursor = new int[size];
+		int pcursor = 0, pmask = 0;
+
+		offset = size;
+
+		for (int i = 0; i < h; i++) {
+			offset -= w;
+			pmask = offset;
+			for (int j = 0; j < scanline; j++) {
+				for (int bit = 0x80; bit > 0; bit >>= 1) {
+					if ((andmask[pandmask] & bit) != 0) {
+						mask[pmask] = 0;
+					} else {
+						mask[pmask] = 1;
+					}
+					pmask++;
+				}
+				pandmask++;
+			}
+		}
+
+		offset = size;
+		pcursor = 0;
+
+		for (int i = 0; i < h; i++) {
+			offset -= w;
+			pcursor = offset;
+			for (int j = 0; j < w; j++) {
+				cursor[pcursor] = ((xormask[pxormask + 2] << 16) & 0x00ff0000)
+						| ((xormask[pxormask + 1] << 8) & 0x0000ff00)
+						| (xormask[pxormask] & 0x000000ff);
+				pxormask += 3;
+				pcursor++;
+			}
+
+		}
+
+		offset = size;
+		pmask = 0;
+		pcursor = 0;
+		pxormask = 0;
+
+		for (int i = 0; i < h; i++) {
+			for (int j = 0; j < w; j++) {
+				if ((mask[pmask] == 0) && (cursor[pcursor] != 0)) {
+					cursor[pcursor] = ~(cursor[pcursor]);
+					cursor[pcursor] |= 0xff000000;
+				} else if ((mask[pmask] == 1) || (cursor[pcursor] != 0)) {
+					cursor[pcursor] |= 0xff000000;
+				}
+				pcursor++;
+				pmask++;
+			}
+		}
+
+		Image wincursor = this.createImage(new MemoryImageSource(w, h, cursor,
+				0, w));
+		return createCustomCursor(wincursor, p, "", cache_idx);
+	}
+
+	/**
+	 * Create an AWT Cursor from an image
+	 *
+	 * @param wincursor
+	 * @param p
+	 * @param s
+	 * @param cache_idx
+	 * @return Generated Cursor object
+	 */
+	protected Cursor createCustomCursor(Image wincursor, Point p, String s,
+			int cache_idx) {
+		// TODO: This doesn't do anything with the cache - is that right?
+		/*if (cache_idx == 1)
+			return Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+		return Cursor.getDefaultCursor();*/
+		return Toolkit.getDefaultToolkit().createCustomCursor(wincursor, p, "");
+	}
+
 	@Override
 	public void error(Exception ex, Rdp rdp) {
 		Rdesktop.error(ex, rdp, this, true);
+	}
+
+	public void sizeChanged(int width, int height) {
+		this.setSize(width, height);
 	}
 }

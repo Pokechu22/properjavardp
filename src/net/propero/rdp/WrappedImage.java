@@ -36,7 +36,7 @@ import org.apache.logging.log4j.Logger;
  * Colour only).
  */
 public class WrappedImage {
-	static Logger logger = LogManager.getLogger(RdesktopCanvas.class);
+	private static Logger logger = LogManager.getLogger();
 
 	IndexColorModel cm = null;
 

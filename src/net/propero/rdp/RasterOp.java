@@ -30,7 +30,7 @@ import org.apache.logging.log4j.Logger;
  * Set of operations used in displaying raster graphics
  */
 public class RasterOp {
-	static Logger logger = LogManager.getLogger(RdesktopCanvas.class);
+	private static final Logger logger = LogManager.getLogger();
 
 	protected final Options options;
 	public RasterOp(Options options) {
