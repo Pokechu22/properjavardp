@@ -273,8 +273,8 @@ public class Rdp {
 
 	protected Secure SecureLayer = null;
 
+	private final OrderSurface surface;
 	private RdesktopCallback callback = null;
-	private OrderSurface surface = null;
 
 	protected Orders orders = null;
 
@@ -292,6 +292,7 @@ public class Rdp {
 
 	public Rdp(Options options) {
 		this.options = options;
+		this.surface = new OrderSurface(options, options.width, options.height);
 	}
 
 	/**
@@ -422,6 +423,7 @@ public class Rdp {
 	public Rdp(Options options, VChannels channels) {
 		this.options = options;
 		this.SecureLayer = new Secure(channels, options, (Rdp5) this); // XXX Uuh, cast to self in constructor.  Not good.
+		this.surface = new OrderSurface(options, options.width, options.height);
 		this.orders = new Orders(options);
 		this.cache = new Cache(options);
 		orders.registerCache(cache);
@@ -1587,8 +1589,8 @@ public class Rdp {
 
 	public void registerDrawingSurface(RdesktopCallback callback) {
 		this.callback = callback;
-		RdesktopCanvas ds = callback.getCanvas();
-		this.surface = ds.surface;
+		this.surface.registerCallback(callback);
+		callback.registerSurface(this.surface);
 		orders.registerDrawingSurface(this.surface);
 	}
 

@@ -257,16 +257,6 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 	}
 
 	/**
-	 * Retrieve the canvas contained within this frame
-	 *
-	 * @return RdesktopCanvas object associated with this frame
-	 */
-	@Override
-	public RdesktopCanvas getCanvas() {
-		return this.canvas;
-	}
-
-	/**
 	 * Register the RDP communications layer with this frame
 	 *
 	 * @param rdp
@@ -621,5 +611,10 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 
 	public void sizeChanged(int width, int height) {
 		this.setSize(width, height);
+	}
+
+	@Override
+	public void registerSurface(OrderSurface surface) {
+		canvas.registerSurface(surface);
 	}
 }

@@ -2,7 +2,7 @@ package net.propero.rdp.api;
 
 import java.awt.Cursor;
 
-import net.propero.rdp.RdesktopCanvas;
+import net.propero.rdp.OrderSurface;
 import net.propero.rdp.Rdp;
 
 public interface RdesktopCallback {
@@ -11,12 +11,8 @@ public interface RdesktopCallback {
 	 */
 	public abstract void triggerReadyToSend();
 
-	/**
-	 * Retrieve the canvas associated with this.
-	 *
-	 * @return RdesktopCanvas object associated with this frame (non-null)
-	 */
-	public abstract RdesktopCanvas getCanvas();
+	public abstract void repaint(int x, int y, int width, int height);
+	public abstract void registerSurface(OrderSurface surface);
 
 	/**
 	 * Kill the program with the given exception

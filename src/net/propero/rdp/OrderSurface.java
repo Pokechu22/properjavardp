@@ -8,6 +8,7 @@ import java.awt.image.IndexColorModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import net.propero.rdp.api.RdesktopCallback;
 import net.propero.rdp.orders.BoundsOrder;
 import net.propero.rdp.orders.Brush;
 import net.propero.rdp.orders.DestBltOrder;
@@ -24,6 +25,8 @@ public class OrderSurface {
 
 	private final Options options;
 	private final RasterOp rop;
+
+	private RdesktopCallback callback;
 
 	protected WrappedImage backstore;
 
@@ -77,6 +80,13 @@ public class OrderSurface {
 	 */
 	public void registerCache(Cache cache) {
 		this.cache = cache;
+	}
+
+	/**
+	 * Set the callback.
+	 */
+	public void registerCallback(RdesktopCallback callback) {
+		this.callback = callback;
 	}
 
 	/**
@@ -1134,6 +1144,6 @@ public class OrderSurface {
 	}
 
 	private void repaint(int x, int y, int width, int height) {
-		// TODO: Actually repaint!
+		this.callback.repaint(x, y, width, height);
 	}
 }

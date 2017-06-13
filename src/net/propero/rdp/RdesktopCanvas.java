@@ -37,7 +37,7 @@ import net.propero.rdp.keymapping.KeyCode_FileBased;
 public class RdesktopCanvas extends Canvas {
 	private static final long serialVersionUID = -6806580381785981945L;
 
-	OrderSurface surface;
+	private OrderSurface surface;
 
 	private Input input = null;
 
@@ -67,8 +67,6 @@ public class RdesktopCanvas extends Canvas {
 		super();
 		this.options = options;
 		setSize(width, height);
-
-		this.surface = new OrderSurface(options, width, height);
 
 		// now do input listeners in registerCommLayer() / registerKeyboard()
 	}
@@ -137,5 +135,9 @@ public class RdesktopCanvas extends Canvas {
 	 */
 	public void triggerReadyToSend() {
 		input.triggerReadyToSend();
+	}
+
+	public void registerSurface(OrderSurface surface) {
+		this.surface = surface;
 	}
 }
