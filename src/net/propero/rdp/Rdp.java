@@ -1557,7 +1557,6 @@ public class Rdp {
 				}
 			}
 		}
-		canvas.repaint(minX, minY, maxX - minX + 1, maxY - minY + 1); // TODO: Should this be needed?
 	}
 
 	protected void processPalette(RdpPacket data) {

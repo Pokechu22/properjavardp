@@ -114,9 +114,12 @@ public class OrderSurface {
 	}
 
 	/**
-	 * Display a compressed bitmap direct to the backstore NOTE: Currently not
-	 * functioning correctly, see Bitmap.decompressImgDirect Does not call
-	 * repaint. Image is drawn to canvas on next update
+	 * Display a compressed bitmap direct to the backstore, and marks the given
+	 * region as dirty for repainting.
+	 * <p>
+	 * NOTE: Allegedly, this is currently not functioning correctly, see
+	 * {@link Bitmap#decompressImgDirect}.  However, I don't know if that's
+	 * still the case.
 	 *
 	 * @param x
 	 *            x coordinate within backstore for drawing of bitmap
@@ -142,11 +145,13 @@ public class OrderSurface {
 					throws RdesktopException {
 		backstore = Bitmap.decompressImgDirect(options, width, height, size, data, Bpp,
 				cm, x, y, backstore);
+
+		this.repaint(x, y, width, height);
 	}
 
 	/**
-	 * Draw an image object to the backstore, does not call repaint. Image is
-	 * drawn to canvas on next update.
+	 * Draw an image object to the backstore, and marks the given region as
+	 * dirty for repainting.
 	 *
 	 * @param img
 	 *            Image to draw to backstore
@@ -165,11 +170,12 @@ public class OrderSurface {
 		// g.drawRect(x,y,data.getWidth(null),data.getHeight(null));
 		g.dispose();
 
+		this.repaint(x, y, img.getWidth(null), img.getHeight(null));
 	}
 
 	/**
 	 * Draw an image (from an integer array of colour data) to the backstore,
-	 * does not call repaint. Image is drawn to canvas on next update.
+	 * and marks the given region as dirty for repainting.
 	 *
 	 * @param data
 	 *            Integer array of pixel colour information
@@ -198,6 +204,8 @@ public class OrderSurface {
 		// g.setColor(Color.RED);
 		// g.drawRect(x,y,cx,cy);
 		// g.dispose();
+
+		this.repaint(x, y, cx, cy);
 	}
 
 	/**
@@ -244,7 +252,7 @@ public class OrderSurface {
 
 	/**
 	 * Draw an image (from an integer array of colour data) to the backstore,
-	 * also calls repaint to draw image to canvas
+	 * and marks the given region as dirty for repainting.
 	 *
 	 * @param x
 	 *            x coordinate at which to draw image
