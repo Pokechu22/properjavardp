@@ -34,6 +34,8 @@ import java.net.InetAddress;
 import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
 
+import net.propero.rdp.Input.InputCapsetFlag;
+import net.propero.rdp.Input.InputType;
 import net.propero.rdp.Orders.PrimaryOrder;
 import net.propero.rdp.api.RdesktopCallback;
 import net.propero.rdp.rdp5.Rdp5;
@@ -133,17 +135,6 @@ public class Rdp {
 	private static final int RDP_NULL_POINTER = 0;
 
 	private static final int RDP_DEFAULT_POINTER = 0x7F00;
-
-	// Input Devices
-	private static final int RDP_INPUT_SYNCHRONIZE = 0;
-
-	private static final int RDP_INPUT_CODEPOINT = 1;
-
-	private static final int RDP_INPUT_VIRTKEY = 2;
-
-	private static final int RDP_INPUT_SCANCODE = 4;
-
-	private static final int RDP_INPUT_MOUSE = 0x8001;
 
 	/* RDP capabilities */
 
@@ -351,6 +342,32 @@ public class Rdp {
 	}
 
 	/**
+	 * Process an input capability set
+	 *
+	 * @param data
+	 *            Packet containing capability set data at current read position
+	 */
+	private void processInputCaps(RdpPacket data) throws RdesktopException {
+		int flags = data.getLittleEndian16();
+		options.supportedInputFlags.clear();
+		for (InputCapsetFlag flag : InputCapsetFlag.values()) {
+			if ((flags & flag.flag) != 0) {
+				options.supportedInputFlags.add(flag);
+			}
+		}
+		if (!options.supportedInputFlags.contains(InputCapsetFlag.SCANCODES)) {
+			throw new RdesktopException("Server doesn't support scancodes: " + options.supportedInputFlags);
+		}
+
+		data.getLittleEndian16();  // Pad
+		data.getLittleEndian32();  // Keyboard layout - ignored for serverer
+		data.getLittleEndian32();  // Keyboard type - ignored for server
+		data.getLittleEndian32();  // Keyboard subtype - ignored for server
+		data.getLittleEndian32();  // Number of function keys - ignored for server
+		data.incrementPosition(64);  // IME layout; also ignored for the server
+	}
+
+	/**
 	 * Process server capabilities
 	 *
 	 * @param data
@@ -390,6 +407,10 @@ public class Rdp {
 
 				case BITMAP:
 					processBitmapCaps(data);
+					break;
+
+				case INPUT:
+					processInputCaps(data);
 					break;
 
 				default:
@@ -911,7 +932,7 @@ public class Rdp {
 		this.receive(type); // Receive RDP_CTL_COOPERATE
 		this.receive(type); // Receive RDP_CTL_GRANT_CONTROL
 
-		this.sendInput(0, RDP_INPUT_SYNCHRONIZE, 0, 0, 0);
+		this.sendInput(0, InputType.SYNC, 0, 0, 0);
 		this.sendFonts(1);
 		this.sendFonts(2);
 
@@ -1261,7 +1282,7 @@ public class Rdp {
 		data.setLittleEndian16(flags); /* flags */
 		data.setLittleEndian16(0); /* pad */
 
-		data.setLittleEndian32(options.keylayout);
+		data.setLittleEndian32(options.keylayout); // Keyboard layout
 		data.setLittleEndian32(0x04); // Keyboard type, 4 = IBM enhanced (is this correct?)
 		data.setLittleEndian32(0); // Subtype
 		data.setLittleEndian32(12); // Number of function keys.  Hm, what would a keyboard with Integer.MAX_VALUE keys look like?
@@ -1331,7 +1352,16 @@ public class Rdp {
 		this.sendData(data, RDP_DATA_PDU_CONTROL);
 	}
 
-	public void sendInput(int time, int message_type, int device_flags,
+	/**
+	 * Sends an Input PDU
+	 * @param time A timestamp, ignored by the server.
+	 * @param message_type The type of input PDU.
+	 * @param device_flags The first 16-bit parameter, which is usually flags.
+	 * @param param1 The second 16-bit parameter
+	 * @param param2 The third 16-bit parameter
+	 * @see [MS-RDPBCGR] 2.2.8.1.1.3.1
+	 */
+	public void sendInput(int time, InputType message_type, int device_flags,
 			int param1, int param2) {
 		RdpPacket data = null;
 		try {
@@ -1345,7 +1375,7 @@ public class Rdp {
 		data.setLittleEndian16(0); /* pad */
 
 		data.setLittleEndian32(time);
-		data.setLittleEndian16(message_type);
+		data.setLittleEndian16(message_type.id);
 		data.setLittleEndian16(device_flags);
 		data.setLittleEndian16(param1);
 		data.setLittleEndian16(param2);

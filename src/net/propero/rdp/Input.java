@@ -54,6 +54,92 @@ public class Input {
 
 	private static final Logger LOGGER = LogManager.getLogger();
 
+	/**
+	 * Flags supported within the input capset.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.7.1.6
+	 */
+	public static enum InputCapsetFlag {
+		/**
+		 * Indicates support for using scancodes in the Keyboard Event
+		 * notifications (sections 2.2.8.1.1.3.1.1.1 and 2.2.8.1.2.2.1).
+		 * <p>
+		 * This flag is required.
+		 */
+		SCANCODES(0x0001),
+		// none for 0x0002
+		/**
+		 * Indicates support for Extended Mouse Event notifications (sections
+		 * 2.2.8.1.1.3.1.1.4 and 2.2.8.1.2.2.4).
+		 */
+		MOUSEX(0x0004),
+		/**
+		 * Advertised by RDP 5.0 and 5.1 servers. RDP 5.2, 6.0, 6.1, 7.0, 7.1,
+		 * 8.0, 8.1, 10.0, 10.1, and 10.2 servers advertise the
+		 * INPUT_FLAG_FASTPATH_INPUT2 flag to indicate support for fast-path
+		 * input.
+		 */
+		FASTPATH_INPUT(0x0008),
+		/**
+		 * Indicates support for Unicode Keyboard Event notifications (sections
+		 * 2.2.8.1.1.3.1.1.2 and 2.2.8.1.2.2.2).
+		 */
+		UNICODE(0x0010),
+		FASTPATH_INPUT2(0x0020),
+		// UNUSED1(0x0040),
+		// UNUSED2(0x0080),
+		/**
+		 * Indicates support for horizontal mouse wheel notifications (sections
+		 * 2.2.8.1.1.3.1.1.3 and 2.2.8.1.2.2.3).
+		 */
+		MOUSE_HWHEEL(0x0100),
+		/**
+		 * Indicates support for Quality of Experience (QoE) timestamp
+		 * notifications (section 2.2.8.1.2.2.6). There is no slow-path support
+		 * for Quality of Experience (QoE) timestamps.
+		 */
+		QOE_TIMESTAMPS(0x0200);
+
+		public final int flag;
+		private InputCapsetFlag(int flag) {
+			this.flag = flag;
+		}
+	}
+
+	/**
+	 * Types of values for the Input PDU.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.8.1.1.3.1.1
+	 */
+	public static enum InputType {
+		/** Indicates a Synchronize Event (section 2.2.8.1.1.3.1.1.5). */
+		SYNC(0x0000),
+		// Not only below, but there also was: RDP_INPUT_CODEPOINT = 1
+		/**
+		 * Indicates an Unused Event (section 2.2.8.1.1.3.1.1.6).
+		 * <p>
+		 * It appears that this originally indicated a VKEY, but that behavior
+		 * is deprecated according to the spec, and this SHALL NOT be used.
+		 * ProperJavaRDP originally had <code>RDP_INPUT_VIRTKEY = 2</code>,
+		 * which is where I get this name.
+		 */
+		@Deprecated
+		UNUSED(0x0002),
+		/** Indicates a Keyboard Event (section 2.2.8.1.1.3.1.1.1). */
+		SCANCODE(0x0004),
+		/** Indicates a Unicode Keyboard Event (section 2.2.8.1.1.3.1.1.2). */
+		UNICODE(0x0005),
+		/** Indicates a Mouse Event (section 2.2.8.1.1.3.1.1.3). */
+		MOUSE(0x8001),
+		/** Indicates an Extended Mouse Event (section 2.2.8.1.1.3.1.1.4). */
+		MOUSEX(0x8002);
+
+		public final int id;
+		private InputType(int id) {
+			this.id = id;
+		}
+	}
+
 	KeyCode_FileBased newKeyMapper = null;
 
 	protected Set<Integer> pressedKeys;
@@ -97,31 +183,72 @@ public class Input {
 
 	protected static final int RDP_KEYRELEASE = KBD_FLAG_DOWN | KBD_FLAG_UP;
 
+	/**
+	 * Indicates that the mouse position MUST be updated to the location
+	 * specified by the xPos and yPos fields.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.8.1.1.3.1.1.3
+	 */
 	protected static final int MOUSE_FLAG_MOVE = 0x0800;
 
-	protected static final int MOUSE_FLAG_BUTTON1 = 0x1000;
+	/**
+	 * Indicates that a click event has occurred at the position specified by
+	 * the xPos and yPos fields. The button flags indicate which button has been
+	 * clicked and at least one of these flags MUST be set.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.8.1.1.3.1.1.3
+	 */
+	private static final int MOUSE_FLAG_DOWN = 0x8000;
+	/**
+	 * Mouse button 1 (left button) was clicked or released. If the
+	 * PTRFLAGS_DOWN flag is set, then the button was clicked, otherwise it was
+	 * released.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.8.1.1.3.1.1.3
+	 */
+	private static final int MOUSE_FLAG_BUTTON1 = 0x1000;
+	/**
+	 * Mouse button 2 (right button) was clicked or released. If the
+	 * PTRFLAGS_DOWN flag is set, then the button was clicked, otherwise it was
+	 * released.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.8.1.1.3.1.1.3
+	 */
+	private static final int MOUSE_FLAG_BUTTON2 = 0x2000;
+	/**
+	 * Mouse button 3 (middle button or wheel) was clicked or released. If the
+	 * PTRFLAGS_DOWN flag is set, then the button was clicked, otherwise it was
+	 * released.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.8.1.1.3.1.1.3
+	 */
+	private static final int MOUSE_FLAG_BUTTON3 = 0x4000;
 
-	protected static final int MOUSE_FLAG_BUTTON2 = 0x2000;
-
-	protected static final int MOUSE_FLAG_BUTTON3 = 0x4000;
-
-	protected static final int MOUSE_FLAG_BUTTON4 = 0x0280; // wheel up -
-
-	// rdesktop 1.2.0
-	protected static final int MOUSE_FLAG_BUTTON5 = 0x0380; // wheel down -
-
-	// rdesktop 1.2.0
-	protected static final int MOUSE_FLAG_DOWN = 0x8000;
-
-	protected static final int RDP_INPUT_SYNCHRONIZE = 0;
-
-	protected static final int RDP_INPUT_CODEPOINT = 1;
-
-	protected static final int RDP_INPUT_VIRTKEY = 2;
-
-	protected static final int RDP_INPUT_SCANCODE = 4;
-
-	protected static final int RDP_INPUT_MOUSE = 0x8001;
+	/**
+	 * The event is a vertical mouse wheel rotation. The only valid flags in a
+	 * vertical wheel rotation event are PTRFLAGS_WHEEL_NEGATIVE and the
+	 * WheelRotationMask; all other pointer flags are ignored.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.8.1.1.3.1.1.3
+	 */
+	private static final int MOUSE_FLAG_VWHEEL = 0x0200;
+	/**
+	 * The event is a horizontal mouse wheel rotation. The only valid flags in a
+	 * horizontal wheel rotation event are PTRFLAGS_WHEEL_NEGATIVE and the
+	 * WheelRotationMask; all other pointer flags are ignored. This flag MUST NOT
+	 * be sent to a server that does not indicate support for horizontal mouse
+	 * wheel events in the Input Capability Set (section 2.2.7.1.6).
+	 *
+	 * @see [MS-RDPBCGR] 2.2.8.1.1.3.1.1.3
+	 */
+	private static final int MOUSE_FLAG_HWHEEL = 0x0400;
+	/**
+	 * The wheel rotation value (contained in the WheelRotationMask bit field)
+	 * is negative and MUST be sign-extended before injection at the server.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.8.1.1.3.1.1.3
+	 */
+	private static final int MOUSE_FLAG_WHEEL_NEGATIVE = 0x0100;
 
 	protected static int time = 0;
 
@@ -318,10 +445,10 @@ public class Input {
 		}
 
 		if ((scancode & KeyCode.SCANCODE_EXTENDED) != 0) {
-			rdp.sendInput((int) time, RDP_INPUT_SCANCODE, flags | KBD_FLAG_EXT,
-					scancode & ~KeyCode.SCANCODE_EXTENDED, 0);
+			rdp.sendInput((int) time, InputType.SCANCODE,
+					flags | KBD_FLAG_EXT, scancode & ~KeyCode.SCANCODE_EXTENDED, 0);
 		} else {
-			rdp.sendInput((int) time, RDP_INPUT_SCANCODE, flags, scancode, 0);
+			rdp.sendInput((int) time, InputType.SCANCODE, flags, scancode, 0);
 		}
 	}
 
@@ -476,8 +603,7 @@ public class Input {
 					+ Integer.toHexString(e.getKeyCode()) + " char='"
 					+ ((char) e.getKeyCode()) + "'");
 			if (rdp != null) {
-				if (!handleSpecialKeys(time, e, false))
-				{
+				if (!handleSpecialKeys(time, e, false)) {
 					sendKeyPresses(newKeyMapper.getKeyStrokes(e));
 					// sendScancode(time, RDP_KEYRELEASE, keys.getScancode(e));
 				}
@@ -704,21 +830,23 @@ public class Input {
 			}
 			return false;
 		case KeyEvent.VK_PAUSE: // untested
+			// XXX This doesn't necessarilly match the spec (which mandates
+			// that pause is handled in a wierd way)
 			if (pressed) { // E1 1D 45 E1 9D C5
-				rdp.sendInput((int) time, RDP_INPUT_SCANCODE, RDP_KEYPRESS,
+				rdp.sendInput((int) time, InputType.SCANCODE, RDP_KEYPRESS,
 						0xe1, 0);
-				rdp.sendInput((int) time, RDP_INPUT_SCANCODE, RDP_KEYPRESS,
+				rdp.sendInput((int) time, InputType.SCANCODE, RDP_KEYPRESS,
 						0x1d, 0);
-				rdp.sendInput((int) time, RDP_INPUT_SCANCODE, RDP_KEYPRESS,
+				rdp.sendInput((int) time, InputType.SCANCODE, RDP_KEYPRESS,
 						0x45, 0);
-				rdp.sendInput((int) time, RDP_INPUT_SCANCODE, RDP_KEYPRESS,
+				rdp.sendInput((int) time, InputType.SCANCODE, RDP_KEYPRESS,
 						0xe1, 0);
-				rdp.sendInput((int) time, RDP_INPUT_SCANCODE, RDP_KEYPRESS,
+				rdp.sendInput((int) time, InputType.SCANCODE, RDP_KEYPRESS,
 						0x9d, 0);
-				rdp.sendInput((int) time, RDP_INPUT_SCANCODE, RDP_KEYPRESS,
+				rdp.sendInput((int) time, InputType.SCANCODE, RDP_KEYPRESS,
 						0xc5, 0);
 			} else { // release left ctrl
-				rdp.sendInput((int) time, RDP_INPUT_SCANCODE, RDP_KEYRELEASE,
+				rdp.sendInput((int) time, InputType.SCANCODE, RDP_KEYRELEASE,
 						0x1d, 0);
 			}
 			break;
@@ -818,7 +946,7 @@ public class Input {
 		 * sendScancode(getTime(), RDP_KEYRELEASE, 0x3a); // caps lock }
 		 * canvas.unsetBusyCursor(); } else
 		 */
-		rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_BUTTON3
+		rdp.sendInput(time, InputType.MOUSE, MOUSE_FLAG_BUTTON3
 				| MOUSE_FLAG_DOWN, e.getX(), e.getY());
 	}
 
@@ -832,16 +960,11 @@ public class Input {
 	 */
 	protected void middleButtonReleased(MouseEvent e) {
 		/* if (!options.paste_hack || !ctrlDown) */
-		rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_BUTTON3, e.getX(), e
+		rdp.sendInput(time, InputType.MOUSE, MOUSE_FLAG_BUTTON3, e.getX(), e
 				.getY());
 	}
 
 	class RdesktopMouseAdapter extends MouseAdapter {
-
-		public RdesktopMouseAdapter() {
-			super();
-		}
-
 		@Override
 		public void mousePressed(MouseEvent e) {
 			if (e.getY() != 0) {
@@ -852,11 +975,11 @@ public class Input {
 			if (rdp != null) {
 				if ((e.getModifiers() & InputEvent.BUTTON1_MASK) == InputEvent.BUTTON1_MASK) {
 					LOGGER.debug("Mouse Button 1 Pressed.");
-					rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_BUTTON1
+					rdp.sendInput(time, InputType.MOUSE, MOUSE_FLAG_BUTTON1
 							| MOUSE_FLAG_DOWN, e.getX(), e.getY());
 				} else if ((e.getModifiers() & InputEvent.BUTTON3_MASK) == InputEvent.BUTTON3_MASK) {
 					LOGGER.debug("Mouse Button 3 Pressed.");
-					rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_BUTTON2
+					rdp.sendInput(time, InputType.MOUSE, MOUSE_FLAG_BUTTON2
 							| MOUSE_FLAG_DOWN, e.getX(), e.getY());
 				} else if ((e.getModifiers() & InputEvent.BUTTON2_MASK) == InputEvent.BUTTON2_MASK) {
 					LOGGER.debug("Middle Mouse Button Pressed.");
@@ -870,10 +993,10 @@ public class Input {
 			int time = getTime();
 			if (rdp != null) {
 				if ((e.getModifiers() & InputEvent.BUTTON1_MASK) == InputEvent.BUTTON1_MASK) {
-					rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_BUTTON1, e
+					rdp.sendInput(time, InputType.MOUSE, MOUSE_FLAG_BUTTON1, e
 							.getX(), e.getY());
 				} else if ((e.getModifiers() & InputEvent.BUTTON3_MASK) == InputEvent.BUTTON3_MASK) {
-					rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_BUTTON2, e
+					rdp.sendInput(time, InputType.MOUSE, MOUSE_FLAG_BUTTON2, e
 							.getX(), e.getY());
 				} else if ((e.getModifiers() & InputEvent.BUTTON2_MASK) == InputEvent.BUTTON2_MASK) {
 					middleButtonReleased(e);
@@ -883,11 +1006,6 @@ public class Input {
 	}
 
 	class RdesktopMouseMotionAdapter extends MouseMotionAdapter {
-
-		public RdesktopMouseMotionAdapter() {
-			super();
-		}
-
 		@Override
 		public void mouseMoved(MouseEvent e) {
 			int time = getTime();
@@ -909,7 +1027,7 @@ public class Input {
 			}
 
 			if (rdp != null) {
-				rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_MOVE, e.getX(),
+				rdp.sendInput(time, InputType.MOUSE, MOUSE_FLAG_MOVE, e.getX(),
 						e.getY());
 			}
 		}
@@ -920,7 +1038,7 @@ public class Input {
 			// if(logger.isInfoEnabled()) logger.info("mouseMoved to
 			// "+e.getX()+", "+e.getY()+" at "+time);
 			if (rdp != null) {
-				rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_MOVE, e.getX(),
+				rdp.sendInput(time, InputType.MOUSE, MOUSE_FLAG_MOVE, e.getX(),
 						e.getY());
 			}
 		}
@@ -929,18 +1047,71 @@ public class Input {
 	private class RdesktopMouseWheelAdapter implements MouseWheelListener {
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
-			int time = getTime();
-			// if(logger.isInfoEnabled()) logger.info("mousePressed at "+time);
-			if (rdp != null) {
-				if (e.getWheelRotation() < 0) { // up
-					rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_BUTTON4
-							| MOUSE_FLAG_DOWN, e.getX(), e.getY());
-				} else { // down
-					rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_BUTTON5
-							| MOUSE_FLAG_DOWN, e.getX(), e.getY());
-				}
-			}
+			scroll(e);
 		}
 	}
 
+	private static final int SCROLL_DEFAULT_SIZE = 0x80;
+	private void scroll(MouseWheelEvent e) {
+		// Right now, we only use a fixed size for scroll.
+		if (e.getWheelRotation() < 0) { // negative values are up
+			// ... which is sent as a positive value.
+			scrollVertically(+SCROLL_DEFAULT_SIZE);
+		} else {
+			// and positive values are down, which is sent as a negative value.
+			scrollVertically(-SCROLL_DEFAULT_SIZE);
+		}
+	}
+
+	/**
+	 * Sends a vertical scroll to the server.
+	 * 
+	 * @param by
+	 *            The amount to scroll by, in some magic unit that is not
+	 *            documented. Currently, negative values mean scrolling down,
+	 *            and positive values up (which differs from MouseWheelEvent).
+	 *            Must be 0-255.
+	 */
+	public void scrollVertically(int by) {
+		int byAbs = Math.abs(by);
+		if (byAbs > 255) {
+			throw new IllegalArgumentException("Cannot scroll by more than 255: " + by);
+		}
+		if (by < 0) {
+			rdp.sendInput(getTime(), InputType.MOUSE, MOUSE_FLAG_VWHEEL
+					| MOUSE_FLAG_WHEEL_NEGATIVE | byAbs, 0, 0);
+		} else {
+			rdp.sendInput(getTime(), InputType.MOUSE,
+					MOUSE_FLAG_VWHEEL | byAbs, 0, 0);
+		}
+	}
+
+	/**
+	 * Sends a horizontal scroll to the server. Note that Java does not appear
+	 * to have any way to actually detect such scrolls.
+	 * 
+	 * @param by
+	 *            The amount to scroll by, in some magic unit that is not
+	 *            documented.  Must be 0-255.
+	 * @throws UnsupportedOperationException
+	 *             if the server does not support horizontal scrolls
+	 */
+	public void scrollHorizontally(boolean down, int by) {
+		if (!options.supportedInputFlags.contains(InputCapsetFlag.MOUSE_HWHEEL)) {
+			throw new UnsupportedOperationException(
+					"Cannot scroll horizontally; server doesn't support it");
+		}
+		int byAbs = Math.abs(by);
+		if (byAbs > 255) {
+			throw new IllegalArgumentException("Cannot scroll by more than 255: " + by);
+		}
+		// Note: the coordinates are ignored for the wheel, so we leave them at 0
+		if (by < 0) {
+			rdp.sendInput(getTime(), InputType.MOUSE, MOUSE_FLAG_HWHEEL
+					| MOUSE_FLAG_WHEEL_NEGATIVE | byAbs, 0, 0);
+		} else {
+			rdp.sendInput(getTime(), InputType.MOUSE,
+					MOUSE_FLAG_HWHEEL | byAbs, 0, 0);
+		}
+	}
 }

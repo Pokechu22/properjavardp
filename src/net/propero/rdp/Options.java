@@ -24,6 +24,9 @@
 package net.propero.rdp;
 
 import java.awt.image.DirectColorModel;
+import java.util.EnumSet;
+
+import net.propero.rdp.Input.InputCapsetFlag;
 
 /**
  * <del>Global static</del> storage of user-definable options
@@ -163,6 +166,11 @@ public class Options {
 			| Rdp.RDP5_NO_CURSORSETTINGS | Rdp.RDP5_NO_FULLWINDOWDRAG
 			| Rdp.RDP5_NO_MENUANIMATIONS | Rdp.RDP5_NO_THEMING
 			| Rdp.RDP5_NO_WALLPAPER;
+
+	/**
+	 * Input flags that the server supports.
+	 */
+	public final EnumSet<InputCapsetFlag> supportedInputFlags = EnumSet.noneOf(InputCapsetFlag.class);
 
 	// -------------------------
 

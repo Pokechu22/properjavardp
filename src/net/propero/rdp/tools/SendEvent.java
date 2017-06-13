@@ -32,6 +32,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import net.propero.rdp.Input;
+import net.propero.rdp.Input.InputType;
 import net.propero.rdp.Rdp;
 
 public class SendEvent extends JFrame {
@@ -225,8 +226,8 @@ public class SendEvent extends JFrame {
 				@Override
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					if (rdp != null) {
-						rdp.sendInput(Input.getTime(), Integer.decode(
-								inputTypeField.getText()).intValue(), Integer
+						rdp.sendInput(Input.getTime(), InputType.valueOf(
+								inputTypeField.getText()), Integer
 								.decode(flagsField.getText()).intValue(),
 								Integer.decode(param1Field.getText())
 								.intValue(), Integer.decode(
