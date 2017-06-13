@@ -1334,18 +1334,15 @@ public class Orders {
 	 */
 	private void processBitmapCache(RdpPacket data)
 			throws RdesktopException {
-		int bufsize, pad2, row_size, final_size, size;
-		int pad1;
-
-		bufsize = pad2 = row_size = final_size = size = 0;
+		int size;
 
 		int cache_id = data.get8();
-		pad1 = data.get8(); // pad
+		data.get8(); // pad
 		int width = data.get8();
 		int height = data.get8();
 		int bpp = data.get8();
 		int Bpp = (bpp + 7) / 8;
-		bufsize = data.getLittleEndian16(); // bufsize
+		data.getLittleEndian16(); // bufsize
 		int cache_idx = data.getLittleEndian16();
 
 		/*
@@ -1357,21 +1354,16 @@ public class Orders {
 		if (options.use_rdp5) {
 
 			/* Begin compressedBitmapData */
-			pad2 = data.getLittleEndian16(); // in_uint16_le(s, pad2); /* pad
-			// */
+			data.getLittleEndian16(); // in_uint16_le(s, pad2); /* pad */
 			size = data.getLittleEndian16(); // in_uint16_le(s, size);
-			row_size = data.getLittleEndian16(); // in_uint16_le(s,
-			// row_size);
-			final_size = data.getLittleEndian16(); // in_uint16_le(s,
-			// final_size);
+			data.getLittleEndian16(); // in_uint16_le(s, row_size);
+			data.getLittleEndian16(); // in_uint16_le(s, final_size);
 
 		} else {
 			data.incrementPosition(2); // pad
 			size = data.getLittleEndian16();
-			row_size = data.getLittleEndian16(); // in_uint16_le(s,
-			// row_size);
-			final_size = data.getLittleEndian16(); // in_uint16_le(s,
-			// final_size);
+			data.getLittleEndian16(); // in_uint16_le(s, row_size);
+			data.getLittleEndian16(); // in_uint16_le(s,final_size);
 			// this is what's in rdesktop, but doesn't seem to work
 			// size = bufsize;
 		}

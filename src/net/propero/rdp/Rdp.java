@@ -886,15 +886,15 @@ public class Rdp {
 			throws RdesktopException, IOException,
 			OrderException {
 		int type[] = new int[1];
-		int len_src_descriptor, len_combined_caps;
+		int len_combined_caps;
 
 		/* at this point we need to ensure that we have ui created */
 		//rd_create_ui();
 
 		this.rdp_shareid = data.getLittleEndian32(); //in_uint32_le(s, g_rdp_shareid);
-		len_src_descriptor = data.getLittleEndian16(); // in_uint16_le(s, len_src_descriptor);
+		data.getLittleEndian16(); // in_uint16_le(s, len_src_descriptor); // ignored
 		len_combined_caps = data.getLittleEndian16(); // in_uint16_le(s, len_combined_caps);
-		len_src_descriptor = data.get8(); // Overwriting??? // in_uint8s(s, len_src_descriptor);
+		data.get8(); // Overwriting??? // in_uint8s(s, len_src_descriptor); // ignored
 		data.incrementPosition(3); // changed - why is this needed?
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("process_demand_active(), shareid=0x" + Integer.toHexString(rdp_shareid));
@@ -931,15 +931,14 @@ public class Rdp {
 	 */
 	private Integer processData(RdpPacket data)
 			throws RdesktopException, OrderException {
-		int data_type, ctype, clen, len, roff, rlen;
-		data_type = 0;
+		int data_type;
 
 		data.incrementPosition(6); // skip shareid, pad, streamid
-		len = data.getLittleEndian16();
+		data.getLittleEndian16(); // length - ignored?
 		data_type = data.get8();
-		ctype = data.get8(); // compression type
-		clen = data.getLittleEndian16(); // compression length
-		clen -= 18;
+		data.get8(); // compression type (ignored?)
+		data.getLittleEndian16(); // compression length (ignored?)
+		// clen -= 18; // why do we need to subtract 18 from compression length?
 
 		switch (data_type) {
 
@@ -1308,17 +1307,6 @@ public class Rdp {
 		data.setLittleEndian16(cellSize);
 	}
 
-	private void sendUnknownCaps(RdpPacket data, int id, int length,
-			byte[] caps) {
-
-		data.setLittleEndian16(id /* RDP_CAPSET_UNKNOWN */);
-		data.setLittleEndian16(length /* 0x58 */);
-
-		data.copyFromByteArray(caps, 0, data.getPosition(), /* RDP_CAPLEN_UNKNOWN */
-				length - 4);
-		data.incrementPosition(/* RDP_CAPLEN_UNKNOWN */length - 4);
-	}
-
 	private void sendSynchronize() throws RdesktopException, IOException {
 		RdpPacket data = this.initData(4);
 
@@ -1533,7 +1521,7 @@ public class Rdp {
 				}
 			} else {
 
-				if (options.bitmap_decompression_store == options.INTEGER_BITMAP_DECOMPRESSION) {
+				if (options.bitmap_decompression_store == Options.INTEGER_BITMAP_DECOMPRESSION) {
 					int[] pixeli = Bitmap.decompressInt(options, width, height, size,
 							data, Bpp);
 					if (pixeli != null) {
@@ -1542,7 +1530,7 @@ public class Rdp {
 					} else {
 						LOGGER.warn("Could not decompress bitmap");
 					}
-				} else if (options.bitmap_decompression_store == options.BUFFEREDIMAGE_BITMAP_DECOMPRESSION) {
+				} else if (options.bitmap_decompression_store == Options.BUFFEREDIMAGE_BITMAP_DECOMPRESSION) {
 					Image pix = Bitmap.decompressImg(options, width, height, size, data,
 							Bpp, null);
 					if (pix != null) {

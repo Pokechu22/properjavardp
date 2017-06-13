@@ -818,8 +818,7 @@ public class Secure {
 			}
 
 		} else {
-			// data.incrementPosition(4); // number of certificates
-			int num_certs = data.getLittleEndian32();
+			data.getLittleEndian32(); // number of certificates
 
 			int cacert_len = data.getLittleEndian32();
 			data.incrementPosition(cacert_len);

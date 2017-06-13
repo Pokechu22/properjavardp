@@ -120,7 +120,6 @@ public abstract class VChannel {
 			int length = data.size();
 
 			int data_offset = 0;
-			int packets_sent = 0;
 			int num_packets = (length / VChannels.CHANNEL_CHUNK_LENGTH);
 			num_packets += length - (VChannels.CHANNEL_CHUNK_LENGTH) * num_packets;
 
@@ -155,7 +154,6 @@ public abstract class VChannel {
 							options.encryption ? Secure.SEC_ENCRYPT : 0, this
 									.mcs_id());
 				}
-				packets_sent++;
 			}
 		}
 	}

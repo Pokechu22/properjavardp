@@ -482,22 +482,21 @@ public class MCS {
 				"Too Many Users", "Unspecified Failure", "User Rejected" };
 
 		int result = 0;
-		int length = 0;
 
 		RdpPacket buffer = IsoLayer.receive();
 		LOGGER.debug("Received buffer");
-		length = berParseHeader(buffer, CONNECT_RESPONSE);
-		length = berParseHeader(buffer, BER_TAG_RESULT);
+		berParseHeader(buffer, CONNECT_RESPONSE); // ignoring length?
+		berParseHeader(buffer, BER_TAG_RESULT); // ignoring length?
 
 		result = buffer.get8();
 		if (result != 0) {
 			throw new RdesktopException("MCS Connect failed: "
 					+ connect_results[result]);
 		}
-		length = berParseHeader(buffer, BER_TAG_INTEGER);
-		length = buffer.get8(); // connect id
+		berParseHeader(buffer, BER_TAG_INTEGER); // ignoring length?
+		buffer.get8(); // connect id
 		parseDomainParams(buffer);
-		length = berParseHeader(buffer, BER_TAG_OCTET_STRING);
+		berParseHeader(buffer, BER_TAG_OCTET_STRING); // ignoring length?
 
 		secure.processMcsData(buffer);
 

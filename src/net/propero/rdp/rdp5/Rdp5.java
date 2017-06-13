@@ -91,7 +91,7 @@ public class Rdp5 extends Rdp {
 			s.incrementPosition(shortform ? 6 : 7 /* XXX HACK */); /* signature */
 			byte[] data = new byte[s.size() - s.getPosition()];
 			s.copyToByteArray(data, 0, s.getPosition(), data.length);
-			byte[] packet = SecureLayer.decrypt(data);
+			byte[] packet = SecureLayer.decrypt(data); // XXX unused???
 		}
 
 		// printf("RDP5 data:\n");

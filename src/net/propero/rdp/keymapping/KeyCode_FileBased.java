@@ -463,7 +463,7 @@ public class KeyCode_FileBased {
 		int smallestDist = -1;
 		MapDef best = null;
 
-		boolean noScanCode = !hasScancode(e.getKeyChar());
+		// boolean noScanCode = !hasScancode(e.getKeyChar());
 
 		for (MapDef current : this.keyMap) {
 			boolean applies;

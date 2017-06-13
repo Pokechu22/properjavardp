@@ -77,13 +77,10 @@ public class MetafilepictHandler extends TypeHandler {
 	public Transferable handleData(RdpPacket data, int length) {
 		String thingy = "";
 
-		// System.out.print("Metafile mapping mode = ");
 		int mm = data.getLittleEndian32();
-		// System.out.print(mapping_modes[mm]);
 		int width = data.getLittleEndian32();
-		// System.out.print(", width = " + width);
 		int height = data.getLittleEndian32();
-		// System.out.println(", height = " + height);
+		LOGGER.debug("Metafile mapping mode = {} ({}), width={}, height={}", mapping_modes[mm], mm, width, height);
 
 		try (OutputStream out = new FileOutputStream("test.wmf")) {
 
@@ -112,24 +109,23 @@ public class MetafilepictHandler extends TypeHandler {
 
 	@Override
 	public void handleData(RdpPacket data, int length, ClipInterface c) {
-		String thingy = "";
-
-		// System.out.print("Metafile mapping mode = ");
 		int mm = data.getLittleEndian32();
-		// System.out.print(mapping_modes[mm]);
 		int width = data.getLittleEndian32();
-		// System.out.print(", width = " + width);
 		int height = data.getLittleEndian32();
-		// System.out.println(", height = " + height);
+		LOGGER.debug("Metafile mapping mode = {} ({}), width={}, height={}", mapping_modes[mm], mm, width, height);
 
 		try (OutputStream out = new FileOutputStream("test.wmf")) {
-
+			StringBuilder thingy = (LOGGER.isDebugEnabled() ? new StringBuilder() : null);
 			for (int i = 0; i < (length - 12); i++) {
 				int aByte = data.get8();
 				out.write(aByte);
-				thingy += Integer.toHexString(aByte & 0xFF) + " ";
+				if (thingy != null) {
+					thingy.append(Integer.toHexString(aByte & 0xFF)).append(' ');
+				}
 			}
-			// System.out.println(thingy);
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(thingy);
+			}
 		} catch (FileNotFoundException e) {
 			LOGGER.warn("Failed to write(!?) test.wmf", e);
 		} catch (IOException e) {
