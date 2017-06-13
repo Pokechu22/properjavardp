@@ -50,7 +50,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class Input {
 
-	protected static Logger logger = LogManager.getLogger(Input.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	KeyCode_FileBased newKeyMapper = null;
 
@@ -170,7 +170,7 @@ public class Input {
 		try {
 			newKeyMapper = new KeyCode_FileBased(options, keymapFile);
 		} catch (KeyMapException kmEx) {
-			logger.fatal("Failed to load keymaps!", kmEx);
+			LOGGER.fatal("Failed to load keymaps!", kmEx);
 			if (!options.noSystemExit) {
 				System.exit(-1);
 			}
@@ -253,10 +253,10 @@ public class Input {
 			}
 
 			if (pressSequence.length() > 0) {
-				logger.debug(debugString);
+				LOGGER.debug(debugString);
 			}
 		} catch (Exception ex) {
-			logger.warn("Failed to send key press sequence " + pressSequence, ex);
+			LOGGER.warn("Failed to send key press sequence " + pressSequence, ex);
 			return;
 		}
 	}
@@ -411,7 +411,7 @@ public class Input {
 			// here we add the key so we can later check if it happened
 			pressedKeys.add(new Integer(e.getKeyCode()));
 
-			logger.debug("PRESSED keychar='" + e.getKeyChar() + "' keycode=0x"
+			LOGGER.debug("PRESSED keychar='" + e.getKeyChar() + "' keycode=0x"
 					+ Integer.toHexString(e.getKeyCode()) + " char='"
 					+ ((char) e.getKeyCode()) + "'");
 
@@ -437,7 +437,7 @@ public class Input {
 			// here we add the key so we can later check if it happened
 			pressedKeys.add(new Integer(e.getKeyCode()));
 
-			logger.debug("TYPED keychar='" + e.getKeyChar() + "' keycode=0x"
+			LOGGER.debug("TYPED keychar='" + e.getKeyChar() + "' keycode=0x"
 					+ Integer.toHexString(e.getKeyCode()) + " char='"
 					+ ((char) e.getKeyCode()) + "'");
 
@@ -470,7 +470,7 @@ public class Input {
 			modifiersValid = true;
 			long time = getTime();
 
-			logger.debug("RELEASED keychar='" + e.getKeyChar() + "' keycode=0x"
+			LOGGER.debug("RELEASED keychar='" + e.getKeyChar() + "' keycode=0x"
 					+ Integer.toHexString(e.getKeyCode()) + " char='"
 					+ ((char) e.getKeyCode()) + "'");
 			if (rdp != null) {
@@ -539,20 +539,20 @@ public class Input {
 			}
 
 			if (pressed) {
-				logger.debug("Alt + Tab pressed, ignoring, releasing tab");
+				LOGGER.debug("Alt + Tab pressed, ignoring, releasing tab");
 			}
 			break;
 		case KeyEvent.VK_PAGE_UP: // Alt + PgUp = Alt-Tab
 			sendScancode(time, pressed ? RDP_KEYPRESS : RDP_KEYRELEASE, 0x0f); // TAB
 			if (pressed) {
-				logger.debug("shortcut pressed: sent ALT+TAB");
+				LOGGER.debug("shortcut pressed: sent ALT+TAB");
 			}
 			break;
 		case KeyEvent.VK_PAGE_DOWN: // Alt + PgDown = Alt-Shift-Tab
 			if (pressed) {
 				sendScancode(time, RDP_KEYPRESS, 0x2a); // Shift
 				sendScancode(time, RDP_KEYPRESS, 0x0f); // TAB
-				logger.debug("shortcut pressed: sent ALT+SHIFT+TAB");
+				LOGGER.debug("shortcut pressed: sent ALT+SHIFT+TAB");
 			} else {
 				sendScancode(time, RDP_KEYRELEASE, 0x0f); // TAB
 				sendScancode(time, RDP_KEYRELEASE, 0x2a); // Shift
@@ -562,7 +562,7 @@ public class Input {
 		case KeyEvent.VK_INSERT: // Alt + Insert = Alt + Esc
 			sendScancode(time, pressed ? RDP_KEYPRESS : RDP_KEYRELEASE, 0x01); // ESC
 			if (pressed) {
-				logger.debug("shortcut pressed: sent ALT+ESC");
+				LOGGER.debug("shortcut pressed: sent ALT+ESC");
 			}
 			break;
 		case KeyEvent.VK_HOME: // Alt + Home = Ctrl + Esc (Start)
@@ -570,7 +570,7 @@ public class Input {
 				sendScancode(time, RDP_KEYRELEASE, 0x38); // ALT
 				sendScancode(time, RDP_KEYPRESS, 0x1d); // left Ctrl
 				sendScancode(time, RDP_KEYPRESS, 0x01); // Esc
-				logger.debug("shortcut pressed: sent CTRL+ESC (Start)");
+				LOGGER.debug("shortcut pressed: sent CTRL+ESC (Start)");
 
 			} else {
 				sendScancode(time, RDP_KEYRELEASE, 0x01); // escape
@@ -584,7 +584,7 @@ public class Input {
 				sendScancode(time, pressed ? RDP_KEYPRESS : RDP_KEYRELEASE,
 						0x53 | KeyCode.SCANCODE_EXTENDED); // DEL
 				if (pressed) {
-					logger.debug("shortcut pressed: sent CTRL+ALT+DEL");
+					LOGGER.debug("shortcut pressed: sent CTRL+ALT+DEL");
 				}
 			}
 			break;
@@ -597,7 +597,7 @@ public class Input {
 				sendScancode(time, RDP_KEYRELEASE, 0x38); // ALT
 				sendScancode(time, RDP_KEYPRESS,
 						0x5d | KeyCode.SCANCODE_EXTENDED); // Menu
-				logger.debug("shortcut pressed: sent MENU");
+				LOGGER.debug("shortcut pressed: sent MENU");
 			} else {
 				sendScancode(time, RDP_KEYRELEASE,
 						0x5d | KeyCode.SCANCODE_EXTENDED); // Menu
@@ -611,7 +611,7 @@ public class Input {
 					sendScancode(time, RDP_KEYRELEASE, 0x1d); // Ctrl
 					sendScancode(time, RDP_KEYPRESS,
 							0x37 | KeyCode.SCANCODE_EXTENDED); // PrtSc
-					logger.debug("shortcut pressed: sent ALT+PRTSC");
+					LOGGER.debug("shortcut pressed: sent ALT+PRTSC");
 				} else {
 					sendScancode(time, RDP_KEYRELEASE,
 							0x37 | KeyCode.SCANCODE_EXTENDED); // PrtSc
@@ -627,7 +627,7 @@ public class Input {
 					sendScancode(time, RDP_KEYRELEASE, 0x1d); // Ctrl
 					sendScancode(time, RDP_KEYPRESS,
 							0x37 | KeyCode.SCANCODE_EXTENDED); // PrtSc
-					logger.debug("shortcut pressed: sent PRTSC");
+					LOGGER.debug("shortcut pressed: sent PRTSC");
 				} else {
 					sendScancode(time, RDP_KEYRELEASE,
 							0x37 | KeyCode.SCANCODE_EXTENDED); // PrtSc
@@ -642,7 +642,7 @@ public class Input {
 					sendScancode(time, RDP_KEYRELEASE, 0x1d); // Ctrl
 					sendScancode(time, RDP_KEYPRESS,
 							0x37 | KeyCode.SCANCODE_EXTENDED); // PrtSc
-					logger.debug("shortcut pressed: sent ALT+PRTSC");
+					LOGGER.debug("shortcut pressed: sent ALT+PRTSC");
 				} else {
 					sendScancode(time, RDP_KEYRELEASE,
 							0x37 | KeyCode.SCANCODE_EXTENDED); // PrtSc
@@ -765,33 +765,33 @@ public class Input {
 		if (!options.useLockingKeyState) {
 			return;
 		}
-		logger.debug("doLockKeys");
+		LOGGER.debug("doLockKeys");
 
 		try {
 			Toolkit tk = Toolkit.getDefaultToolkit();
 			if (tk.getLockingKeyState(KeyEvent.VK_CAPS_LOCK) != capsLockOn) {
 				capsLockOn = !capsLockOn;
-				logger.debug("CAPS LOCK toggle");
+				LOGGER.debug("CAPS LOCK toggle");
 				sendScancode(getTime(), RDP_KEYPRESS, 0x3a);
 				sendScancode(getTime(), RDP_KEYRELEASE, 0x3a);
 
 			}
 			if (tk.getLockingKeyState(KeyEvent.VK_NUM_LOCK) != numLockOn) {
 				numLockOn = !numLockOn;
-				logger.debug("NUM LOCK toggle");
+				LOGGER.debug("NUM LOCK toggle");
 				sendScancode(getTime(), RDP_KEYPRESS, 0x45);
 				sendScancode(getTime(), RDP_KEYRELEASE, 0x45);
 
 			}
 			if (tk.getLockingKeyState(KeyEvent.VK_SCROLL_LOCK) != scrollLockOn) {
 				scrollLockOn = !scrollLockOn;
-				logger.debug("SCROLL LOCK toggle");
+				LOGGER.debug("SCROLL LOCK toggle");
 				sendScancode(getTime(), RDP_KEYPRESS, 0x46);
 				sendScancode(getTime(), RDP_KEYRELEASE, 0x46);
 			}
 		} catch (Exception e) {
 			options.useLockingKeyState = false;
-			logger.warn("Failed to handle key locking; disabling key locking!", e);
+			LOGGER.warn("Failed to handle key locking; disabling key locking!", e);
 		}
 	}
 
@@ -849,15 +849,15 @@ public class Input {
 			int time = getTime();
 			if (rdp != null) {
 				if ((e.getModifiers() & InputEvent.BUTTON1_MASK) == InputEvent.BUTTON1_MASK) {
-					logger.debug("Mouse Button 1 Pressed.");
+					LOGGER.debug("Mouse Button 1 Pressed.");
 					rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_BUTTON1
 							| MOUSE_FLAG_DOWN, e.getX(), e.getY());
 				} else if ((e.getModifiers() & InputEvent.BUTTON3_MASK) == InputEvent.BUTTON3_MASK) {
-					logger.debug("Mouse Button 3 Pressed.");
+					LOGGER.debug("Mouse Button 3 Pressed.");
 					rdp.sendInput(time, RDP_INPUT_MOUSE, MOUSE_FLAG_BUTTON2
 							| MOUSE_FLAG_DOWN, e.getX(), e.getY());
 				} else if ((e.getModifiers() & InputEvent.BUTTON2_MASK) == InputEvent.BUTTON2_MASK) {
-					logger.debug("Middle Mouse Button Pressed.");
+					LOGGER.debug("Middle Mouse Button Pressed.");
 					middleButtonPressed(e);
 				}
 			}

@@ -36,7 +36,7 @@ import org.apache.logging.log4j.Logger;
  * Colour only).
  */
 public class WrappedImage {
-	private static Logger logger = LogManager.getLogger();
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	IndexColorModel cm = null;
 
@@ -157,7 +157,7 @@ public class WrappedImage {
 			int[] vals = { (pix >> 16) & 0xFF, (pix >> 8) & 0xFF, (pix) & 0xFF };
 			int out = cm.getDataElement(vals, 0);
 			if (cm.getRGB(out) != bi.getRGB(x, y)) {
-				logger.info("Did not get correct colour value for color ("
+				LOGGER.info("Did not get correct colour value for color ("
 						+ Integer.toHexString(pix) + "), got ("
 						+ cm.getRGB(out) + ") instead");
 			}

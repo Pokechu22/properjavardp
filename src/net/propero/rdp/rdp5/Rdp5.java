@@ -24,6 +24,9 @@
 
 package net.propero.rdp.rdp5;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.propero.rdp.Options;
 import net.propero.rdp.OrderException;
 import net.propero.rdp.RdesktopException;
@@ -34,6 +37,7 @@ import net.propero.rdp.RdpPacket;
  * Handle RDP5 orders
  */
 public class Rdp5 extends Rdp {
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	private VChannels channels;
 
@@ -77,7 +81,7 @@ public class Rdp5 extends Rdp {
 	 */
 	public void rdp5_process(RdpPacket s, boolean encryption,
 			boolean shortform) throws RdesktopException, OrderException {
-		logger.debug("Processing RDP 5 order");
+		LOGGER.debug("Processing RDP 5 order");
 
 		int length, count;
 		int type;
@@ -97,7 +101,7 @@ public class Rdp5 extends Rdp {
 			type = s.get8();
 			length = s.getLittleEndian16();
 			/* next_packet = */next = s.getPosition() + length;
-			logger.debug("RDP5: type = " + type);
+			LOGGER.debug("RDP5: type = " + type);
 			switch (type) {
 			case 0: /* orders */
 				count = s.getLittleEndian16();
@@ -125,7 +129,7 @@ public class Rdp5 extends Rdp {
 				process_cached_pointer_pdu(s);
 				break;
 			default:
-				logger.warn("Unimplemented RDP5 opcode " + type);
+				LOGGER.warn("Unimplemented RDP5 opcode " + type);
 			}
 
 			s.setPosition(next);
@@ -146,7 +150,7 @@ public class Rdp5 extends Rdp {
 			try {
 				channel.process(s);
 			} catch (Exception e) {
-				logger.warn("Failed to process channel #" + channelno, e);
+				LOGGER.warn("Failed to process channel #" + channelno, e);
 			}
 		}
 	}

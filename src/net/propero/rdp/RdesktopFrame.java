@@ -66,7 +66,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 
 	private static final long serialVersionUID = -886909197782887125L;
 
-	private static Logger logger = LogManager.getLogger(RdesktopFrame.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	public RdesktopCanvas canvas = null;
 
@@ -102,7 +102,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 			try {
 				robot = new Robot();
 			} catch (AWTException e) {
-				logger.warn("Pointer movement not allowed", e);
+				LOGGER.warn("Pointer movement not allowed", e);
 			}
 		}
 	}
@@ -316,7 +316,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 
 		@Override
 		public void windowLostFocus(WindowEvent e) {
-			logger.info("windowLostFocus");
+			LOGGER.info("windowLostFocus");
 			// lost focus - need clear keys that are down
 			canvas.lostFocus();
 		}

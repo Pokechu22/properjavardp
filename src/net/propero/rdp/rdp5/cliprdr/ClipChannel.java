@@ -32,7 +32,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.IOException;
 
-import net.propero.rdp.Input;
 import net.propero.rdp.Options;
 import net.propero.rdp.RdesktopException;
 import net.propero.rdp.RdpPacket;
@@ -51,7 +50,7 @@ ClipboardOwner, FocusListener {
 			"CF_PALETTE", "CF_PENDATA", "CF_RIFF", "CF_WAVE", "CF_UNICODETEXT",
 			"CF_ENHMETAFILE", "CF_HDROP", "CF_LOCALE", "CF_MAX" };
 
-	protected static Logger logger = LogManager.getLogger(Input.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	// Message types
 	public static final int CLIPRDR_CONNECT = 1;
@@ -172,9 +171,9 @@ ClipboardOwner, FocusListener {
 		try {
 			this.send_packet(s);
 		} catch (RdesktopException e) {
-			logger.warn("Failed to nullify clipboard data", e);
+			LOGGER.warn("Failed to nullify clipboard data", e);
 		} catch (IOException e) {
-			logger.warn("Failed to nullify clipboard data", e);
+			LOGGER.warn("Failed to nullify clipboard data", e);
 		}
 	}
 
@@ -294,12 +293,12 @@ ClipboardOwner, FocusListener {
 		try {
 			this.send_packet(all);
 		} catch (RdesktopException e) {
-			logger.warn("Failed to send clipboard data", e);
+			LOGGER.warn("Failed to send clipboard data", e);
 			if (!options.noSystemExit) {
 				System.exit(-1);
 			}
 		} catch (IOException e) {
-			logger.warn("Failed to send clipboard data", e);
+			LOGGER.warn("Failed to send clipboard data", e);
 			if (!options.noSystemExit) {
 				System.exit(-1);
 			}
@@ -317,7 +316,7 @@ ClipboardOwner, FocusListener {
 			try {
 				send_format_announce();
 			} catch (Exception e) {
-				logger.warn("Failed to announce clipboard formats", e);
+				LOGGER.warn("Failed to announce clipboard formats", e);
 			}
 		}
 	}
@@ -340,7 +339,7 @@ ClipboardOwner, FocusListener {
 	 */
 	@Override
 	public void lostOwnership(Clipboard arg0, Transferable arg1) {
-		logger.debug("Lost clipboard ownership");
+		LOGGER.debug("Lost clipboard ownership");
 	}
 
 	@Override

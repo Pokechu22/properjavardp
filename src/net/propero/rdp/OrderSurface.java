@@ -20,7 +20,7 @@ import net.propero.rdp.orders.ScreenBltOrder;
 import net.propero.rdp.orders.TriBltOrder;
 
 public class OrderSurface {
-	private static final Logger logger = LogManager.getLogger();
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	private final Options options;
 	private final RasterOp rop;
@@ -657,8 +657,8 @@ public class OrderSurface {
 		srcx += x - memblt.getX();
 		srcy += y - memblt.getY();
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("MEMBLT x=" + x + " y=" + y + " cx=" + cx + "("
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("MEMBLT x=" + x + " y=" + y + " cx=" + cx + "("
 					+ memblt.getCX() + ") cy=" + cy + "(" + memblt.getCY()
 					+ ") srcx=" + srcx + " srcy=" + srcy + " opcode="
 					+ memblt.getOpcode() + " id=" + memblt.getCacheID()
@@ -675,7 +675,7 @@ public class OrderSurface {
 
 			this.repaint(x, y, cx, cy);
 		} catch (RdesktopException e) {
-			logger.warn("Exception drawing memblt", e);
+			LOGGER.warn("Exception drawing memblt", e);
 		}
 	}
 
@@ -775,7 +775,7 @@ public class OrderSurface {
 			this.repaint(x, y, cx, cy);
 			break;
 		default:
-			logger.warn("Unsupported brush style " + brush.getStyle());
+			LOGGER.warn("Unsupported brush style " + brush.getStyle());
 		}
 	}
 
@@ -873,13 +873,13 @@ public class OrderSurface {
 				break;
 
 			default:
-				logger.warn("Unimplemented Triblt opcode:"
+				LOGGER.warn("Unimplemented Triblt opcode:"
 						+ triblt.getOpcode());
 				rop.do_array(ROP2_COPY, backstore, this.width, x, y, cx, cy,
 						bitmap.getBitmapData(), bitmap.getWidth(), srcx, srcy);
 			}
 		} catch (RdesktopException e) {
-			logger.warn("Exception drawing triblt", e);
+			LOGGER.warn("Exception drawing triblt", e);
 		}
 	}
 

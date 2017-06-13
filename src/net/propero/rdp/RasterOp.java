@@ -30,7 +30,7 @@ import org.apache.logging.log4j.Logger;
  * Set of operations used in displaying raster graphics
  */
 public class RasterOp {
-	private static final Logger logger = LogManager.getLogger();
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	protected final Options options;
 	public RasterOp(Options options) {
@@ -188,7 +188,7 @@ public class RasterOp {
 			ropSet(biDst, dstwidth, x, y, cx, cy, Bpp);
 			break;
 		default:
-			logger.warn("do_array unsupported opcode: " + opcode);
+			LOGGER.warn("do_array unsupported opcode: " + opcode);
 			// rop_array(opcode,dst,dstwidth,x,y,cx,cy,src,srcwidth,srcx,srcy);
 		}
 	}
@@ -265,7 +265,7 @@ public class RasterOp {
 			dst.setRGB(x, y, mask);
 			break;
 		default:
-			logger.warn("do_byte unsupported opcode: " + opcode);
+			LOGGER.warn("do_byte unsupported opcode: " + opcode);
 		}
 	}
 

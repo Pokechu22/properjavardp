@@ -25,21 +25,15 @@ package net.propero.rdp.rdp5;
 
 import java.io.IOException;
 
-import net.propero.rdp.Input;
 import net.propero.rdp.Options;
 import net.propero.rdp.RdesktopException;
 import net.propero.rdp.RdpPacket;
 import net.propero.rdp.Secure;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 /**
  * Abstract class for RDP5 channels
  */
 public abstract class VChannel {
-
-	protected static Logger logger = LogManager.getLogger(Input.class);
 
 	private int mcs_id = 0;
 

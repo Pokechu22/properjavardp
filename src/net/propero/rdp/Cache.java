@@ -26,15 +26,10 @@ package net.propero.rdp;
 import java.awt.Cursor;
 import java.awt.image.IndexColorModel;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 /**
  * Handle caching of bitmaps, cursors, colour maps, text and fonts.
  */
 public class Cache {
-
-	protected static Logger logger = LogManager.getLogger(Rdp.class);
 
 	private static final int RDPCACHE_COLOURMAPSIZE = 0x06; // unified patch
 

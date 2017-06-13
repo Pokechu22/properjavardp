@@ -30,17 +30,12 @@ import java.awt.Rectangle;
 import net.propero.rdp.keymapping.KeyCode;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 /**
  * Canvas component, handles drawing requests from server, and passes user input
  * to Input class.
  */
 public class RdesktopCanvas extends Canvas {
 	private static final long serialVersionUID = -6806580381785981945L;
-
-	private static final Logger logger = LogManager.getLogger();
 
 	OrderSurface surface;
 

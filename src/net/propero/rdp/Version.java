@@ -35,7 +35,7 @@ import org.apache.logging.log4j.Logger;
  */
 
 public class Version {
-	private static final Logger logger = LogManager.getLogger();
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	public static String version = "1.1";
 
@@ -45,10 +45,10 @@ public class Version {
 	public static void main(String[] argv) {
 		try {
 			if (argv.length == 0) {
-				logger.info(version);
+				LOGGER.info(version);
 			} else {
 				String filename = argv[0];
-				logger.info("Writing version information to: "
+				LOGGER.info("Writing version information to: "
 						+ filename);
 				PrintWriter file = new PrintWriter(new FileOutputStream(
 						filename), true);
@@ -57,7 +57,7 @@ public class Version {
 				file.close();
 			}
 		} catch (Exception e) {
-			logger.fatal("Problem writing version information", e);
+			LOGGER.fatal("Problem writing version information", e);
 		}
 	}
 }

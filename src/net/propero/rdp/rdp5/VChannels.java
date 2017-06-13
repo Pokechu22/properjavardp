@@ -26,7 +26,6 @@ package net.propero.rdp.rdp5;
 import java.io.IOException;
 import java.lang.reflect.Array;
 
-import net.propero.rdp.Input;
 import net.propero.rdp.MCS;
 import net.propero.rdp.Options;
 import net.propero.rdp.RdesktopException;
@@ -40,7 +39,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class VChannels {
 
-	protected static Logger logger = LogManager.getLogger(Input.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	/* Sound format constants */
 	public static final int WAVE_FORMAT_PCM = 1;
@@ -133,7 +132,7 @@ public class VChannels {
 	 */
 	public VChannel find_channel_by_channelno(int channelno) {
 		if (channelno > MCS.MCS_GLOBAL_CHANNEL + num_channels) {
-			logger.warn("Channel " + channelno
+			LOGGER.warn("Channel " + channelno
 					+ " not defined. Highest channel defined is "
 					+ MCS.MCS_GLOBAL_CHANNEL + num_channels);
 			return null;

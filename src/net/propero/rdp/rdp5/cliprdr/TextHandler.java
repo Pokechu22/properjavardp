@@ -33,7 +33,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class TextHandler extends TypeHandler {
-	private static final Logger logger = LogManager.getLogger();
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	@Override
 	public boolean formatValid(int format) {
@@ -73,7 +73,7 @@ public class TextHandler extends TypeHandler {
 				s = (String) (in.getTransferData(DataFlavor.stringFlavor));
 			} catch (Exception e) {
 				s = e.toString(); // TODO: Is this right?
-				logger.warn("Failed to write(!?) test.wmf", e);
+				LOGGER.warn("Failed to write(!?) test.wmf", e);
 			}
 
 			// TODO: think of a better way of fixing this
@@ -116,7 +116,7 @@ public class TextHandler extends TypeHandler {
 				s = (String) (in.getTransferData(DataFlavor.stringFlavor));
 			} catch (Exception e) {
 				s = e.toString(); // TODO: Is this right?
-				logger.warn("Failed to send clipboard text", e);
+				LOGGER.warn("Failed to send clipboard text", e);
 			}
 
 			// TODO: think of a better way of fixing this

@@ -195,7 +195,7 @@ public class RdpApplet extends Applet {
 }
 
 class RdpThread extends Thread {
-	private static final Logger logger = LogManager.getLogger();
+	private static final Logger LOGGER = LogManager.getLogger();
 	String[] args;
 
 	String redirect = null;
@@ -219,9 +219,9 @@ class RdpThread extends Thread {
 				parentApplet.getAppletContext().showDocument(u);
 			}
 		} catch (RdesktopException e) {
-			logger.warn("Exception", e);
+			LOGGER.warn("Exception", e);
 		} catch (MalformedURLException e) {
-			logger.warn("Unexpected MalformedURLException", e);
+			LOGGER.warn("Unexpected MalformedURLException", e);
 		}
 		Common.underApplet = false; // TODO
 	}

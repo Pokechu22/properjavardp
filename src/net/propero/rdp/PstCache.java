@@ -37,7 +37,7 @@ import org.apache.logging.log4j.Logger;
  */
 class PstCache {
 
-	protected static Logger logger = LogManager.getLogger(Rdp.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	public static final int MAX_CELL_SIZE = 0x1000; /* pixels */
 
@@ -63,7 +63,7 @@ class PstCache {
 
 	/* Update usage info for a bitmap */
 	protected void touchBitmap(int cache_id, int cache_idx, int stamp) {
-		logger.info("PstCache.touchBitmap");
+		LOGGER.info("PstCache.touchBitmap");
 
 		if (!IS_PERSISTENT(cache_id) || cache_idx >= Rdp.BMPCACHE2_NUM_PSTCELLS) {
 			return;
@@ -79,7 +79,7 @@ class PstCache {
 			// one???
 
 		} catch (IOException e) {
-			logger.warn("Failed to touch bitmap (" + cache_id + "/" + cache_idx + "/" + stamp + ")", e);
+			LOGGER.warn("Failed to touch bitmap (" + cache_id + "/" + cache_idx + "/" + stamp + ")", e);
 			return;
 		}
 	}
@@ -96,7 +96,7 @@ class PstCache {
 	/* Load a bitmap from the persistent cache */
 	public boolean pstcache_load_bitmap(int cache_id, int cache_idx)
 			throws IOException, RdesktopException {
-		logger.info("PstCache.pstcache_load_bitmap");
+		LOGGER.info("PstCache.pstcache_load_bitmap");
 		byte[] celldata = null;
 		// CELLHEADER cellhdr;
 		Bitmap bitmap;
@@ -123,7 +123,7 @@ class PstCache {
 			// rd_read_file(fd, celldata, cellhdr.length);
 			celldata = new byte[c.length];
 			fd.read(celldata);
-			logger.debug("Loading bitmap from disk (" + cache_id + ":" + cache_idx
+			LOGGER.debug("Loading bitmap from disk (" + cache_id + ":" + cache_idx
 					+ ")\n");
 		}
 
@@ -139,7 +139,7 @@ class PstCache {
 	public boolean pstcache_put_bitmap(int cache_id, int cache_idx,
 			byte[] bitmap_id, int width, int height, int length, byte[] data)
 					throws IOException {
-		logger.info("PstCache.pstcache_put_bitmap");
+		LOGGER.info("PstCache.pstcache_put_bitmap");
 		CELLHEADER cellhdr = new CELLHEADER();
 
 		if (!IS_PERSISTENT(cache_id) || cache_idx >= Rdp.BMPCACHE2_NUM_PSTCELLS) {
@@ -170,7 +170,7 @@ class PstCache {
 	/* list the bitmaps from the persistent cache file */
 	public int pstcache_enumerate(int cache_id, int[] idlist)
 			throws IOException, RdesktopException {
-		logger.info("PstCache.pstcache_enumerate");
+		LOGGER.info("PstCache.pstcache_enumerate");
 		int n, c = 0;
 		CELLHEADER cellhdr = null;
 
@@ -186,7 +186,7 @@ class PstCache {
 			return 0;
 		}
 
-		logger.debug("pstcache enumeration... ");
+		LOGGER.debug("pstcache enumeration... ");
 		for (n = 0; n < Rdp.BMPCACHE2_NUM_PSTCELLS; n++) {
 			byte[] cellhead_data = new byte[CELLHEADER.size()];
 			try (FileInputStream fd = new FileInputStream(pstcache_fd[cache_id])) {
@@ -227,7 +227,7 @@ class PstCache {
 			}
 		}
 
-		logger.info(n + " bitmaps in persistent cache, " + c
+		LOGGER.info(n + " bitmaps in persistent cache, " + c
 				+ " bitmaps loaded in memory\n");
 		pstcache_enumerated = true;
 		return n;
@@ -250,11 +250,11 @@ class PstCache {
 
 		pstcache_Bpp = options.Bpp;
 		filename = "./cache/pstcache_" + cache_id + "_" + pstcache_Bpp;
-		logger.debug("persistent bitmap cache file: " + filename);
+		LOGGER.debug("persistent bitmap cache file: " + filename);
 
 		File cacheDir = new File("./cache/");
 		if (!cacheDir.exists() && !cacheDir.mkdir()) {
-			logger.warn("failed to get/make cache directory");
+			LOGGER.warn("failed to get/make cache directory");
 			return false;
 		}
 
@@ -262,11 +262,11 @@ class PstCache {
 
 		try {
 			if (!f.exists() && !f.createNewFile()) {
-				logger.warn("Could not create cache file");
+				LOGGER.warn("Could not create cache file");
 				return false;
 			}
 		} catch (IOException e) {
-			logger.warn("Failed to create cache file!", e);
+			LOGGER.warn("Failed to create cache file!", e);
 			return false;
 		}
 

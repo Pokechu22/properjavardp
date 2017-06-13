@@ -31,13 +31,13 @@ import org.apache.logging.log4j.Logger;
  * format
  */
 public class HexDump {
-	static Logger logger = LogManager.getLogger(HexDump.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	/**
 	 * Construct a HexDump object, sets logging level to Debug
 	 */
 	public HexDump() {
-		//logger.setLevel(Level.DEBUG);
+		//LOGGER.setLevel(Level.DEBUG);
 	}
 
 	/**
@@ -54,7 +54,7 @@ public class HexDump {
 		String index;
 		String number;
 
-		logger.debug(msg);
+		LOGGER.debug(msg);
 
 		while (count < data.length) {
 			index = Integer.toHexString(count);
@@ -100,7 +100,7 @@ public class HexDump {
 				case (2):
 					break;
 				default:
-					logger.debug(index);
+					LOGGER.debug(index);
 					// out.println("");
 					return;
 				}
@@ -108,7 +108,7 @@ public class HexDump {
 				// out.print(number + " ");
 				count++;
 			}
-			logger.debug(index);
+			LOGGER.debug(index);
 			// out.println("");
 		}
 

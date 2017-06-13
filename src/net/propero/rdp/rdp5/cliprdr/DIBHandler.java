@@ -32,7 +32,6 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.ImageObserver;
 import java.io.IOException;
 
-import net.propero.rdp.Input;
 import net.propero.rdp.RdpPacket;
 
 import org.apache.logging.log4j.LogManager;
@@ -40,7 +39,7 @@ import org.apache.logging.log4j.Logger;
 
 public class DIBHandler extends TypeHandler implements ImageObserver {
 
-	protected static Logger logger = LogManager.getLogger(Input.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	@Override
 	public boolean formatValid(int format) {
@@ -87,7 +86,7 @@ public class DIBHandler extends TypeHandler implements ImageObserver {
 				try {
 					mediaTracker.waitForID(0);
 				} catch (InterruptedException ie) {
-					logger.warn("Unexpected InterruptedException", ie);
+					LOGGER.warn("Unexpected InterruptedException", ie);
 					if (!c.getOptions().noSystemExit) {
 						System.exit(1);
 					}
@@ -103,9 +102,9 @@ public class DIBHandler extends TypeHandler implements ImageObserver {
 				c.send_data(out, out.length);
 			}
 		} catch (UnsupportedFlavorException e) {
-			logger.warn("Failed to send DIB: UnsupportedFlavorException", e);
+			LOGGER.warn("Failed to send DIB: UnsupportedFlavorException", e);
 		} catch (IOException e) {
-			logger.warn("Failed to send DIB: IOException", e);
+			LOGGER.warn("Failed to send DIB: IOException", e);
 		}
 
 	}

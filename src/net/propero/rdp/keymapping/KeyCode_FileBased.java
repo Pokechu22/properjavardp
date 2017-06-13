@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
-import net.propero.rdp.Input;
 import net.propero.rdp.Options;
 
 import org.apache.logging.log4j.LogManager;
@@ -55,7 +54,7 @@ public class KeyCode_FileBased {
 
 	private boolean lastEventMatched = false;
 
-	protected static Logger logger = LogManager.getLogger(Input.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	public static final int SCANCODE_EXTENDED = 0x80;
 
@@ -84,7 +83,7 @@ public class KeyCode_FileBased {
 				capsLockDown = e.getComponent().getToolkit()
 						.getLockingKeyState(KeyEvent.VK_CAPS_LOCK);
 			} catch (Exception uoe) {
-				logger.warn("Failed to update caps lock; disabling key locking", uoe);
+				LOGGER.warn("Failed to update caps lock; disabling key locking", uoe);
 				options.useLockingKeyState = false;
 			}
 		}
@@ -139,7 +138,7 @@ public class KeyCode_FileBased {
 			DataInputStream in = new DataInputStream(fstream);
 
 			if (in == null) {
-				logger.warn("in == null");
+				LOGGER.warn("in == null");
 			}
 
 			while (in.available() != 0) {
@@ -203,7 +202,7 @@ public class KeyCode_FileBased {
 			throw new KeyMapException("Error parsing keymap file: "
 					+ kmEx.getMessage() + " at line " + lineNum, kmEx);
 		} catch (Exception e) {
-			logger.warn("Unexpected exception reading keymap file: " + e.getClass().getName() + ": " + e.getMessage(), e);
+			LOGGER.warn("Unexpected exception reading keymap file: " + e.getClass().getName() + ": " + e.getMessage(), e);
 			throw new KeyMapException(e.getClass().getName() + ": "
 					+ e.getMessage(), e);
 		}
@@ -370,7 +369,7 @@ public class KeyCode_FileBased {
 			p.close();
 
 		} catch (Exception e) {
-			logger.warn("Error writing keymap to file: " + e.getMessage(), e);
+			LOGGER.warn("Error writing keymap to file: " + e.getMessage(), e);
 		}
 	}
 
@@ -452,7 +451,7 @@ public class KeyCode_FileBased {
 					.getKeyCode()));
 			registerKeyEvent(e, def);
 			if (e.getID() == KeyEvent.KEY_RELEASED) {
-				logger.debug("Released: " + e.getKeyCode()
+				LOGGER.debug("Released: " + e.getKeyCode()
 						+ " returned scancode: "
 						+ ((def != null) ? "" + def.getScancode() : "null"));
 			}
@@ -487,11 +486,11 @@ public class KeyCode_FileBased {
 		}
 
 		if (e.getID() == KeyEvent.KEY_PRESSED) {
-			logger.debug("Pressed: " + e.getKeyCode() + " returned scancode: "
+			LOGGER.debug("Pressed: " + e.getKeyCode() + " returned scancode: "
 					+ ((best != null) ? "" + best.getScancode() : "null"));
 		}
 		if (e.getID() == KeyEvent.KEY_TYPED) {
-			logger.debug("Typed: " + e.getKeyChar() + " returned scancode: "
+			LOGGER.debug("Typed: " + e.getKeyChar() + " returned scancode: "
 					+ ((best != null) ? "" + best.getScancode() : "null"));
 		}
 
@@ -525,7 +524,7 @@ public class KeyCode_FileBased {
 			keysCurrentlyDown.remove(new Integer(e.getKeyCode()));
 			if ((!options.caps_sends_up_and_down)
 					&& (e.getKeyCode() == KeyEvent.VK_CAPS_LOCK)) {
-				logger.debug("Turning CAPSLOCK off - key release");
+				LOGGER.debug("Turning CAPSLOCK off - key release");
 				capsLockDown = false;
 			}
 			lastEventMatched = false;
@@ -540,10 +539,10 @@ public class KeyCode_FileBased {
 			}
 			if ((options.caps_sends_up_and_down)
 					&& (e.getKeyCode() == KeyEvent.VK_CAPS_LOCK)) {
-				logger.debug("Toggling CAPSLOCK");
+				LOGGER.debug("Toggling CAPSLOCK");
 				capsLockDown = !capsLockDown;
 			} else if (e.getKeyCode() == KeyEvent.VK_CAPS_LOCK) {
-				logger.debug("Turning CAPSLOCK on - key press");
+				LOGGER.debug("Turning CAPSLOCK on - key press");
 				capsLockDown = true;
 			}
 		}
@@ -582,7 +581,7 @@ public class KeyCode_FileBased {
 		if (e.getID() == KeyEvent.KEY_RELEASED) {
 			if ((!options.caps_sends_up_and_down)
 					&& (e.getKeyCode() == KeyEvent.VK_CAPS_LOCK)) {
-				logger.debug("Sending CAPSLOCK toggle");
+				LOGGER.debug("Sending CAPSLOCK toggle");
 				codes = "" + ((char) 0x3a) + ((char) DOWN) + ((char) 0x3a)
 						+ ((char) UP) + codes;
 			} else {
@@ -592,7 +591,7 @@ public class KeyCode_FileBased {
 		} else {
 			if ((!options.caps_sends_up_and_down)
 					&& (e.getKeyCode() == KeyEvent.VK_CAPS_LOCK)) {
-				logger.debug("Sending CAPSLOCK toggle");
+				LOGGER.debug("Sending CAPSLOCK toggle");
 				codes += "" + ((char) 0x3a) + ((char) DOWN) + ((char) 0x3a)
 						+ ((char) UP);
 			} else {

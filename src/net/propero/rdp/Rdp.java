@@ -62,12 +62,10 @@ public class Rdp {
 
 	public static int RDP5_NO_CURSOR_SHADOW = 0x20;
 
-	public static int RDP5_NO_CURSORSETTINGS = 0x40; /*
-	 * disables cursor
-	 * blinking
-	 */
+	/** disables cursor blinking */
+	public static int RDP5_NO_CURSORSETTINGS = 0x40;
 
-	protected static Logger logger = LogManager.getLogger(Rdp.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	/* constants for RDP Layer */
 	public static final int RDP_LOGON_NORMAL = 0x33;
@@ -328,7 +326,7 @@ public class Rdp {
 		width = data.getLittleEndian16(); // in_uint16_le(s, width);
 		height = data.getLittleEndian16(); // in_uint16_le(s, height);
 
-		logger.debug("setting desktop size and bpp to: " + width + "x" + height
+		LOGGER.debug("setting desktop size and bpp to: " + width + "x" + height
 				+ "x" + bpp);
 
 		/*
@@ -336,14 +334,14 @@ public class Rdp {
 		 * example when shadowing another session).
 		 */
 		if (options.server_bpp != bpp) {
-			logger.warn("colour depth changed from " + options.server_bpp
+			LOGGER.warn("colour depth changed from " + options.server_bpp
 					+ " to " + bpp);
 			options.server_bpp = bpp;
 		}
 		if (options.width != width || options.height != height) {
 			String msg = "screen size changed from " + options.width + "x"
 					+ options.height + " to " + width + "x" + height;
-			logger.warn(msg);
+			LOGGER.warn(msg);
 			options.width = width;
 			options.height = height;
 			this.callback.sizeChanged(width, height);
@@ -382,7 +380,7 @@ public class Rdp {
 			next = data.getPosition() + capset_length - 4;
 
 			if (capset == null) {
-				logger.warn("Unknown server capset " + capset_type + " (sent len 0x" + Integer.toHexString(capset_length) + ")");
+				LOGGER.warn("Unknown server capset " + capset_type + " (sent len 0x" + Integer.toHexString(capset_length) + ")");
 			} else {
 				switch (capset) {
 				case GENERAL:
@@ -394,7 +392,7 @@ public class Rdp {
 					break;
 
 				default:
-					logger.warn("Unhandled server capset " + capset + " (sent len 0x" + Integer.toHexString(capset_length) + ")");
+					LOGGER.warn("Unhandled server capset " + capset + " (sent len 0x" + Integer.toHexString(capset_length) + ")");
 					break;
 				}
 			}
@@ -411,7 +409,7 @@ public class Rdp {
 	 * @return Code specifying the reason for disconnection
 	 */
 	protected int processDisconnectPdu(RdpPacket data) {
-		logger.debug("Received disconnect PDU");
+		LOGGER.debug("Received disconnect PDU");
 		return data.getLittleEndian32();
 	}
 
@@ -511,7 +509,7 @@ public class Rdp {
 
 		/* 32k packets are really 8, keepalive fix - rdesktop 1.2.0 */
 		if (length == 0x8000) {
-			logger.warn("32k packet keepalive fix");
+			LOGGER.warn("32k packet keepalive fix");
 			next_packet += 8;
 			type[0] = 0;
 			return stream;
@@ -619,21 +617,21 @@ public class Rdp {
 					return new DisconnectInfo(false, "No data?");
 				}
 			} catch (EOFException e) {
-				logger.warn("Unexpected EOF", e);
+				LOGGER.warn("Unexpected EOF", e);
 				return new DisconnectInfo(false, "EOF?");
 			}
 
 			switch (type[0]) {
 
 			case (Rdp.RDP_PDU_DEMAND_ACTIVE):
-				logger.debug("Rdp.RDP_PDU_DEMAND_ACTIVE");
+				LOGGER.debug("Rdp.RDP_PDU_DEMAND_ACTIVE");
 			// get this after licence negotiation, just before the 1st
 			// order...
 			ThreadContext.push("processDemandActive");
 			this.processDemandActive(data);
 			// can use this to trigger things that have to be done before
 			// 1st order
-			logger.debug("ready to send (got past licence negotiation)");
+			LOGGER.debug("ready to send (got past licence negotiation)");
 			Rdesktop.readytosend = true;
 			callback.triggerReadyToSend();
 			ThreadContext.pop();
@@ -647,7 +645,7 @@ public class Rdp {
 			break;
 
 			case (Rdp.RDP_PDU_DATA):
-				logger.debug("Rdp.RDP_PDU_DATA");
+				LOGGER.debug("Rdp.RDP_PDU_DATA");
 			// all the others should be this
 			ThreadContext.push("processData");
 
@@ -706,7 +704,7 @@ public class Rdp {
 		RdpPacket data;
 
 		if (!options.use_rdp5 || 1 == options.server_rdp_version) {
-			logger.debug("Sending RDP4-style Logon packet");
+			LOGGER.debug("Sending RDP4-style Logon packet");
 
 			data = SecureLayer.init(sec_flags, 18 + domainlen + userlen
 					+ passlen + commandlen + dirlen + 10);
@@ -726,7 +724,7 @@ public class Rdp {
 
 		} else {
 			flags |= RDP_LOGON_BLOB;
-			logger.debug("Sending RDP5-style Logon packet");
+			LOGGER.debug("Sending RDP5-style Logon packet");
 			packetlen = 4
 					+ // Unknown uint32
 					4
@@ -896,8 +894,8 @@ public class Rdp {
 		len_combined_caps = data.getLittleEndian16(); // in_uint16_le(s, len_combined_caps);
 		len_src_descriptor = data.get8(); // Overwriting??? // in_uint8s(s, len_src_descriptor);
 		data.incrementPosition(3); // changed - why is this needed?
-		if (logger.isDebugEnabled()) {
-			logger.debug("process_demand_active(), shareid=0x" + Integer.toHexString(rdp_shareid));
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("process_demand_active(), shareid=0x" + Integer.toHexString(rdp_shareid));
 		}
 		processServerCaps(data, len_combined_caps);
 
@@ -944,29 +942,29 @@ public class Rdp {
 		switch (data_type) {
 
 		case (Rdp.RDP_DATA_PDU_UPDATE):
-			logger.debug("Rdp.RDP_DATA_PDU_UPDATE");
+			LOGGER.debug("Rdp.RDP_DATA_PDU_UPDATE");
 		this.processUpdate(data);
 		break;
 
 		case RDP_DATA_PDU_CONTROL:
-			logger.debug(("Received Control PDU\n"));
+			LOGGER.debug(("Received Control PDU\n"));
 			break;
 
 		case RDP_DATA_PDU_SYNCHRONISE:
-			logger.debug(("Received Sync PDU\n"));
+			LOGGER.debug(("Received Sync PDU\n"));
 			break;
 
 		case (Rdp.RDP_DATA_PDU_POINTER):
-			logger.debug("Received pointer PDU");
+			LOGGER.debug("Received pointer PDU");
 		this.processPointer(data);
 		break;
 		case (Rdp.RDP_DATA_PDU_BELL):
-			logger.debug("Received bell PDU");
+			LOGGER.debug("Received bell PDU");
 		Toolkit tx = Toolkit.getDefaultToolkit();
 		tx.beep();
 		break;
 		case (Rdp.RDP_DATA_PDU_LOGON):
-			logger.debug("User logged on");
+			LOGGER.debug("User logged on");
 		Rdesktop.loggedon = true;
 		break;
 		case RDP_DATA_PDU_DISCONNECT:
@@ -975,11 +973,11 @@ public class Rdp {
 			 * console session on Windows XP and 2003 Server
 			 */
 			int code = processDisconnectPdu(data);
-			logger.debug(("Received disconnect PDU\n"));
+			LOGGER.debug(("Received disconnect PDU\n"));
 			return code;
 
 		default:
-			logger.warn("Unimplemented Data PDU type " + data_type);
+			LOGGER.warn("Unimplemented Data PDU type " + data_type);
 
 		}
 		return null;
@@ -1008,7 +1006,7 @@ public class Rdp {
 		case (Rdp.RDP_UPDATE_SYNCHRONIZE):
 			break;
 		default:
-			logger.warn("Unimplemented Update type " + update_type);
+			LOGGER.warn("Unimplemented Update type " + update_type);
 		}
 	}
 
@@ -1050,7 +1048,7 @@ public class Rdp {
 		this.sendOrderCaps(data);
 
 		if (options.use_rdp5 && options.persistent_bitmap_caching) {
-			logger.info("Persistent caching enabled");
+			LOGGER.info("Persistent caching enabled");
 			this.sendBitmapcache2Caps(data);
 		} else {
 			this.sendBitmapcacheCaps(data);
@@ -1068,7 +1066,7 @@ public class Rdp {
 		this.sendGlyphCacheCaps(data);
 
 		data.markEnd();
-		logger.debug("confirm active");
+		LOGGER.debug("confirm active");
 		// this.send(data, RDP_PDU_CONFIRM_ACTIVE);
 		this.SecureLayer.send(data, sec_flags);
 	}
@@ -1190,11 +1188,11 @@ public class Rdp {
 		// BMPCACHE2_C2_CELLS);
 
 		if (cache.pstCache.pstcache_init(2)) { // XXX this WILL cause corruption, possibly
-			logger.info("Persistent cache initialized");
+			LOGGER.info("Persistent cache initialized");
 			data.setLittleEndian32(BMPCACHE2_NUM_PSTCELLS
 					| BMPCACHE2_FLAG_PERSIST);
 		} else {
-			logger.info("Persistent cache not initialized");
+			LOGGER.info("Persistent cache not initialized");
 			data.setLittleEndian32(BMPCACHE2_C2_CELLS);
 		}
 		data.incrementPosition(20); // out_uint8s(s, 20); /* other bitmap caches
@@ -1326,7 +1324,7 @@ public class Rdp {
 		data.setLittleEndian16(1002);
 
 		data.markEnd();
-		logger.debug("sync");
+		LOGGER.debug("sync");
 		this.sendData(data, RDP_DATA_PDU_SYNCHRONISE);
 	}
 
@@ -1339,7 +1337,7 @@ public class Rdp {
 		data.setLittleEndian32(0); // control id
 
 		data.markEnd();
-		logger.debug("control");
+		LOGGER.debug("control");
 		this.sendData(data, RDP_DATA_PDU_CONTROL);
 	}
 
@@ -1349,7 +1347,7 @@ public class Rdp {
 		try {
 			data = this.initData(16);
 		} catch (RdesktopException e) {
-			logger.warn("Error preping input packet", e);
+			LOGGER.warn("Error preping input packet", e);
 			this.callback.error(e, this);
 		}
 
@@ -1369,10 +1367,10 @@ public class Rdp {
 		try {
 			this.sendData(data, RDP_DATA_PDU_INPUT);
 		} catch (RdesktopException r) {
-			logger.warn("Error sending input packet", r);
+			LOGGER.warn("Error sending input packet", r);
 			this.callback.error(r, this);
 		} catch (IOException i) {
-			logger.warn("Unexpected IOException", i);
+			LOGGER.warn("Unexpected IOException", i);
 			this.callback.error(i, this);
 		}
 	}
@@ -1387,7 +1385,7 @@ public class Rdp {
 		data.setLittleEndian16(0x32); /* entry size */
 
 		data.markEnd();
-		logger.debug("fonts");
+		LOGGER.debug("fonts");
 		this.sendData(data, RDP_DATA_PDU_FONT2);
 	}
 
@@ -1401,7 +1399,7 @@ public class Rdp {
 		switch (message_type) {
 
 		case (Rdp.RDP_POINTER_MOVE):
-			logger.debug("Rdp.RDP_POINTER_MOVE");
+			LOGGER.debug("Rdp.RDP_POINTER_MOVE");
 		x = data.getLittleEndian16();
 		y = data.getLittleEndian16();
 
@@ -1434,12 +1432,12 @@ public class Rdp {
 		// system_pointer_type);
 		switch (system_pointer_type) {
 		case RDP_NULL_POINTER:
-			logger.debug("RDP_NULL_POINTER");
+			LOGGER.debug("RDP_NULL_POINTER");
 			callback.setCursor(null);
 			break;
 
 		default:
-			logger.warn("Unimplemented system pointer message 0x"
+			LOGGER.warn("Unimplemented system pointer message 0x"
 					+ Integer.toHexString(system_pointer_type));
 			// unimpl("System pointer message 0x%x\n", system_pointer_type);
 		}
@@ -1447,7 +1445,7 @@ public class Rdp {
 
 	protected void processBitmapUpdates(RdpPacket data)
 			throws RdesktopException {
-		logger.debug("processBitmapUpdates");
+		LOGGER.debug("processBitmapUpdates");
 		int n_updates = 0;
 		int left = 0, top = 0, right = 0, bottom = 0, width = 0, height = 0;
 		int cx = 0, cy = 0, bitsperpixel = 0, compression = 0, buffersize = 0, size = 0;
@@ -1492,7 +1490,7 @@ public class Rdp {
 
 			/* Server may limit bpp - this is how we find out */
 			if (options.server_bpp != bitsperpixel) {
-				logger.warn("Server limited colour depth to " + bitsperpixel
+				LOGGER.warn("Server limited colour depth to " + bitsperpixel
 						+ " bits");
 				options.set_bpp(bitsperpixel);
 			}
@@ -1529,7 +1527,7 @@ public class Rdp {
 					surface.displayImage(Bitmap.convertImage(options, pixel, Bpp),
 							width, height, left, top, cx, cy);
 				} else {
-					logger.warn("Could not decompress bitmap");
+					LOGGER.warn("Could not decompress bitmap");
 				}
 			} else {
 
@@ -1540,7 +1538,7 @@ public class Rdp {
 						surface.displayImage(pixeli, width, height, left, top,
 								cx, cy);
 					} else {
-						logger.warn("Could not decompress bitmap");
+						LOGGER.warn("Could not decompress bitmap");
 					}
 				} else if (options.bitmap_decompression_store == options.BUFFEREDIMAGE_BITMAP_DECOMPRESSION) {
 					Image pix = Bitmap.decompressImg(options, width, height, size, data,
@@ -1548,7 +1546,7 @@ public class Rdp {
 					if (pix != null) {
 						surface.displayImage(pix, left, top);
 					} else {
-						logger.warn("Could not decompress bitmap");
+						LOGGER.warn("Could not decompress bitmap");
 					}
 				} else {
 					surface.displayCompressed(left, top, width, height, size,
@@ -1604,7 +1602,7 @@ public class Rdp {
 
 	protected void process_colour_pointer_pdu(RdpPacket data)
 			throws RdesktopException {
-		logger.debug("Rdp.RDP_POINTER_COLOR");
+		LOGGER.debug("Rdp.RDP_POINTER_COLOR");
 		int x = 0, y = 0, width = 0, height = 0, cache_idx = 0, masklen = 0, datalen = 0;
 		byte[] mask = null, pixel = null;
 		Cursor cursor = null;
@@ -1631,7 +1629,7 @@ public class Rdp {
 
 	protected void process_cached_pointer_pdu(RdpPacket data)
 			throws RdesktopException {
-		logger.debug("Rdp.RDP_POINTER_CACHED");
+		LOGGER.debug("Rdp.RDP_POINTER_CACHED");
 		int cache_idx = data.getLittleEndian16();
 		// logger.info("Setting cursor "+cache_idx);
 		callback.setCursor(cache.getCursor(cache_idx));

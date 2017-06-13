@@ -54,7 +54,7 @@ import org.apache.logging.log4j.Logger;
  * Parses and tracks RDP orders, and then delegates the actual drawing.
  */
 public class Orders {
-	static Logger logger = LogManager.getLogger(Orders.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	private OrderState os = null;
 
@@ -511,7 +511,7 @@ public class Orders {
 		}
 
 		if (size < 0) {
-			logger.warn("Invalid control flags/size combo for " + orderType + ": flags (" + Integer.toBinaryString(controlFlags) + ") led to size of " + size);
+			LOGGER.warn("Invalid control flags/size combo for " + orderType + ": flags (" + Integer.toBinaryString(controlFlags) + ") led to size of " + size);
 			size = 0;
 		}
 
@@ -524,7 +524,7 @@ public class Orders {
 		int expectedHighestBit = (1 << (orderType.numFields - 1));
 		int highestBit = Integer.highestOneBit(ret);
 		if (highestBit> expectedHighestBit) {
-			logger.warn("More fields are set than expected; expected at max " + orderType.numFields + " fields but got 0b" + Integer.toBinaryString(ret));
+			LOGGER.warn("More fields are set than expected; expected at max " + orderType.numFields + " fields but got 0b" + Integer.toBinaryString(ret));
 		}
 		return ret;
 	}
@@ -627,7 +627,7 @@ public class Orders {
 
 		boolean delta = ((controlFlags & PrimaryOrderFlags.DELTA_COORDINATES) != 0);
 
-		logger.debug("Primary order: " + orderType);
+		LOGGER.debug("Primary order: " + orderType);
 		switch (orderType) {
 		case DSTBLT:
 			this.processDestBlt(data, os.getDestBlt(), orderFlags, delta); break;
@@ -660,13 +660,13 @@ public class Orders {
 			this.processText2(data, os.getText2(), orderFlags, delta); break;
 
 		default:
-			logger.warn("Unimplemented Order type " + orderType);
+			LOGGER.warn("Unimplemented Order type " + orderType);
 			return;
 		}
 
 		if ((controlFlags & PrimaryOrderFlags.BOUNDS) != 0) {
 			surface.resetClip();
-			logger.debug("Reset clip");
+			LOGGER.debug("Reset clip");
 		}
 	}
 
@@ -763,14 +763,14 @@ public class Orders {
 	private void processDestBlt(RdpPacket data, DestBltOrder destblt,
 			int present, boolean delta) {
 
-		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
+		StringBuilder aggregate = (LOGGER.isDebugEnabled() ? new StringBuilder() : null);
 		readOptionalField("left", aggregate, 0, present, destblt::setX, coordinateReader(data, destblt.getX(), delta));
 		readOptionalField("top", aggregate, 1, present, destblt::setY, coordinateReader(data, destblt.getY(), delta));
 		readOptionalField("width", aggregate, 2, present, destblt::setCX, coordinateReader(data, destblt.getCX(), delta));
 		readOptionalField("height", aggregate, 3, present, destblt::setCY, coordinateReader(data, destblt.getCY(), delta));
 		readOptionalField("rop", aggregate, 4, present, destblt::setOpcode, () -> ROP2_S(data.get8()));
 
-		logger.debug(aggregate);
+		LOGGER.debug(aggregate);
 
 		surface.drawDestBltOrder(destblt);
 	}
@@ -790,7 +790,7 @@ public class Orders {
 	 */
 	private void processPatBlt(RdpPacket data, PatBltOrder patblt,
 			int present, boolean delta) {
-		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
+		StringBuilder aggregate = (LOGGER.isDebugEnabled() ? new StringBuilder() : null);
 
 		readOptionalField("left", aggregate, 0, present, patblt::setX, coordinateReader(data, patblt.getX(), delta));
 		readOptionalField("top", aggregate, 1, present, patblt::setY, coordinateReader(data, patblt.getY(), delta));
@@ -801,7 +801,7 @@ public class Orders {
 		readOptionalField("foregroundColor", aggregate, 6, present, patblt::setForegroundColor, colorReader(data));
 		parseBrush(data, patblt.getBrush(), 7, present, aggregate);
 
-		logger.debug(aggregate);
+		LOGGER.debug(aggregate);
 
 		surface.drawPatBltOrder(patblt);
 	}
@@ -821,7 +821,7 @@ public class Orders {
 	 */
 	private void processScreenBlt(RdpPacket data,
 			ScreenBltOrder screenblt, int present, boolean delta) {
-		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
+		StringBuilder aggregate = (LOGGER.isDebugEnabled() ? new StringBuilder() : null);
 
 		readOptionalField("left", aggregate, 0, present, screenblt::setX, coordinateReader(data, screenblt.getX(), delta));
 		readOptionalField("top", aggregate, 1, present, screenblt::setY, coordinateReader(data, screenblt.getY(), delta));
@@ -831,7 +831,7 @@ public class Orders {
 		readOptionalField("srcX", aggregate, 5, present, screenblt::setSrcX, coordinateReader(data, screenblt.getSrcX(), delta));
 		readOptionalField("srcY", aggregate, 6, present, screenblt::setSrcY, coordinateReader(data, screenblt.getSrcY(), delta));
 
-		logger.debug(aggregate);
+		LOGGER.debug(aggregate);
 
 		surface.drawScreenBltOrder(screenblt);
 	}
@@ -851,7 +851,7 @@ public class Orders {
 	 */
 	private void processLine(RdpPacket data, LineOrder line,
 			int present, boolean delta) {
-		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
+		StringBuilder aggregate = (LOGGER.isDebugEnabled() ? new StringBuilder() : null);
 
 		readOptionalField("backgroundMixMode", aggregate, 0, present, line::setMixmode, data::getLittleEndian16);
 		readOptionalField("startX", aggregate, 1, present, line::setStartX, coordinateReader(data, line.getStartX(), delta));
@@ -863,10 +863,10 @@ public class Orders {
 
 		parsePen(data, line.getPen(), 7, present, aggregate);
 
-		logger.debug(aggregate);
+		LOGGER.debug(aggregate);
 
 		if (line.getOpcode() < 0x01 || line.getOpcode() > 0x10) {
-			logger.warn("bad ROP2 0x" + Integer.toHexString(line.getOpcode()));
+			LOGGER.warn("bad ROP2 0x" + Integer.toHexString(line.getOpcode()));
 			return;
 		}
 
@@ -889,7 +889,7 @@ public class Orders {
 	 */
 	private void processRectangle(RdpPacket data,
 			RectangleOrder rect, int present, boolean delta) {
-		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
+		StringBuilder aggregate = (LOGGER.isDebugEnabled() ? new StringBuilder() : null);
 
 		readOptionalField("left", aggregate, 0, present, rect::setX, coordinateReader(data, rect.getX(), delta));
 		readOptionalField("top", aggregate, 1, present, rect::setY, coordinateReader(data, rect.getY(), delta));
@@ -902,7 +902,7 @@ public class Orders {
 		readOptionalField("green", aggregate, 5, present, rect::setG, data::get8);
 		readOptionalField("blue", aggregate, 6, present, rect::setB, data::get8);
 
-		logger.debug(aggregate);
+		LOGGER.debug(aggregate);
 
 		surface.drawRectangleOrder(rect);
 	}
@@ -925,7 +925,7 @@ public class Orders {
 	private void processDeskSave(RdpPacket data,
 			DeskSaveOrder desksave, int present, boolean delta)
 					throws RdesktopException {
-		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
+		StringBuilder aggregate = (LOGGER.isDebugEnabled() ? new StringBuilder() : null);
 
 		readOptionalField("savedBitmapPosition", aggregate, 0, present, desksave::setOffset, data::getLittleEndian32);
 		readOptionalField("left", aggregate, 1, present, desksave::setLeft, coordinateReader(data, desksave.getLeft(), delta));
@@ -934,7 +934,7 @@ public class Orders {
 		readOptionalField("bottom", aggregate, 4, present, desksave::setBottom, coordinateReader(data, desksave.getBottom(), delta));
 		readOptionalField("operation", aggregate, 5, present, desksave::setAction, data::get8);
 
-		logger.debug(aggregate);
+		LOGGER.debug(aggregate);
 
 		// Perform it
 		int width = desksave.getRight() - desksave.getLeft() + 1;
@@ -968,7 +968,7 @@ public class Orders {
 	 */
 	private void processMemBlt(RdpPacket data, MemBltOrder memblt,
 			int present, boolean delta) {
-		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
+		StringBuilder aggregate = (LOGGER.isDebugEnabled() ? new StringBuilder() : null);
 
 		// 2 values in the same packet field (with the same ID)
 		readOptionalField("cacheID", aggregate, 0, present, memblt::setCacheID, data::get8);
@@ -982,7 +982,7 @@ public class Orders {
 		readOptionalField("srcY", aggregate, 7, present, memblt::setSrcY, coordinateReader(data, memblt.getSrcY(), delta));
 		readOptionalField("cacheIndex", aggregate, 8, present, memblt::setCacheIDX, data::getLittleEndian16);
 
-		logger.debug(aggregate);
+		LOGGER.debug(aggregate);
 
 		surface.drawMemBltOrder(memblt);
 	}
@@ -1003,7 +1003,7 @@ public class Orders {
 	 */
 	private void processTriBlt(RdpPacket data, TriBltOrder triblt,
 			int present, boolean delta) {
-		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
+		StringBuilder aggregate = (LOGGER.isDebugEnabled() ? new StringBuilder() : null);
 
 		readOptionalField("cacheID", aggregate, 0, present, triblt::setCacheID, data::get8);
 		readOptionalField("colorTable", aggregate, 0, present, triblt::setColorTable, data::get8);
@@ -1017,7 +1017,7 @@ public class Orders {
 		parseBrush(data, triblt.getBrush(), 8, present, aggregate);
 		readOptionalField("cacheIndex", aggregate, 15, present, triblt::setCacheIDX, data::getLittleEndian16);
 
-		logger.debug(aggregate);
+		LOGGER.debug(aggregate);
 
 		surface.drawTriBltOrder(triblt);
 	}
@@ -1037,7 +1037,7 @@ public class Orders {
 	 */
 	private void processPolyLine(RdpPacket data,
 			PolyLineOrder polyline, int present, boolean delta) {
-		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
+		StringBuilder aggregate = (LOGGER.isDebugEnabled() ? new StringBuilder() : null);
 
 		readOptionalField("x", aggregate, 0, present, polyline::setX, coordinateReader(data, polyline.getY(), delta));
 		readOptionalField("y", aggregate, 1, present, polyline::setY, coordinateReader(data, polyline.getY(), delta));
@@ -1055,7 +1055,7 @@ public class Orders {
 			return databytes;
 		});
 
-		logger.debug(aggregate);
+		LOGGER.debug(aggregate);
 
 		surface.drawPolyLineOrder(polyline);
 	}
@@ -1075,7 +1075,7 @@ public class Orders {
 	 */
 	private void processText2(RdpPacket data, Text2Order text2,
 			int present, boolean delta) throws RdesktopException {
-		StringBuilder aggregate = (logger.isDebugEnabled() ? new StringBuilder() : null);
+		StringBuilder aggregate = (LOGGER.isDebugEnabled() ? new StringBuilder() : null);
 
 		readOptionalField("cacheID", aggregate, 0, present, text2::setFont, data::get8);
 		readOptionalField("accelerationFlags", aggregate, 1, present, text2::setFlags, data::get8);
@@ -1108,7 +1108,7 @@ public class Orders {
 			return text;
 		});
 
-		logger.debug(aggregate);
+		LOGGER.debug(aggregate);
 
 		this.drawText(text2, text2.getClipRight() - text2.getClipLeft(), text2
 				.getClipBottom()
@@ -1149,7 +1149,7 @@ public class Orders {
 		if ((present & PrimaryOrderFlags.BOUND_DELTA_LEFT) != 0) {
 			bounds.setLeft((short) (bounds.getLeft() + (byte) data.get8()));
 			if ((present & PrimaryOrderFlags.BOUND_LEFT) != 0) {
-				logger.warn("Both BOUND_LEFT and BOUND_DELTA_LEFT were set! (0b" + Integer.toBinaryString(present) + ")");
+				LOGGER.warn("Both BOUND_LEFT and BOUND_DELTA_LEFT were set! (0b" + Integer.toBinaryString(present) + ")");
 			}
 		} else if ((present & PrimaryOrderFlags.BOUND_LEFT) != 0) {
 			bounds.setLeft((short) (data.getLittleEndian16()));
@@ -1158,7 +1158,7 @@ public class Orders {
 		if ((present & PrimaryOrderFlags.BOUND_DELTA_TOP) != 0) {
 			bounds.setTop((short) (bounds.getTop() + (byte) data.get8()));
 			if ((present & PrimaryOrderFlags.BOUND_TOP) != 0) {
-				logger.warn("Both BOUND_TOP and BOUND_DELTA_TOP were set! (0b" + Integer.toBinaryString(present) + ")");
+				LOGGER.warn("Both BOUND_TOP and BOUND_DELTA_TOP were set! (0b" + Integer.toBinaryString(present) + ")");
 			}
 		} else if ((present & PrimaryOrderFlags.BOUND_TOP) != 0) {
 			bounds.setTop((short) (data.getLittleEndian16()));
@@ -1167,7 +1167,7 @@ public class Orders {
 		if ((present & PrimaryOrderFlags.BOUND_DELTA_RIGHT) != 0) {
 			bounds.setRight((short) (bounds.getRight() + (byte) data.get8()));
 			if ((present & PrimaryOrderFlags.BOUND_RIGHT) != 0) {
-				logger.warn("Both BOUND_RIGHT and BOUND_DELTA_RIGHT were set! (0b" + Integer.toBinaryString(present) + ")");
+				LOGGER.warn("Both BOUND_RIGHT and BOUND_DELTA_RIGHT were set! (0b" + Integer.toBinaryString(present) + ")");
 			}
 		} else if ((present & PrimaryOrderFlags.BOUND_RIGHT) != 0) {
 			bounds.setRight((short) (data.getLittleEndian16()));
@@ -1176,7 +1176,7 @@ public class Orders {
 		if ((present & PrimaryOrderFlags.BOUND_DELTA_BOTTOM) != 0) {
 			bounds.setBottom((short) (bounds.getBottom() + (byte) data.get8()));
 			if ((present & PrimaryOrderFlags.BOUND_BOTTOM) != 0) {
-				logger.warn("Both BOUND_BOTTOM and BOUND_DELTA_BOTTOM were set! (0b" + Integer.toBinaryString(present) + ")");
+				LOGGER.warn("Both BOUND_BOTTOM and BOUND_DELTA_BOTTOM were set! (0b" + Integer.toBinaryString(present) + ")");
 			}
 		} else if ((present & PrimaryOrderFlags.BOUND_BOTTOM) != 0) {
 			bounds.setBottom((short) (data.getLittleEndian16()));
@@ -1212,7 +1212,7 @@ public class Orders {
 
 		next_order = data.getPosition() + length + 7;
 
-		logger.debug("Secondary order: " + type);
+		LOGGER.debug("Secondary order: " + type);
 		switch (type) {
 		case BITMAP_UNCOMPRESSED:
 			this.processRawBitmapCache(data);
@@ -1247,7 +1247,7 @@ public class Orders {
 			break;
 
 		default:
-			logger.warn("Unimplemented 2ry Order type " + type);
+			LOGGER.warn("Unimplemented 2ry Order type " + type);
 		}
 
 		data.setPosition(next_order);
@@ -1387,7 +1387,7 @@ public class Orders {
 				cache.putBitmap(cache_id, cache_idx, new Bitmap(Bitmap
 						.convertImage(options, pixel, Bpp), width, height, 0, 0), 0);
 			} else {
-				logger.warn("Failed to decompress bitmap");
+				LOGGER.warn("Failed to decompress bitmap");
 			}
 		} else {
 			int[] pixel = Bitmap.decompressInt(options, width, height, size, data, Bpp);
@@ -1395,7 +1395,7 @@ public class Orders {
 				cache.putBitmap(cache_id, cache_idx, new Bitmap(pixel, width,
 						height, 0, 0), 0);
 			} else {
-				logger.warn("Failed to decompress bitmap");
+				LOGGER.warn("Failed to decompress bitmap");
 			}
 		}
 	}
@@ -1449,7 +1449,7 @@ public class Orders {
 
 		// in_uint8p(s, data, bufsize);
 
-		logger.info("BMPCACHE2(compr=" + compressed + ",flags=" + flags
+		LOGGER.info("BMPCACHE2(compr=" + compressed + ",flags=" + flags
 				+ ",cx=" + width + ",cy=" + height + ",id=" + cache_id
 				+ ",idx=" + cache_idx + ",Bpp=" + Bpp + ",bs=" + bufsize + ")");
 
@@ -1466,7 +1466,7 @@ public class Orders {
 			}
 
 			if (bmpdataInt == null) {
-				logger.debug("Failed to decompress bitmap data");
+				LOGGER.debug("Failed to decompress bitmap data");
 				// xfree(bmpdata);
 				return;
 			}
@@ -1505,7 +1505,7 @@ public class Orders {
 						width, height, width * height * Bpp, bmpdata);
 			}
 		} else {
-			logger.debug("process_bmpcache2: ui_create_bitmap failed");
+			LOGGER.debug("process_bmpcache2: ui_create_bitmap failed");
 		}
 
 		// xfree(bmpdata);
@@ -1564,7 +1564,7 @@ public class Orders {
 		assert (controlFlags & RDP_ORDER_SECONDARY) != 0;
 
 		AltSecondaryOrder order = AltSecondaryOrder.forPacketId(controlFlags);
-		logger.debug("Altsec order: " + order);
+		LOGGER.debug("Altsec order: " + order);
 		throw new OrderException("Alternate secondary orders aren't implemented");
 	}
 

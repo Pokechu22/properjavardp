@@ -41,7 +41,7 @@ import org.apache.logging.log4j.Logger;
  * Purpose: ISO layer of communication
  */
 public class ISO {
-	static Logger logger = LogManager.getLogger(ISO.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	private HexDump dump = null;
 
@@ -253,7 +253,7 @@ public class ISO {
 	 */
 	private RdpPacket tcp_recv(RdpPacket p, int length)
 			throws IOException {
-		logger.debug("ISO.tcp_recv");
+		LOGGER.debug("ISO.tcp_recv");
 		RdpPacket buffer = null;
 
 		byte[] packet = new byte[length];
@@ -297,12 +297,12 @@ public class ISO {
 	 */
 	private RdpPacket receiveMessage(int[] type) throws IOException,
 	RdesktopException, OrderException {
-		logger.debug("ISO.receiveMessage");
+		LOGGER.debug("ISO.receiveMessage");
 		RdpPacket s = null;
 		int length, version;
 
 		next_packet: while (true) {
-			logger.debug("next_packet");
+			LOGGER.debug("next_packet");
 			s = tcp_recv(null, 4);
 			if (s == null) {
 				return null;
@@ -326,7 +326,7 @@ public class ISO {
 				return null;
 			}
 			if ((version & 3) == 0) {
-				logger.debug("Processing rdp5 packet");
+				LOGGER.debug("Processing rdp5 packet");
 				this.rdp.rdp5_process(s, (version & 0x80) != 0);
 				continue next_packet;
 			} else {
@@ -338,7 +338,7 @@ public class ISO {
 		type[0] = s.get8();
 
 		if (type[0] == DATA_TRANSFER) {
-			logger.debug("Data Transfer Packet");
+			LOGGER.debug("Data Transfer Packet");
 			s.incrementPosition(1); // eot
 			return s;
 		}
@@ -366,7 +366,7 @@ public class ISO {
 				rdpsock.close();
 			}
 		} catch (IOException e) {
-			logger.warn("ISO: Failed to disconnect", e);
+			LOGGER.warn("ISO: Failed to disconnect", e);
 			in = null;
 			out = null;
 			rdpsock = null;
@@ -404,7 +404,7 @@ public class ISO {
 		// address we use 0
 		buffer.set8(0); // service class
 		if (options.username.length() > 0) {
-			logger.debug("Including username");
+			LOGGER.debug("Including username");
 			buffer
 			.out_uint8p("Cookie: mstshash=", "Cookie: mstshash="
 					.length());

@@ -36,7 +36,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class MetafilepictHandler extends TypeHandler {
-	private static final Logger logger = LogManager.getLogger();
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	/* Mapping Modes */
 	public static final int MM_TEXT = 1;
@@ -94,9 +94,9 @@ public class MetafilepictHandler extends TypeHandler {
 			}
 			// System.out.println(thingy);
 		} catch (FileNotFoundException e) {
-			logger.warn("Failed to write(!?) test.wmf", e);
+			LOGGER.warn("Failed to write(!?) test.wmf", e);
 		} catch (IOException e) {
-			logger.warn("Failed to write(!?) test.wmf", e);
+			LOGGER.warn("Failed to write(!?) test.wmf", e);
 		}
 		return (new StringSelection(thingy));
 	}
@@ -131,9 +131,9 @@ public class MetafilepictHandler extends TypeHandler {
 			}
 			// System.out.println(thingy);
 		} catch (FileNotFoundException e) {
-			logger.warn("Failed to write(!?) test.wmf", e);
+			LOGGER.warn("Failed to write(!?) test.wmf", e);
 		} catch (IOException e) {
-			logger.warn("Failed to write(!?) test.wmf", e);
+			LOGGER.warn("Failed to write(!?) test.wmf", e);
 		}
 	}
 

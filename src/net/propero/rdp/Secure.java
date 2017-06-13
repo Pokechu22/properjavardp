@@ -47,7 +47,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
 public class Secure {
 	boolean readCert = false;
 
-	static Logger logger = LogManager.getLogger(Secure.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	private Licence licence;
 
@@ -239,7 +239,7 @@ public class Secure {
 	 * @return Packet populated with MCS data
 	 */
 	public RdpPacket sendMcsData() {
-		logger.debug("Secure.sendMcsData");
+		LOGGER.debug("Secure.sendMcsData");
 
 		RdpPacket buffer = new RdpPacket(512);
 
@@ -343,7 +343,7 @@ public class Secure {
 		}
 
 		if (options.use_rdp5 && (channels.num_channels() > 0)) {
-			logger.debug(("num_channels is " + channels.num_channels()));
+			LOGGER.debug(("num_channels is " + channels.num_channels()));
 			buffer.setLittleEndian16(SEC_TAG_CLI_CHANNELS); // out_uint16_le(s,
 			// SEC_TAG_CLI_CHANNELS);
 			buffer.setLittleEndian16(channels.num_channels() * 12 + 8); // out_uint16_le(s,
@@ -358,7 +358,7 @@ public class Secure {
 			// virtual
 			// channels
 			for (int i = 0; i < channels.num_channels(); i++) {
-				logger.debug(("Requesting channel " + channels.channel(i)
+				LOGGER.debug(("Requesting channel " + channels.channel(i)
 						.name()));
 				buffer.out_uint8p(channels.channel(i).name(), 8); // out_uint8a(s,
 				// g_channels[i].name,
@@ -381,7 +381,7 @@ public class Secure {
 	 */
 	public void processMcsData(RdpPacket mcs_data)
 			throws RdesktopException {
-		logger.debug("Secure.processMcsData");
+		LOGGER.debug("Secure.processMcsData");
 		int tag = 0, len = 0, length = 0, nexttag = 0;
 
 		mcs_data.incrementPosition(21); // header (T.124 stuff, probably)
@@ -433,7 +433,7 @@ public class Secure {
 	private void processSrvInfo(RdpPacket mcs_data) {
 		options.server_rdp_version = mcs_data.getLittleEndian16(); // in_uint16_le(s,
 		// g_server_rdp_version);
-		logger.debug(("Server RDP version is " + options.server_rdp_version));
+		LOGGER.debug(("Server RDP version is " + options.server_rdp_version));
 		if (1 == options.server_rdp_version) {
 			options.use_rdp5 = false;
 		}
@@ -465,7 +465,7 @@ public class Secure {
 		}
 
 		// this.client_random = this.generateRandom(SEC_RANDOM_SIZE);
-		logger.debug("readCert = " + readCert);
+		LOGGER.debug("readCert = " + readCert);
 		if (readCert) { /*
 		 * Which means we should use RDP5-style encryption
 		 */
@@ -744,7 +744,7 @@ public class Secure {
 	 */
 	public int parseCryptInfo(RdpPacket data)
 			throws RdesktopException {
-		logger.debug("Secure.parseCryptInfo");
+		LOGGER.debug("Secure.parseCryptInfo");
 		int encryption_level = 0, random_length = 0, RSA_info_length = 0;
 		int tag = 0, length = 0;
 		int next_tag = 0, end = 0;
@@ -771,7 +771,7 @@ public class Secure {
 		end = data.getPosition() + RSA_info_length;
 
 		if (end > data.getEnd()) {
-			logger.debug("Reached end of crypt info prematurely ");
+			LOGGER.debug("Reached end of crypt info prematurely ");
 			return 0;
 		}
 
@@ -779,9 +779,9 @@ public class Secure {
 		int flags = data.getLittleEndian32(); // in_uint32_le(s, flags); // 1
 		// = RDP4-style, 0x80000002 =
 		// X.509
-		logger.debug("Flags = 0x" + Integer.toHexString(flags));
+		LOGGER.debug("Flags = 0x" + Integer.toHexString(flags));
 		if ((flags & 1) != 0) {
-			logger.debug(("We're going for the RDP4-style encryption"));
+			LOGGER.debug(("We're going for the RDP4-style encryption"));
 			data.incrementPosition(8); // in_uint8s(s, 8); // unknown
 
 			while (data.getPosition() < data.getEnd()) {
@@ -813,7 +813,7 @@ public class Secure {
 			if (data.getPosition() == data.getEnd()) {
 				return rc4_key_size;
 			} else {
-				logger.warn("End not reached!");
+				LOGGER.warn("End not reached!");
 				return 0;
 			}
 
@@ -907,7 +907,7 @@ public class Secure {
 		}
 
 		if (this.sec_crypted_random.length > SEC_MAX_MODULUS_SIZE) {
-			logger.warn("sec_crypted_random too big!"); /* FIXME */
+			LOGGER.warn("sec_crypted_random too big!"); /* FIXME */
 		}
 		this.reverse(this.sec_crypted_random);
 
@@ -1183,13 +1183,13 @@ public class Secure {
 				this.server_random, 32);
 
 		if (rc4_key_size == 1) {
-			logger.info("40 Bit Encryption enabled");
+			LOGGER.info("40 Bit Encryption enabled");
 			this.make40bit(this.sec_sign_key);
 			this.make40bit(this.sec_decrypt_key);
 			this.make40bit(this.sec_encrypt_key);
 			this.keylength = 8;
 		} else {
-			logger.info("128 Bit Encryption enabled");
+			LOGGER.info("128 Bit Encryption enabled");
 			this.keylength = 16;
 		}
 

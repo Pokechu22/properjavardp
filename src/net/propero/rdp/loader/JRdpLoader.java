@@ -39,7 +39,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class JRdpLoader {
 
-	private static final Logger logger = LogManager.getLogger();
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	// Set of identifiers to be found within the launch file
 	private static String[] identifiers = { "--user", "--password", "--domain",
@@ -52,7 +52,7 @@ public class JRdpLoader {
 	public static void main(String args[]) {
 
 		if (args.length <= 0) {
-			logger.fatal("Expected usage: JRdpLoader launchFile");
+			LOGGER.fatal("Expected usage: JRdpLoader launchFile");
 			System.exit(-1);
 		}
 
@@ -104,19 +104,19 @@ public class JRdpLoader {
 				Rdesktop.main(finArgs);
 				in.close();
 			} else {
-				logger.fatal("No server name provided");
+				LOGGER.fatal("No server name provided");
 				System.exit(-1);
 			}
 
 		} catch (IOException ioe) {
-			logger.fatal("Launch file could not be read: "
+			LOGGER.fatal("Launch file could not be read: "
 					+ ioe.getMessage(), ioe);
 			System.exit(-1);
 		} catch (RdesktopException e) {
-			logger.fatal("RdesktopException", e);
+			LOGGER.fatal("RdesktopException", e);
 			System.exit(-1);
 		} catch (Exception e) {
-			logger.fatal("Unexpected Exception", e);
+			LOGGER.fatal("Unexpected Exception", e);
 			System.exit(-1);
 		}
 	}

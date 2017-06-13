@@ -51,7 +51,7 @@ public class Licence {
 
 	private byte[] in_token = null, in_sig = null;
 
-	static Logger logger = LogManager.getLogger(Licence.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	/* constants for the licence negotiation */
 	private static final int LICENCE_TOKEN_SIZE = 10;
@@ -138,14 +138,14 @@ public class Licence {
 		break;
 
 		case (LICENCE_TAG_REISSUE):
-			logger.debug("Presented licence was accepted!");
+			LOGGER.debug("Presented licence was accepted!");
 		break;
 
 		case (LICENCE_TAG_RESULT):
 			break;
 
 		default:
-			logger.warn("got licence tag: " + tag);
+			LOGGER.warn("got licence tag: " + tag);
 		}
 
 	}
@@ -179,7 +179,7 @@ public class Licence {
 		if (!options.built_in_licence && options.load_licence) {
 			byte[] licence_data = load_licence();
 			if ((licence_data != null) && (licence_data.length > 0)) {
-				logger.debug("licence_data.length = " + licence_data.length);
+				LOGGER.debug("licence_data.length = " + licence_data.length);
 				/* Generate a signature for the HWID buffer */
 				byte[] hwid = generate_hwid();
 				byte[] signature = secure.sign(this.licence_sign_key, 16, 16,
@@ -196,7 +196,7 @@ public class Licence {
 
 				present(null_data, null_data, licence_data,
 						licence_data.length, crypt_hwid, signature);
-				logger.debug("Presented stored licence to server!");
+				LOGGER.debug("Presented stored licence to server!");
 				return;
 			}
 		}
@@ -447,7 +447,7 @@ public class Licence {
 		 */
 
 		secure.licenceIssued = true;
-		logger.debug("Server issued Licence");
+		LOGGER.debug("Server issued Licence");
 		if (options.save_licence) {
 			save_licence(data, length - 2);
 		}
@@ -481,10 +481,10 @@ public class Licence {
 
 		if (options.built_in_licence && (!options.load_licence)
 				&& (!options.save_licence)) {
-			logger.debug("Using built-in Windows Licence");
+			LOGGER.debug("Using built-in Windows Licence");
 			buffer.setLittleEndian32(0x03010000);
 		} else {
-			logger.debug("Requesting licence");
+			LOGGER.debug("Requesting licence");
 			buffer.setLittleEndian32(0xff010000);
 		}
 		buffer.copyFromByteArray(client_random, 0, buffer.getPosition(),
@@ -536,7 +536,7 @@ public class Licence {
 	 * @return Raw byte data for stored licence
 	 */
 	private byte[] load_licence() {
-		logger.debug("load_licence");
+		LOGGER.debug("load_licence");
 
 		return LicenceStore.load_licence(options);
 	}
@@ -550,7 +550,7 @@ public class Licence {
 	 *            Length of licence
 	 */
 	private void save_licence(RdpPacket data, int length) {
-		logger.debug("save_licence");
+		LOGGER.debug("save_licence");
 		int len;
 		int startpos = data.getPosition();
 		data.incrementPosition(2); // Skip first two bytes
@@ -563,14 +563,14 @@ public class Licence {
 			 * next length value
 			 */
 			if (data.getPosition() + 4 - startpos > length) {
-				logger.warn("Error in parsing licence key.");
+				LOGGER.warn("Error in parsing licence key.");
 				return;
 			}
 		}
 		len = data.getLittleEndian32();
-		logger.debug("save_licence: len=" + len);
+		LOGGER.debug("save_licence: len=" + len);
 		if (data.getPosition() + len - startpos > length) {
-			logger.warn("Error in parsing licence key.");
+			LOGGER.warn("Error in parsing licence key.");
 			return;
 		}
 

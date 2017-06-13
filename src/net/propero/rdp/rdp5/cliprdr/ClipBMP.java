@@ -33,8 +33,6 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import net.propero.rdp.Input;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -42,7 +40,7 @@ public class ClipBMP extends Component {
 
 	private static final long serialVersionUID = -756738379924520867L;
 
-	protected static Logger logger = LogManager.getLogger(Input.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	// --- Private constants
 	private final static int BITMAPFILEHEADER_SIZE = 14;
@@ -104,7 +102,7 @@ public class ClipBMP extends Component {
 			save(parImage, parWidth, parHeight);
 			fo.close();
 		} catch (Exception ex) {
-			logger.warn("Failed to get clipboard bitmap content", ex);
+			LOGGER.warn("Failed to get clipboard bitmap content", ex);
 		}
 		return ((ByteArrayOutputStream) fo).toByteArray();
 	}
@@ -116,7 +114,7 @@ public class ClipBMP extends Component {
 			save(parImage, parWidth, parHeight);
 			fo.close();
 		} catch (Exception saveEx) {
-			logger.warn("Failed to save clipboard bitmap", saveEx);
+			LOGGER.warn("Failed to save clipboard bitmap", saveEx);
 		}
 	}
 
@@ -135,7 +133,7 @@ public class ClipBMP extends Component {
 			writeBitmapInfoHeader();
 			writeBitmap();
 		} catch (Exception saveEx) {
-			logger.warn("Failed to save clipboard bitmap", saveEx);
+			LOGGER.warn("Failed to save clipboard bitmap", saveEx);
 		}
 	}
 
@@ -152,7 +150,7 @@ public class ClipBMP extends Component {
 		try {
 			pg.grabPixels();
 		} catch (InterruptedException e) {
-			logger.warn("InterrupedException", e);
+			LOGGER.warn("InterrupedException", e);
 			return (false);
 		}
 		pad = (4 - ((parWidth * 3) % 4)) * parHeight;
@@ -214,7 +212,7 @@ public class ClipBMP extends Component {
 			bfSize += padCount - pad;
 			biSizeImage += padCount - pad;
 		} catch (Exception wb) {
-			logger.warn("Failed to write bitmap", wb);
+			LOGGER.warn("Failed to write bitmap", wb);
 		}
 	}
 
@@ -253,7 +251,7 @@ public class ClipBMP extends Component {
 			fo.write(intToDWord(biClrUsed));
 			fo.write(intToDWord(biClrImportant));
 		} catch (Exception wbih) {
-			logger.warn("Failed to write bitmap header", wbih);
+			LOGGER.warn("Failed to write bitmap header", wbih);
 		}
 	}
 
@@ -598,7 +596,7 @@ public class ClipBMP extends Component {
 						new MemoryImageSource(nwidth, nheight, ndata8, 0,
 								nwidth));
 			} else {
-				logger
+				LOGGER
 				.warn("Not a 24-bit or 8-bit Windows Bitmap, aborting...");
 				image = null;
 			}
@@ -606,7 +604,7 @@ public class ClipBMP extends Component {
 			fs.close();
 			return image;
 		} catch (Exception e) {
-			logger.warn("Failed to load bitmap: " + e.getMessage() + " " + e.getClass().getName(), e);
+			LOGGER.warn("Failed to load bitmap: " + e.getMessage() + " " + e.getClass().getName(), e);
 		}
 		return null;
 	}

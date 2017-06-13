@@ -34,7 +34,7 @@ import org.apache.logging.log4j.Logger;
  * from and writing to an individual packet at all relevant levels.
  */
 public class RdpPacket {
-	private static Logger logger = LogManager.getLogger(RdpPacket.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	/* constants for Packet */
 	public static final int MCS_HEADER = 1;
@@ -481,9 +481,9 @@ public class RdpPacket {
 	 */
 	public void setPosition(int position) {
 		if (position > bb.capacity() || position < 0) {
-			logger.warn("stream position =" + getPosition() + " end ="
+			LOGGER.warn("stream position =" + getPosition() + " end ="
 					+ getEnd() + " capacity =" + capacity());
-			logger.warn("setPosition(" + position + ") failed");
+			LOGGER.warn("setPosition(" + position + ") failed");
 			throw new ArrayIndexOutOfBoundsException();
 		}
 		bb.position(position);

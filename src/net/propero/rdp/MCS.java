@@ -37,7 +37,7 @@ import org.apache.logging.log4j.Logger;
  * MCS Layer of communication
  */
 public class MCS {
-	static Logger logger = LogManager.getLogger(MCS.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	private ISO IsoLayer = null;
 
@@ -108,13 +108,13 @@ public class MCS {
 	 */
 	public void connect(InetAddress host, int port, RdpPacket data)
 			throws IOException, RdesktopException, OrderException {
-		logger.debug("MCS.connect");
+		LOGGER.debug("MCS.connect");
 		IsoLayer.connect(host, port);
 
 		this.sendConnectInitial(data);
 		this.receiveConnectResponse(data);
 
-		logger.debug("connect response received");
+		LOGGER.debug("connect response received");
 
 		send_edrq();
 		send_aurq();
@@ -210,7 +210,7 @@ public class MCS {
 	 */
 	public RdpPacket receive(int[] channel) throws IOException,
 	RdesktopException, OrderException {
-		logger.debug("receive");
+		LOGGER.debug("receive");
 		int opcode = 0, appid = 0, length = 0;
 		RdpPacket buffer = IsoLayer.receive();
 		if (buffer == null) {
@@ -230,7 +230,7 @@ public class MCS {
 
 		buffer.incrementPosition(2); // Skip UserID
 		channel[0] = buffer.getBigEndian16(); // Get ChannelID
-		logger.debug("Channel ID = " + channel[0]);
+		LOGGER.debug("Channel ID = " + channel[0]);
 		buffer.incrementPosition(1); // Skip Flags
 
 		length = buffer.get8();
@@ -402,7 +402,7 @@ public class MCS {
 	 */
 	public void sendConnectInitial(RdpPacket data)
 			throws IOException, RdesktopException {
-		logger.debug("MCS.sendConnectInitial");
+		LOGGER.debug("MCS.sendConnectInitial");
 		if (false) {
 			int length = 7 + (3 * 34) + 4 + data.getEnd();
 			RdpPacket buffer = IsoLayer.init(length + 5);
@@ -428,7 +428,7 @@ public class MCS {
 			return;
 		}
 
-		logger.debug("MCS.sendConnectInitial");
+		LOGGER.debug("MCS.sendConnectInitial");
 		int datalen = data.getEnd();
 		int length = 9 + domainParamSize(34, 2, 0, 0xffff)
 				+ domainParamSize(1, 1, 1, 0x420)
@@ -472,7 +472,7 @@ public class MCS {
 	public void receiveConnectResponse(RdpPacket data)
 			throws IOException, RdesktopException, OrderException {
 
-		logger.debug("MCS.receiveConnectResponse");
+		LOGGER.debug("MCS.receiveConnectResponse");
 
 		String[] connect_results = { "Successful", "Domain Merging",
 				"Domain not Hierarchical", "No Such Channel", "No Such Domain",
@@ -485,7 +485,7 @@ public class MCS {
 		int length = 0;
 
 		RdpPacket buffer = IsoLayer.receive();
-		logger.debug("Received buffer");
+		LOGGER.debug("Received buffer");
 		length = berParseHeader(buffer, CONNECT_RESPONSE);
 		length = berParseHeader(buffer, BER_TAG_RESULT);
 
@@ -519,7 +519,7 @@ public class MCS {
 	 * @throws RdesktopException
 	 */
 	public void send_edrq() throws IOException, RdesktopException {
-		logger.debug("send_edrq");
+		LOGGER.debug("send_edrq");
 		RdpPacket buffer = IsoLayer.init(5);
 		buffer.set8(EDRQ << 2);
 		buffer.setBigEndian16(1); // height
@@ -581,7 +581,7 @@ public class MCS {
 	 * @throws RdesktopException
 	 */
 	public void receive_cjcf() throws IOException, RdesktopException, OrderException {
-		logger.debug("receive_cjcf");
+		LOGGER.debug("receive_cjcf");
 		int opcode = 0, result = 0;
 		RdpPacket buffer = IsoLayer.receive();
 
@@ -616,7 +616,7 @@ public class MCS {
 	 */
 	public int receive_aucf() throws IOException, RdesktopException,
 	OrderException {
-		logger.debug("receive_aucf");
+		LOGGER.debug("receive_aucf");
 		int opcode = 0, result = 0, UserID = 0;
 		RdpPacket buffer = IsoLayer.receive();
 

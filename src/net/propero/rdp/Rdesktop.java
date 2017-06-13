@@ -49,7 +49,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class Rdesktop {
 
-	static Logger logger = LogManager.getLogger("net.propero.rdp");
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	@Deprecated
 	public static boolean keep_running;
@@ -79,35 +79,35 @@ public class Rdesktop {
 	 *
 	 */
 	public static void usage() {
-		logger.info("properJavaRDP version " + Version.version);
-		logger.info("Usage: java net.propero.rdp.Rdesktop [options] server[:port]");
-		logger.info("	-b 							bandwidth saving (good for 56k modem, but higher latency");
-		logger.info("	-c DIR						working directory");
-		logger.info("	-d DOMAIN					logon domain");
-		logger.info("	-f[l]						full-screen mode [with Linux KDE optimization]");
-		logger.info("	-g WxH						desktop geometry");
-		logger.info("	-m MAPFILE					keyboard mapping file for terminal server");
-		logger.info("	-l LEVEL					logging level {DEBUG, INFO, WARN, ERROR, FATAL}");
-		logger.info("	-n HOSTNAME					client hostname");
-		logger.info("	-p PASSWORD					password");
-		logger.info("	-s SHELL					shell");
-		logger.info("	-t NUM						RDP port (default 3389)");
-		logger.info("	-T TITLE					window title");
-		logger.info("	-u USERNAME					user name");
-		logger.info("	-o BPP						bits-per-pixel for display");
-		logger.info("	-r path						path to load licence from (requests and saves licence from server if not found)");
-		logger.info("	--save_licence				request and save licence from server");
-		logger.info("	--load_licence				load licence from file");
-		logger.info("	--console					connect to console");
-		logger.info("	--debug_key 				show scancodes sent for each keypress etc");
-		logger.info("	--debug_hex 				show bytes sent and received");
-		logger.info("	--no_remap_hash 			disable hash remapping");
-		logger.info("	--quiet_alt 				enable quiet alt fix");
-		logger.info("	--no_encryption				disable encryption from client to server");
-		logger.info("	--use_rdp4					use RDP version 4");
+		LOGGER.info("properJavaRDP version " + Version.version);
+		LOGGER.info("Usage: java net.propero.rdp.Rdesktop [options] server[:port]");
+		LOGGER.info("	-b 							bandwidth saving (good for 56k modem, but higher latency");
+		LOGGER.info("	-c DIR						working directory");
+		LOGGER.info("	-d DOMAIN					logon domain");
+		LOGGER.info("	-f[l]						full-screen mode [with Linux KDE optimization]");
+		LOGGER.info("	-g WxH						desktop geometry");
+		LOGGER.info("	-m MAPFILE					keyboard mapping file for terminal server");
+		LOGGER.info("	-l LEVEL					logging level {DEBUG, INFO, WARN, ERROR, FATAL}");
+		LOGGER.info("	-n HOSTNAME					client hostname");
+		LOGGER.info("	-p PASSWORD					password");
+		LOGGER.info("	-s SHELL					shell");
+		LOGGER.info("	-t NUM						RDP port (default 3389)");
+		LOGGER.info("	-T TITLE					window title");
+		LOGGER.info("	-u USERNAME					user name");
+		LOGGER.info("	-o BPP						bits-per-pixel for display");
+		LOGGER.info("	-r path						path to load licence from (requests and saves licence from server if not found)");
+		LOGGER.info("	--save_licence				request and save licence from server");
+		LOGGER.info("	--load_licence				load licence from file");
+		LOGGER.info("	--console					connect to console");
+		LOGGER.info("	--debug_key 				show scancodes sent for each keypress etc");
+		LOGGER.info("	--debug_hex 				show bytes sent and received");
+		LOGGER.info("	--no_remap_hash 			disable hash remapping");
+		LOGGER.info("	--quiet_alt 				enable quiet alt fix");
+		LOGGER.info("	--no_encryption				disable encryption from client to server");
+		LOGGER.info("	--use_rdp4					use RDP version 4");
 		// logger.info("	--enable_menu				enable menu bar");
-		logger.info("	--log4j_config=FILE			use FILE for log4j configuration");
-		logger.info("Example: java net.propero.rdp.Rdesktop -g 800x600 -l WARN m52.propero.int");
+		LOGGER.info("	--log4j_config=FILE			use FILE for log4j configuration");
+		LOGGER.info("Example: java net.propero.rdp.Rdesktop -g 800x600 -l WARN m52.propero.int");
 		Rdesktop.exit(0, null, null, true);
 	}
 
@@ -243,7 +243,7 @@ public class Rdesktop {
 					if (arg.charAt(0) == 'l') {
 						fKdeHack = true;
 					} else {
-						logger.fatal(progname
+						LOGGER.fatal(progname
 								+ ": Invalid fullscreen option '" + arg + "'");
 						usage();
 					}
@@ -253,7 +253,7 @@ public class Rdesktop {
 				arg = g.getOptarg();
 				int cut = arg.indexOf("x", 0);
 				if (cut == -1) {
-					logger.fatal(progname + ": Invalid geometry: " + arg);
+					LOGGER.fatal(progname + ": Invalid geometry: " + arg);
 					usage();
 				}
 				options.width = Integer.parseInt(arg.substring(0, cut)) & ~3;
@@ -263,7 +263,7 @@ public class Rdesktop {
 				arg = g.getOptarg();
 				// options.keylayout = KeyLayout.strToCode(arg);
 				if (options.keylayout == -1) {
-					logger.fatal(progname + ": Invalid key layout: "
+					LOGGER.fatal(progname + ": Invalid key layout: "
 							+ arg);
 					usage();
 				}
@@ -288,7 +288,7 @@ public class Rdesktop {
 				try {
 					options.port = Integer.parseInt(arg);
 				} catch (NumberFormatException nex) {
-					logger.fatal(progname + ": Invalid port number: "
+					LOGGER.fatal(progname + ": Invalid port number: "
 							+ arg);
 					usage();
 				}
@@ -324,7 +324,7 @@ public class Rdesktop {
 						.substring(colonat + 1));
 			}
 		} else {
-			logger.fatal(progname + ": A server name is required!");
+			LOGGER.fatal(progname + ": A server name is required!");
 			usage();
 		}
 
@@ -342,14 +342,14 @@ public class Rdesktop {
 
 		// Now do the startup...
 
-		logger.info("properJavaRDP version " + Version.version);
+		LOGGER.info("properJavaRDP version " + Version.version);
 
 		if (args.length == 0) {
 			usage();
 		}
 
 		String java = System.getProperty("java.specification.version");
-		logger.info("Java version is " + java);
+		LOGGER.info("Java version is " + java);
 
 		String os = System.getProperty("os.name");
 		String osvers = System.getProperty("os.version");
@@ -358,7 +358,7 @@ public class Rdesktop {
 			options.built_in_licence = true;
 		}
 
-		logger.info("Operating System is " + os + " version " + osvers);
+		LOGGER.info("Operating System is " + os + " version " + osvers);
 
 		if (os.startsWith("Linux")) {
 			options.os = Options.OS.LINUX;
@@ -384,10 +384,10 @@ public class Rdesktop {
 					+ keyMapPath + mapFile);
 			// logger.info("istr = " + istr);
 			if (istr == null) {
-				logger.debug("Loading keymap from filename");
+				LOGGER.debug("Loading keymap from filename");
 				keyMap = new KeyCode_FileBased(options, keyMapPath + mapFile);
 			} else {
-				logger.debug("Loading keymap from InputStream");
+				LOGGER.debug("Loading keymap from InputStream");
 				keyMap = new KeyCode_FileBased(options, istr);
 			}
 			if (istr != null) {
@@ -395,29 +395,29 @@ public class Rdesktop {
 			}
 			options.keylayout = keyMap.getMapCode();
 		} catch (Exception kmEx) {
-			logger.warn("Unexpected keymap exception: ", kmEx);
+			LOGGER.warn("Unexpected keymap exception: ", kmEx);
 			String[] msg = { (kmEx.getClass() + ": " + kmEx.getMessage()) };
 			window.showErrorDialog(msg);
 			Rdesktop.exit(0, null, null, true);
 		}
 
-		logger.debug("Registering keyboard...");
+		LOGGER.debug("Registering keyboard...");
 		if (keyMap != null) {
 			window.registerKeyboard(keyMap);
 		}
 
-		logger.debug("keep_running = " + keep_running);
+		LOGGER.debug("keep_running = " + keep_running);
 		while (keep_running) {
-			logger.debug("Initialising RDP layer...");
+			LOGGER.debug("Initialising RDP layer...");
 			RdpLayer = new Rdp5(options, channels);
 			clipChannel.setSecure(RdpLayer.SecureLayer);  // XXX this shouldn't be needed
-			logger.debug("Registering drawing surface...");
+			LOGGER.debug("Registering drawing surface...");
 			RdpLayer.registerDrawingSurface(window);
-			logger.debug("Registering comms layer...");
+			LOGGER.debug("Registering comms layer...");
 			window.registerCommLayer(RdpLayer);
 			loggedon = false;
 			readytosend = false;
-			logger
+			LOGGER
 			.info("Connecting to " + server + ":" + options.port
 					+ " ...");
 
@@ -451,11 +451,11 @@ public class Rdesktop {
 							options.encryption = false;
 						}
 
-						logger.info("Connection successful");
+						LOGGER.info("Connection successful");
 						// now show window after licence negotiation
 						DisconnectInfo info = RdpLayer.mainLoop();
 
-						logger.info("Disconnect: " + info);
+						LOGGER.info("Disconnect: " + info);
 
 						if (info.wasCleanDisconnect()) {
 							/* clean disconnect */
@@ -475,7 +475,7 @@ public class Rdesktop {
 								String msg[] = { "Connection terminated",
 										reason };
 								window.showErrorDialog(msg);
-								logger.warn("Connection terminated: " + reason);
+								LOGGER.warn("Connection terminated: " + reason);
 								Rdesktop.exit(0, RdpLayer, window, true);
 							}
 
@@ -488,8 +488,8 @@ public class Rdesktop {
 							String msg1 = "The terminal server disconnected before licence negotiation completed.";
 							String msg2 = "Possible cause: terminal server could not issue a licence.";
 							String[] msg = { msg1, msg2 };
-							logger.warn(msg1);
-							logger.warn(msg2);
+							LOGGER.warn(msg1);
+							LOGGER.warn(msg2);
 							window.showErrorDialog(msg);
 						}
 					} // closing bracket to if(running)
@@ -502,17 +502,17 @@ public class Rdesktop {
 					}
 
 				} catch (ConnectionException e) {
-					logger.warn("Connection exception", e);
+					LOGGER.warn("Connection exception", e);
 					String msg[] = { "Connection Exception", e.getMessage() };
 					window.showErrorDialog(msg);
 					Rdesktop.exit(0, RdpLayer, window, true);
 				} catch (UnknownHostException e) {
-					logger.warn("Unknown host exception", e);
+					LOGGER.warn("Unknown host exception", e);
 					error(e, RdpLayer, window, true);
 				} catch (SocketException s) {
-					logger.warn("Socket exception", s);
+					LOGGER.warn("Socket exception", s);
 					if (RdpLayer.isConnected()) {
-						logger.fatal(s.getClass().getName() + " "
+						LOGGER.fatal(s.getClass().getName() + " "
 								+ s.getMessage());
 						error(s, RdpLayer, window, true);
 						Rdesktop.exit(0, RdpLayer, window, true);
@@ -520,7 +520,7 @@ public class Rdesktop {
 				} catch (RdesktopException e) {
 					String msg1 = e.getClass().getName();
 					String msg2 = e.getMessage();
-					logger.fatal(msg1 + ": " + msg2, e);
+					LOGGER.fatal(msg1 + ": " + msg2, e);
 
 					if (!readytosend) {
 						// maybe the licence server was having a comms
@@ -531,15 +531,15 @@ public class Rdesktop {
 						"Retry?" };
 						boolean retry = window.showYesNoErrorDialog(msg);
 						if (!retry) {
-							logger.info("Selected not to retry.");
+							LOGGER.info("Selected not to retry.");
 							Rdesktop.exit(0, RdpLayer, window, true);
 						} else {
 							if (RdpLayer != null && RdpLayer.isConnected()) {
-								logger.info("Disconnecting ...");
+								LOGGER.info("Disconnecting ...");
 								RdpLayer.disconnect();
-								logger.info("Disconnected");
+								LOGGER.info("Disconnected");
 							}
-							logger.info("Retrying connection...");
+							LOGGER.info("Retrying connection...");
 							keep_running = true; // retry
 							continue;
 						}
@@ -549,11 +549,11 @@ public class Rdesktop {
 						Rdesktop.exit(0, RdpLayer, window, true);
 					}
 				} catch (Exception e) {
-					logger.warn("Other unhandled exception: " + e.getClass().getName() + " " + e.getMessage(), e);
+					LOGGER.warn("Other unhandled exception: " + e.getClass().getName() + " " + e.getMessage(), e);
 					error(e, RdpLayer, window, true);
 				}
 			} else { // closing bracket to if(!rdp==null)
-				logger
+				LOGGER
 				.fatal("The communications layer could not be initiated!");
 			}
 		}
@@ -585,9 +585,9 @@ public class Rdesktop {
 		}
 
 		if (rdp != null && rdp.isConnected()) {
-			logger.info("Disconnecting ...");
+			LOGGER.info("Disconnecting ...");
 			rdp.disconnect();
-			logger.info("Disconnected");
+			LOGGER.info("Disconnected");
 		}
 		if (window != null) {
 			window.setVisible(false);
@@ -617,7 +617,7 @@ public class Rdesktop {
 	@Deprecated
 	public static void customError(String emsg, Rdp RdpLayer,
 			RdesktopFrame window, boolean sysexit) {
-		logger.fatal(emsg);
+		LOGGER.fatal(emsg);
 		String[] msg = { emsg };
 		window.showErrorDialog(msg);
 		Rdesktop.exit(0, RdpLayer, window, true);
@@ -643,12 +643,12 @@ public class Rdesktop {
 			String msg1 = e.getClass().getName();
 			String msg2 = e.getMessage();
 
-			logger.fatal(msg1 + ": " + msg2, e);
+			LOGGER.fatal(msg1 + ": " + msg2, e);
 
 			String[] msg = { msg1, msg2 };
 			window.showErrorDialog(msg);
 		} catch (Exception ex) {
-			logger.warn("Exception in Rdesktop.error: "
+			LOGGER.warn("Exception in Rdesktop.error: "
 					+ ex.getClass().getName() + ": " + ex.getMessage(), ex);
 		}
 

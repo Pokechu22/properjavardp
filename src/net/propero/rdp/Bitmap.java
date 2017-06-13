@@ -49,7 +49,7 @@ public class Bitmap {
 
 	private int y = 0;
 
-	protected static Logger logger = LogManager.getLogger(Rdp.class);
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	static int convertTo24(Options options, int colour) {
 		if (options.server_bpp == 15) {
@@ -364,12 +364,12 @@ public class Bitmap {
 
 			int code = data.get8();
 			CompressionOrder order = CompressionOrder.forId(code);
-			logger.debug("Order: {} (for {})", order, code);
+			LOGGER.debug("Order: {} (for {})", order, code);
 			if (order == null) {
 				throw new RdesktopException("I don't know what order code " + code + " (" + Integer.toBinaryString(code) + ") means");
 			}
 			int runLength = order.getLength(code, data);
-			logger.debug("Length is {}; currently at x={}, y={}", runLength, state.x, state.y);
+			LOGGER.debug("Length is {}; currently at x={}, y={}", runLength, state.x, state.y);
 
 			if (order != CompressionOrder.REGULAR_BG_RUN
 					&& order != CompressionOrder.MEGA_MEGA_BG_RUN) {
@@ -997,13 +997,13 @@ public class Bitmap {
 				public int getLength(int start, RdpPacket data) {
 					int len = start & REG_MASK;
 					if (len != 0) {
-						logger.trace("Regular - len={}", len);
+						LOGGER.trace("Regular - len={}", len);
 						return len;
 					} else {
 						// MEGA run; 1 extra byte
 						int num = data.get8();
 						int val = num + REG_COUNT;
-						logger.trace("Regular MEGA - read={} => {}", num, val);
+						LOGGER.trace("Regular MEGA - read={} => {}", num, val);
 						return val;
 					}
 				}
@@ -1013,13 +1013,13 @@ public class Bitmap {
 				public int getLength(int start, RdpPacket data) {
 					int len = start & LITE_MASK;
 					if (len != 0) {
-						logger.trace("Lite - len={}", len);
+						LOGGER.trace("Lite - len={}", len);
 						return len;
 					} else {
 						// MEGA run; 1 extra byte
 						int num = data.get8();
 						int val = num + LITE_COUNT;
-						logger.trace("Lite MEGA - read={} => {}", num, val);
+						LOGGER.trace("Lite MEGA - read={} => {}", num, val);
 						return val;
 					}
 				}
@@ -1028,14 +1028,14 @@ public class Bitmap {
 				@Override
 				public int getLength(int start, RdpPacket data) {
 					int value = data.getLittleEndian16();
-					logger.trace("MEGA MEGA - read={}", value);
+					LOGGER.trace("MEGA MEGA - read={}", value);
 					return value;
 				}
 			},
 			SINGLE_BYTE(0b11111111) {
 				@Override
 				public int getLength(int start, RdpPacket data) {
-					logger.trace("Single byte");
+					LOGGER.trace("Single byte");
 					return 0;
 				}
 			},
@@ -1045,12 +1045,12 @@ public class Bitmap {
 					int len = start & REG_MASK;
 					if (len != 0) {
 						int val = len * 8;
-						logger.trace("Regular FGBG - len={} => {}", len, val);
+						LOGGER.trace("Regular FGBG - len={} => {}", len, val);
 						return val;
 					} else {
 						int read = data.get8();
 						int val = read + 1; // Yes, + 1, not another number
-						logger.trace("\"MEGA\" Regular FGBG - read={} => {}", read, val);
+						LOGGER.trace("\"MEGA\" Regular FGBG - read={} => {}", read, val);
 						return val;
 					}
 				}
@@ -1061,12 +1061,12 @@ public class Bitmap {
 					int len = start & LITE_MASK;
 					if (len != 0) {
 						int val = len * 8;
-						logger.trace("Lite FGBG - len={} => {}", len, val);
+						LOGGER.trace("Lite FGBG - len={} => {}", len, val);
 						return val;
 					} else {
 						int read = data.get8();
 						int val = read + 1; // Again, + 1
-						logger.trace("\"MEGA\" Lite FGBG - read={} => {}", read, val);
+						LOGGER.trace("\"MEGA\" Lite FGBG - read={} => {}", read, val);
 						return val;
 					}
 				}

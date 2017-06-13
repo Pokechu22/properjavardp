@@ -37,7 +37,7 @@ import org.apache.logging.log4j.Logger;
 public class LicenceStore {
 	private LicenceStore() { throw new AssertionError(); }
 
-	private static Logger logger = LogManager.getLogger();
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	/**
 	 * Load a licence from a file
@@ -58,9 +58,9 @@ public class LicenceStore {
 			data = new byte[fd.available()];
 			fd.read(data);
 		} catch (FileNotFoundException e) {
-			logger.warn("Licence file not found!", e);
+			LOGGER.warn("Licence file not found!", e);
 		} catch (IOException e) {
-			logger.warn("IOException in load_licence", e);
+			LOGGER.warn("IOException in load_licence", e);
 		}
 
 		// Well, the old format is present; migrate it by resaving:
