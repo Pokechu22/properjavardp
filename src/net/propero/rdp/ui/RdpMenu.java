@@ -21,7 +21,7 @@
  * (See gpl.txt for details of the GNU General Public License.)
  *
  */
-package net.propero.rdp.menu;
+package net.propero.rdp.ui;
 
 import java.awt.Event;
 import java.awt.Menu;
@@ -30,7 +30,6 @@ import java.awt.MenuItem;
 
 import net.propero.rdp.Options;
 import net.propero.rdp.Rdesktop;
-import net.propero.rdp.RdesktopFrame;
 
 /**
  * Menu bar for main frame

@@ -41,6 +41,8 @@ import java.util.Set;
 import net.propero.rdp.keymapping.KeyCode;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
 import net.propero.rdp.keymapping.KeyMapException;
+import net.propero.rdp.ui.RdesktopCanvas;
+import net.propero.rdp.ui.RdesktopFrame;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

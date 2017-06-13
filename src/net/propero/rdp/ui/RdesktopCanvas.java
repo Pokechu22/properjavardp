@@ -21,12 +21,16 @@
  * (See gpl.txt for details of the GNU General Public License.)
  *
  */
-package net.propero.rdp;
+package net.propero.rdp.ui;
 
 import java.awt.Canvas;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 
+import net.propero.rdp.Input;
+import net.propero.rdp.Options;
+import net.propero.rdp.OrderSurface;
+import net.propero.rdp.Rdp;
 import net.propero.rdp.keymapping.KeyCode;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
 

@@ -21,7 +21,7 @@
  * (See gpl.txt for details of the GNU General Public License.)
  *
  */
-package net.propero.rdp;
+package net.propero.rdp.ui;
 
 import java.awt.AWTException;
 import java.awt.Button;
@@ -51,9 +51,13 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.MemoryImageSource;
 
+import net.propero.rdp.Options;
+import net.propero.rdp.OrderSurface;
+import net.propero.rdp.Rdesktop;
+import net.propero.rdp.Rdp;
+import net.propero.rdp.Options.OS;
 import net.propero.rdp.api.RdesktopCallback;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
-import net.propero.rdp.menu.RdpMenu;
 import net.propero.rdp.rdp5.cliprdr.ClipChannel;
 
 import org.apache.logging.log4j.LogManager;

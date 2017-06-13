@@ -40,6 +40,7 @@ import net.propero.rdp.rdp5.Rdp5;
 import net.propero.rdp.rdp5.VChannels;
 import net.propero.rdp.rdp5.cliprdr.ClipChannel;
 import net.propero.rdp.tools.SendEvent;
+import net.propero.rdp.ui.RdesktopFrame;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
