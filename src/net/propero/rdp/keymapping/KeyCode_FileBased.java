@@ -137,7 +137,6 @@ public class KeyCode_FileBased {
 			String line;
 			while ((line = in.readLine()) != null) {
 				lineNum++;
-				line = in.readLine();
 
 				char fc = 0x0;
 				if ((line != null) && (line.length() > 0)) {
