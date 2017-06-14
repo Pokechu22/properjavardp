@@ -26,7 +26,6 @@ package net.propero.rdp;
 
 import java.awt.KeyboardFocusManager;
 import java.awt.Toolkit;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -195,8 +194,13 @@ public class Input {
 	 * Indicates that a click event has occurred at the position specified by
 	 * the xPos and yPos fields. The button flags indicate which button has been
 	 * clicked and at least one of these flags MUST be set.
+	 * <p>
+	 * Note that while extended mouse events have a different version of this
+	 * flag, the value is the same, and thus no seperate flag is defined here
+	 * for simplicity.
 	 *
 	 * @see [MS-RDPBCGR] 2.2.8.1.1.3.1.1.3
+	 * @see [MS-RDPBCGR] 2.2.8.1.1.3.1.1.4
 	 */
 	private static final int MOUSE_FLAG_DOWN = 0x8000;
 	/**
@@ -249,6 +253,23 @@ public class Input {
 	 * @see [MS-RDPBCGR] 2.2.8.1.1.3.1.1.3
 	 */
 	private static final int MOUSE_FLAG_WHEEL_NEGATIVE = 0x0100;
+
+	/**
+	 * Extended mouse button 1 (also referred to as button 4) was clicked or
+	 * released. If the PTRXFLAGS_DOWN flag is set, the button was clicked;
+	 * otherwise, it was released.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.8.1.1.3.1.1.4
+	 */
+	private static final int MOUSEX_FLAG_BUTTON4 = 0x0001;
+	/**
+	 * Extended mouse button 2 (also referred to as button 5) was clicked or
+	 * released. If the PTRXFLAGS_DOWN flag is set, the button was clicked;
+	 * otherwise, it was released.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.8.1.1.3.1.1.4
+	 */
+	private static final int MOUSEX_FLAG_BUTTON5 = 0x0002;
 
 	protected static int time = 0;
 
@@ -925,82 +946,28 @@ public class Input {
 		}
 	}
 
-	/**
-	 * Handle pressing of the middle mouse button, sending relevent event data
-	 * to the server
-	 *
-	 * @param e
-	 *            MouseEvent detailing circumstances under which middle button
-	 *            was pressed
-	 */
-	protected void middleButtonPressed(MouseEvent e) {
-		/*
-		 * if (options.paste_hack && ctrlDown){ try{ canvas.setBusyCursor();
-		 * }catch (RdesktopException ex){ logger.warn(ex.getMessage()); } if
-		 * (capsLockOn){ logger.debug("Turning caps lock off for paste"); //
-		 * turn caps lock off sendScancode(getTime(), RDP_KEYPRESS, 0x3a); //
-		 * caps lock sendScancode(getTime(), RDP_KEYRELEASE, 0x3a); // caps lock }
-		 * paste(); if (capsLockOn){ // turn caps lock back on
-		 * logger.debug("Turning caps lock back on after paste");
-		 * sendScancode(getTime(), RDP_KEYPRESS, 0x3a); // caps lock
-		 * sendScancode(getTime(), RDP_KEYRELEASE, 0x3a); // caps lock }
-		 * canvas.unsetBusyCursor(); } else
-		 */
-		rdp.sendInput(time, InputType.MOUSE, MOUSE_FLAG_BUTTON3
-				| MOUSE_FLAG_DOWN, e.getX(), e.getY());
-	}
-
-	/**
-	 * Handle release of the middle mouse button, sending relevent event data to
-	 * the server
-	 *
-	 * @param e
-	 *            MouseEvent detailing circumstances under which middle button
-	 *            was released
-	 */
-	protected void middleButtonReleased(MouseEvent e) {
-		/* if (!options.paste_hack || !ctrlDown) */
-		rdp.sendInput(time, InputType.MOUSE, MOUSE_FLAG_BUTTON3, e.getX(), e
-				.getY());
-	}
-
 	class RdesktopMouseAdapter extends MouseAdapter {
 		@Override
 		public void mousePressed(MouseEvent e) {
-			if (e.getY() != 0) {
-				((RdesktopFrame) canvas.getParent()).hideMenu();
+			int button = e.getButton();
+			if (button == MouseEvent.NOBUTTON) {
+				return;
 			}
 
-			int time = getTime();
-			if (rdp != null) {
-				if ((e.getModifiers() & InputEvent.BUTTON1_MASK) == InputEvent.BUTTON1_MASK) {
-					LOGGER.debug("Mouse Button 1 Pressed.");
-					rdp.sendInput(time, InputType.MOUSE, MOUSE_FLAG_BUTTON1
-							| MOUSE_FLAG_DOWN, e.getX(), e.getY());
-				} else if ((e.getModifiers() & InputEvent.BUTTON3_MASK) == InputEvent.BUTTON3_MASK) {
-					LOGGER.debug("Mouse Button 3 Pressed.");
-					rdp.sendInput(time, InputType.MOUSE, MOUSE_FLAG_BUTTON2
-							| MOUSE_FLAG_DOWN, e.getX(), e.getY());
-				} else if ((e.getModifiers() & InputEvent.BUTTON2_MASK) == InputEvent.BUTTON2_MASK) {
-					LOGGER.debug("Middle Mouse Button Pressed.");
-					middleButtonPressed(e);
-				}
+			if (canSendButton(button)) {
+				mouseButton(button, true, e.getX(), e.getY());
 			}
 		}
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
-			int time = getTime();
-			if (rdp != null) {
-				if ((e.getModifiers() & InputEvent.BUTTON1_MASK) == InputEvent.BUTTON1_MASK) {
-					rdp.sendInput(time, InputType.MOUSE, MOUSE_FLAG_BUTTON1, e
-							.getX(), e.getY());
-				} else if ((e.getModifiers() & InputEvent.BUTTON3_MASK) == InputEvent.BUTTON3_MASK) {
-					rdp.sendInput(time, InputType.MOUSE, MOUSE_FLAG_BUTTON2, e
-							.getX(), e.getY());
-				} else if ((e.getModifiers() & InputEvent.BUTTON2_MASK) == InputEvent.BUTTON2_MASK) {
-					middleButtonReleased(e);
-				}
+			int button = e.getButton();
+			if (button == MouseEvent.NOBUTTON) {
+				return;
+			}
+
+			if (canSendButton(button)) {
+				mouseButton(button, false, e.getX(), e.getY());
 			}
 		}
 	}
@@ -1008,39 +975,12 @@ public class Input {
 	class RdesktopMouseMotionAdapter extends MouseMotionAdapter {
 		@Override
 		public void mouseMoved(MouseEvent e) {
-			int time = getTime();
-
-			// Code to limit mouse events to 4 per second. Doesn't seem to
-			// affect performance
-			// long mTime = System.currentTimeMillis();
-			// if((mTime - Input.last_mousemove) < 250) return;
-			// Input.last_mousemove = mTime;
-
-			// if(logger.isInfoEnabled()) logger.info("mouseMoved to
-			// "+e.getX()+", "+e.getY()+" at "+time);
-
-			// TODO: complete menu show/hide section
-			if (e.getY() == 0)
-			{
-				((RdesktopFrame) canvas.getParent()).showMenu();
-				// else ((RdesktopFrame_Localised) canvas.getParent()).hideMenu();
-			}
-
-			if (rdp != null) {
-				rdp.sendInput(time, InputType.MOUSE, MOUSE_FLAG_MOVE, e.getX(),
-						e.getY());
-			}
+			moveMouse(e.getX(), e.getY());
 		}
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			int time = getTime();
-			// if(logger.isInfoEnabled()) logger.info("mouseMoved to
-			// "+e.getX()+", "+e.getY()+" at "+time);
-			if (rdp != null) {
-				rdp.sendInput(time, InputType.MOUSE, MOUSE_FLAG_MOVE, e.getX(),
-						e.getY());
-			}
+			moveMouse(e.getX(), e.getY());
 		}
 	}
 
@@ -1113,5 +1053,96 @@ public class Input {
 			rdp.sendInput(getTime(), InputType.MOUSE,
 					MOUSE_FLAG_HWHEEL | byAbs, 0, 0);
 		}
+	}
+
+	/**
+	 * Sends a mouse move to the given coordinates.
+	 * @param x X coordinate, from top-left corner of screen
+	 * @param y Y coordinate, from top-left corner of screen
+	 */
+	public void moveMouse(int x, int y) {
+		rdp.sendInput(getTime(), InputType.MOUSE, MOUSE_FLAG_MOVE, x, y);
+	}
+
+	/**
+	 * Checks if the given button can be sent to the server.
+	 *
+	 * @param button
+	 *            Button number, 1=left, 2=right, 3=middle, 4=xbutton 1,
+	 *            5=xbutton 2
+	 * @return True if the button is supported.
+	 */
+	public boolean canSendButton(int button) {
+		if (button < 1 || button > 5) {
+			return false;
+		}
+		if (button >= 4) {
+			return options.supportedInputFlags.contains(InputCapsetFlag.MOUSEX);
+		}
+		return true;
+	}
+
+	/**
+	 * Sends a mouse up or mouse down.
+	 *
+	 * @param button
+	 *            Button number, 1=left, 2=right, 3=middle, 4=xbutton 1,
+	 *            5=xbutton 2
+	 * @param down
+	 *            True if this is a mouse down
+	 * @param x
+	 *            X coordinate, from top-left corner of screen
+	 * @param y
+	 *            Y coordinate, from top-left corner of screen
+	 *
+	 * @throws UnsupportedOperationException
+	 *             if the button is a mousex button and the server does not
+	 *             support mousex.
+	 */
+	public void mouseButton(int button, boolean down, int x, int y) {
+		if (button < 1 || button > 5) {
+			throw new IllegalArgumentException("Invalid mouse button " + button);
+		}
+
+		int flags = 0;
+		if (down) {
+			flags |= MOUSE_FLAG_DOWN;
+		}
+		if (button < 4) {
+			if (button == 1) {
+				flags |= MOUSE_FLAG_BUTTON1;
+			} else if (button == 2) {
+				flags |= MOUSE_FLAG_BUTTON2;
+			} else if (button == 3) {
+				flags |= MOUSE_FLAG_BUTTON3;
+			}
+			rdp.sendInput(getTime(), InputType.MOUSE, flags, x, y);
+		} else {
+			if (!options.supportedInputFlags.contains(InputCapsetFlag.MOUSEX)) {
+				throw new UnsupportedOperationException(
+						"Server does not support extended mouse buttons: "
+								+ button);
+			}
+			if (button == 4) {
+				flags |= MOUSEX_FLAG_BUTTON4;
+			} else if (button == 5) {
+				flags |= MOUSEX_FLAG_BUTTON5;
+			}
+			// Xbutton, use a different PDU
+			rdp.sendInput(getTime(), InputType.MOUSEX, flags, x, y);
+		}
+	}
+
+	/**
+	 * In RDP this event is used to synchronize the values of the toggle keys
+	 * (for example, Caps Lock) <b>and to reset the server key state to all keys
+	 * up</b>. This event is sent by the client to communicate the state of the
+	 * toggle keys. The synchronize event SHOULD be followed by key-down events
+	 * to communicate which keyboard and mouse keys are down.
+	 *
+	 * @see [MSRDP-BCGR] 2.2.8.1.1.3.1.1.5
+	 */
+	public void synchronize() {
+		
 	}
 }
