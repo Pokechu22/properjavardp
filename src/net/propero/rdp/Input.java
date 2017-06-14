@@ -26,13 +26,7 @@ package net.propero.rdp;
 
 import java.awt.KeyboardFocusManager;
 import java.awt.Toolkit;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -40,8 +34,6 @@ import java.util.Set;
 import net.propero.rdp.keymapping.KeyCode;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
 import net.propero.rdp.keymapping.KeyMapException;
-import net.propero.rdp.ui.RdesktopCanvas;
-import net.propero.rdp.ui.RdesktopFrame;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -113,17 +105,27 @@ public class Input {
 	public static enum InputType {
 		/** Indicates a Synchronize Event (section 2.2.8.1.1.3.1.1.5). */
 		SYNC(0x0000),
-		// Not only below, but there also was: RDP_INPUT_CODEPOINT = 1
+		/**
+		 * A doubly-deprecated event.  DO NOT USE.
+		 * <p>
+		 * Stores a 16-bit codepoint.
+		 *
+		 * @see [T128] 8.18.2
+		 * @see [T128] 9.2 "<code>CodePointEvent</code>"
+		 */
+		@Deprecated
+		UNUSED_CODEPOINT(0x0001),
 		/**
 		 * Indicates an Unused Event (section 2.2.8.1.1.3.1.1.6).
 		 * <p>
 		 * It appears that this originally indicated a VKEY, but that behavior
 		 * is deprecated according to the spec, and this SHALL NOT be used.
-		 * ProperJavaRDP originally had <code>RDP_INPUT_VIRTKEY = 2</code>,
-		 * which is where I get this name.
+		 *
+		 * @see [T128] 8.18.2
+		 * @see [T128] 9.2 "<code>VirtualKeyEvent</code>"
 		 */
 		@Deprecated
-		UNUSED(0x0002),
+		UNUSED_VKEY(0x0002),
 		/** Indicates a Keyboard Event (section 2.2.8.1.1.3.1.1.1). */
 		SCANCODE(0x0004),
 		/** Indicates a Unicode Keyboard Event (section 2.2.8.1.1.3.1.1.2). */
@@ -139,9 +141,9 @@ public class Input {
 		}
 	}
 
-	KeyCode_FileBased newKeyMapper = null;
+	public KeyCode_FileBased newKeyMapper = null;
 
-	protected Set<Integer> pressedKeys;
+	public Set<Integer> pressedKeys;
 
 	@Deprecated
 	protected static boolean capsLockOn = false;
@@ -160,9 +162,6 @@ public class Input {
 
 	@Deprecated
 	protected static boolean ctrlDown = false;
-
-	@Deprecated
-	protected static long last_mousemove = 0;
 
 	// Using this flag value (0x0001) seems to do nothing, and after running
 	// through other possible values, the RIGHT flag does not appear to be
@@ -279,8 +278,6 @@ public class Input {
 
 	public boolean keyDownWindows = false;
 
-	protected RdesktopCanvas canvas = null;
-
 	protected Rdp rdp = null;
 
 	protected final Options options;
@@ -295,11 +292,9 @@ public class Input {
 	 * @param k
 	 *            Key map to use in handling keyboard events
 	 */
-	public Input(Options options, RdesktopCanvas c, Rdp r, KeyCode_FileBased k) {
+	public Input(Options options, Rdp r, KeyCode_FileBased k) {
 		this.newKeyMapper = k;
-		this.canvas = c;
 		this.rdp = r;
-		addInputListeners();
 		this.pressedKeys = new HashSet<>();
 		this.options = options;
 
@@ -316,7 +311,7 @@ public class Input {
 	 * @param keymapFile
 	 *            Path to file containing keymap data
 	 */
-	public Input(Options options, RdesktopCanvas c, Rdp r, String keymapFile) {
+	public Input(Options options, Rdp r, String keymapFile) {
 		try {
 			newKeyMapper = new KeyCode_FileBased(options, keymapFile);
 		} catch (KeyMapException kmEx) {
@@ -326,23 +321,11 @@ public class Input {
 			}
 		}
 
-		this.canvas = c;
 		this.rdp = r;
-		addInputListeners();
 		this.pressedKeys = new HashSet<>();
 		this.options = options;
 
 		this.configureDefaultFocusTraversalKeys();
-	}
-
-	/**
-	 * Add all relevant input listeners to the canvas
-	 */
-	public void addInputListeners() {
-		canvas.addMouseListener(new RdesktopMouseAdapter());
-		canvas.addMouseMotionListener(new RdesktopMouseMotionAdapter());
-		canvas.addKeyListener(new RdesktopKeyAdapter());
-		canvas.addMouseWheelListener(new RdesktopMouseWheelAdapter());
 	}
 
 	/**
@@ -538,101 +521,6 @@ public class Input {
 		}
 	}
 
-	class RdesktopKeyAdapter extends KeyAdapter {
-
-		/**
-		 * Construct an RdesktopKeyAdapter based on the parent KeyAdapter class
-		 */
-		public RdesktopKeyAdapter() {
-			super();
-		}
-
-		/**
-		 * Handle a keyPressed event, sending any relevant keypresses to the
-		 * server
-		 */
-		@Override
-		public void keyPressed(KeyEvent e) {
-			lastKeyEvent = e;
-			modifiersValid = true;
-			long time = getTime();
-
-			// Some java versions have keys that don't generate keyPresses -
-			// here we add the key so we can later check if it happened
-			pressedKeys.add(new Integer(e.getKeyCode()));
-
-			LOGGER.debug("PRESSED keychar='" + e.getKeyChar() + "' keycode=0x"
-					+ Integer.toHexString(e.getKeyCode()) + " char='"
-					+ ((char) e.getKeyCode()) + "'");
-
-			if (rdp != null) {
-				if (!handleSpecialKeys(time, e, true)) {
-					sendKeyPresses(newKeyMapper.getKeyStrokes(e));
-				}
-				// sendScancode(time, RDP_KEYPRESS, keys.getScancode(e));
-			}
-		}
-
-		/**
-		 * Handle a keyTyped event, sending any relevant keypresses to the
-		 * server
-		 */
-		@Override
-		public void keyTyped(KeyEvent e) {
-			lastKeyEvent = e;
-			modifiersValid = true;
-			long time = getTime();
-
-			// Some java versions have keys that don't generate keyPresses -
-			// here we add the key so we can later check if it happened
-			pressedKeys.add(new Integer(e.getKeyCode()));
-
-			LOGGER.debug("TYPED keychar='" + e.getKeyChar() + "' keycode=0x"
-					+ Integer.toHexString(e.getKeyCode()) + " char='"
-					+ ((char) e.getKeyCode()) + "'");
-
-			if (rdp != null) {
-				if (!handleSpecialKeys(time, e, true))
-				{
-					sendKeyPresses(newKeyMapper.getKeyStrokes(e));
-					// sendScancode(time, RDP_KEYPRESS, keys.getScancode(e));
-				}
-			}
-		}
-
-		/**
-		 * Handle a keyReleased event, sending any relevent key events to the
-		 * server
-		 */
-		@Override
-		public void keyReleased(KeyEvent e) {
-			// Some java versions have keys that don't generate keyPresses -
-			// we added the key to the vector in keyPressed so here we check for
-			// it
-			Integer keycode = new Integer(e.getKeyCode());
-			if (!pressedKeys.contains(keycode)) {
-				this.keyPressed(e);
-			}
-
-			pressedKeys.remove(keycode);
-
-			lastKeyEvent = e;
-			modifiersValid = true;
-			long time = getTime();
-
-			LOGGER.debug("RELEASED keychar='" + e.getKeyChar() + "' keycode=0x"
-					+ Integer.toHexString(e.getKeyCode()) + " char='"
-					+ ((char) e.getKeyCode()) + "'");
-			if (rdp != null) {
-				if (!handleSpecialKeys(time, e, false)) {
-					sendKeyPresses(newKeyMapper.getKeyStrokes(e));
-					// sendScancode(time, RDP_KEYRELEASE, keys.getScancode(e));
-				}
-			}
-		}
-
-	}
-
 	/**
 	 * Act on any keyboard shortcuts that a specified KeyEvent may describe
 	 *
@@ -650,8 +538,7 @@ public class Input {
 			return false;
 		}
 
-		if (!altDown)
-		{
+		if (!altDown) {
 			return false; // all of the below have ALT on
 		}
 
@@ -665,7 +552,7 @@ public class Input {
 		case KeyEvent.VK_ENTER:
 			sendScancode(time, RDP_KEYRELEASE, 0x38);
 			altDown = false;
-			((RdesktopFrame) canvas.getParent()).toggleFullScreen();
+			// ((RdesktopFrame) canvas.getParent()).toggleFullScreen();
 			break;
 
 			/*
@@ -943,63 +830,6 @@ public class Input {
 		} catch (Exception e) {
 			options.useLockingKeyState = false;
 			LOGGER.warn("Failed to handle key locking; disabling key locking!", e);
-		}
-	}
-
-	class RdesktopMouseAdapter extends MouseAdapter {
-		@Override
-		public void mousePressed(MouseEvent e) {
-			int button = e.getButton();
-			if (button == MouseEvent.NOBUTTON) {
-				return;
-			}
-
-			if (canSendButton(button)) {
-				mouseButton(button, true, e.getX(), e.getY());
-			}
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent e) {
-			int button = e.getButton();
-			if (button == MouseEvent.NOBUTTON) {
-				return;
-			}
-
-			if (canSendButton(button)) {
-				mouseButton(button, false, e.getX(), e.getY());
-			}
-		}
-	}
-
-	class RdesktopMouseMotionAdapter extends MouseMotionAdapter {
-		@Override
-		public void mouseMoved(MouseEvent e) {
-			moveMouse(e.getX(), e.getY());
-		}
-
-		@Override
-		public void mouseDragged(MouseEvent e) {
-			moveMouse(e.getX(), e.getY());
-		}
-	}
-
-	private class RdesktopMouseWheelAdapter implements MouseWheelListener {
-		@Override
-		public void mouseWheelMoved(MouseWheelEvent e) {
-			scroll(e);
-		}
-	}
-
-	private static final int SCROLL_DEFAULT_SIZE = 0x80;
-	private void scroll(MouseWheelEvent e) {
-		// Right now, we only use a fixed size for scroll.
-		if (e.getWheelRotation() < 0) { // negative values are up
-			// ... which is sent as a positive value.
-			scrollVertically(+SCROLL_DEFAULT_SIZE);
-		} else {
-			// and positive values are down, which is sent as a negative value.
-			scrollVertically(-SCROLL_DEFAULT_SIZE);
 		}
 	}
 

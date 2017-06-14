@@ -26,6 +26,16 @@ package net.propero.rdp.ui;
 import java.awt.Canvas;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.propero.rdp.Input;
 import net.propero.rdp.Options;
@@ -39,6 +49,8 @@ import net.propero.rdp.keymapping.KeyCode_FileBased;
  * to Input class.
  */
 public class RdesktopCanvas extends Canvas {
+	private static final Logger LOGGER = LogManager.getLogger();
+
 	private static final long serialVersionUID = -6806580381785981945L;
 
 	private OrderSurface surface;
@@ -82,6 +94,9 @@ public class RdesktopCanvas extends Canvas {
 
 	@Override
 	public void update(Graphics g) {
+		if (surface == null) {
+			return;
+		}
 		Rectangle r = g.getClipBounds();
 		g.drawImage(surface.getSubimage(r.x, r.y, r.width, r.height), r.x,
 				r.y, null);
@@ -97,7 +112,8 @@ public class RdesktopCanvas extends Canvas {
 	public void registerCommLayer(Rdp rdp) {
 		this.rdp = rdp;
 		if (fbKeys != null) {
-			input = new Input(options, this, rdp, fbKeys);
+			input = new Input(options, rdp, fbKeys);
+			registerListeners();
 		}
 	}
 
@@ -111,8 +127,16 @@ public class RdesktopCanvas extends Canvas {
 		this.fbKeys = keys;
 		if (rdp != null) {
 			// rdp and keys have been registered...
-			input = new Input(options, this, rdp, keys);
+			input = new Input(options, rdp, keys);
+			registerListeners();
 		}
+	}
+
+	private void registerListeners() {
+		this.addMouseListener(new RdesktopMouseAdapter());
+		this.addMouseMotionListener(new RdesktopMouseMotionAdapter());
+		this.addKeyListener(new RdesktopKeyAdapter());
+		this.addMouseWheelListener(new RdesktopMouseWheelAdapter());
 	}
 
 	/**
@@ -144,5 +168,160 @@ public class RdesktopCanvas extends Canvas {
 	public void registerSurface(OrderSurface surface) {
 		this.surface = surface;
 		this.setSize(surface.getWidth(), surface.getHeight());
+	}
+
+	private class RdesktopKeyAdapter extends KeyAdapter {
+
+		/**
+		 * Handle a keyPressed event, sending any relevant keypresses to the
+		 * server
+		 */
+		@Override
+		public void keyPressed(KeyEvent e) {
+			input.lastKeyEvent = e;
+			input.modifiersValid = true;
+			long time = Input.getTime();
+
+			// Some java versions have keys that don't generate keyPresses -
+			// here we add the key so we can later check if it happened
+			input.pressedKeys.add(new Integer(e.getKeyCode()));
+
+			LOGGER.debug("PRESSED keychar='" + e.getKeyChar() + "' keycode=0x"
+					+ Integer.toHexString(e.getKeyCode()) + " char='"
+					+ ((char) e.getKeyCode()) + "'");
+
+			if (rdp != null) {
+				if (!input.handleSpecialKeys(time, e, true)) {
+					input.sendKeyPresses(input.newKeyMapper.getKeyStrokes(e));
+				}
+				// sendScancode(time, RDP_KEYPRESS, keys.getScancode(e));
+			}
+		}
+
+		/**
+		 * Handle a keyTyped event, sending any relevant keypresses to the
+		 * server
+		 */
+		@Override
+		public void keyTyped(KeyEvent e) {
+			input.lastKeyEvent = e;
+			input.modifiersValid = true;
+			long time = Input.getTime();
+
+			// Some java versions have keys that don't generate keyPresses -
+			// here we add the key so we can later check if it happened
+			input.pressedKeys.add(new Integer(e.getKeyCode()));
+
+			LOGGER.debug("TYPED keychar='" + e.getKeyChar() + "' keycode=0x"
+					+ Integer.toHexString(e.getKeyCode()) + " char='"
+					+ ((char) e.getKeyCode()) + "'");
+
+			if (rdp != null) {
+				if (!input.handleSpecialKeys(time, e, true))
+				{
+					input.sendKeyPresses(input.newKeyMapper.getKeyStrokes(e));
+					// sendScancode(time, RDP_KEYPRESS, keys.getScancode(e));
+				}
+			}
+		}
+
+		/**
+		 * Handle a keyReleased event, sending any relevent key events to the
+		 * server
+		 */
+		@Override
+		public void keyReleased(KeyEvent e) {
+			// Some java versions have keys that don't generate keyPresses -
+			// we added the key to the vector in keyPressed so here we check for
+			// it
+			Integer keycode = new Integer(e.getKeyCode());
+			if (!input.pressedKeys.contains(keycode)) {
+				this.keyPressed(e);
+			}
+
+			input.pressedKeys.remove(keycode);
+
+			input.lastKeyEvent = e;
+			input.modifiersValid = true;
+			long time = Input.getTime();
+
+			LOGGER.debug("RELEASED keychar='" + e.getKeyChar() + "' keycode=0x"
+					+ Integer.toHexString(e.getKeyCode()) + " char='"
+					+ ((char) e.getKeyCode()) + "'");
+			if (rdp != null) {
+				if (!input.handleSpecialKeys(time, e, false)) {
+					input.sendKeyPresses(input.newKeyMapper.getKeyStrokes(e));
+					// sendScancode(time, RDP_KEYRELEASE, keys.getScancode(e));
+				}
+			}
+		}
+	}
+
+	private class RdesktopMouseAdapter extends MouseAdapter {
+		@Override
+		public void mousePressed(MouseEvent e) {
+			int button = e.getButton();
+			if (button == MouseEvent.NOBUTTON) {
+				return;
+			}
+
+			if (input.canSendButton(button)) {
+				input.mouseButton(button, true, getX(e), getY(e));
+			}
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			int button = e.getButton();
+			if (button == MouseEvent.NOBUTTON) {
+				return;
+			}
+
+			if (input.canSendButton(button)) {
+				input.mouseButton(button, false, getX(e), getY(e));
+			}
+		}
+	}
+
+	private class RdesktopMouseMotionAdapter extends MouseMotionAdapter {
+		@Override
+		public void mouseMoved(MouseEvent e) {
+			input.moveMouse(getX(e), getY(e));
+		}
+
+		@Override
+		public void mouseDragged(MouseEvent e) {
+			input.moveMouse(getX(e), getY(e));
+		}
+	}
+
+	private static final int SCROLL_DEFAULT_SIZE = 0x80;
+
+	private class RdesktopMouseWheelAdapter implements MouseWheelListener {
+		@Override
+		public void mouseWheelMoved(MouseWheelEvent e) {
+			// Right now, we only use a fixed size for scroll.
+			if (e.getWheelRotation() < 0) { // negative values are up
+				// ... which is sent as a positive value.
+				input.scrollVertically(+SCROLL_DEFAULT_SIZE);
+			} else {
+				// and positive values are down, which is sent as a negative value.
+				input.scrollVertically(-SCROLL_DEFAULT_SIZE);
+			}
+		}
+	}
+
+	/**
+	 * Gets the normalized x coordinate from the given mouse event.
+	 */
+	private int getX(MouseEvent e) {
+		return e.getX();
+	}
+
+	/**
+	 * Gets the normalized y coordinate from the given mouse event.
+	 */
+	private int getY(MouseEvent e) {
+		return e.getY();
 	}
 }
