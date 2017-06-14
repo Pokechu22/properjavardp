@@ -612,12 +612,19 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 		Rdesktop.error(ex, rdp, this, true);
 	}
 
+	@Override
 	public void sizeChanged(int width, int height) {
 		this.setSize(width, height);
+		canvas.setSize(width, height);
 	}
 
 	@Override
 	public void registerSurface(OrderSurface surface) {
 		canvas.registerSurface(surface);
+	}
+
+	@Override
+	public void markDirty(int x, int y, int width, int height) {
+		canvas.repaint(x, y, width, height);
 	}
 }

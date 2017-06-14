@@ -1144,6 +1144,13 @@ public class OrderSurface {
 	}
 
 	private void repaint(int x, int y, int width, int height) {
-		this.callback.repaint(x, y, width, height);
+		this.callback.markDirty(x, y, width, height);
+	}
+
+	public int getWidth() {
+		return width;
+	}
+	public int getHeight() {
+		return height;
 	}
 }

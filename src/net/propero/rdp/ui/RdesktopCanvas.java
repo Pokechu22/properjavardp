@@ -143,5 +143,6 @@ public class RdesktopCanvas extends Canvas {
 
 	public void registerSurface(OrderSurface surface) {
 		this.surface = surface;
+		this.setSize(surface.getWidth(), surface.getHeight());
 	}
 }

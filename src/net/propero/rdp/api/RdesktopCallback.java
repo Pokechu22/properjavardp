@@ -11,7 +11,7 @@ public interface RdesktopCallback {
 	 */
 	public abstract void triggerReadyToSend();
 
-	public abstract void repaint(int x, int y, int width, int height);
+	public abstract void markDirty(int x, int y, int width, int height);
 	public abstract void registerSurface(OrderSurface surface);
 
 	/**
