@@ -265,6 +265,11 @@ public class RdesktopCanvas extends Canvas {
 				return;
 			}
 
+			if (button == MouseEvent.BUTTON3) { // Java treats right mouse as button 3
+				button = 2;
+			} else if (button == MouseEvent.BUTTON2) { // and middle mouse as button 2
+				button = 3;
+			}
 			if (input.canSendButton(button)) {
 				input.mouseButton(button, true, getX(e), getY(e));
 			}
@@ -277,6 +282,11 @@ public class RdesktopCanvas extends Canvas {
 				return;
 			}
 
+			if (button == MouseEvent.BUTTON3) { // Java treats right mouse as button 3
+				button = 2;
+			} else if (button == MouseEvent.BUTTON2) { // and middle mouse as button 2
+				button = 3;
+			}
 			if (input.canSendButton(button)) {
 				input.mouseButton(button, false, getX(e), getY(e));
 			}
