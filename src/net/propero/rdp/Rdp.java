@@ -262,7 +262,7 @@ public class Rdp {
 	private static final byte[] RDP_SOURCE = { (byte) 0x4D, (byte) 0x53,
 		(byte) 0x54, (byte) 0x53, (byte) 0x43, (byte) 0x00 }; // string
 
-	protected Secure SecureLayer = null;
+	public Secure SecureLayer = null;
 
 	private final OrderSurface surface;
 	private RdesktopCallback callback = null;
