@@ -262,6 +262,21 @@ public class Rdp {
 	private static final byte[] RDP_SOURCE = { (byte) 0x4D, (byte) 0x53,
 		(byte) 0x54, (byte) 0x53, (byte) 0x43, (byte) 0x00 }; // string
 
+	public static enum State {
+		/**
+		 * RDP has just started.
+		 */
+		INIT,
+		/**
+		 * Log-in has completed.
+		 */
+		LOGGED_ON,
+		/**
+		 * Everything is fully connected.
+		 */
+		READY_TO_SEND
+	}
+
 	public Secure SecureLayer = null;
 
 	private final OrderSurface surface;
@@ -281,9 +296,18 @@ public class Rdp {
 
 	protected final Options options;
 
+	private State state;
+
 	public Rdp(Options options) {
 		this.options = options;
 		this.surface = new OrderSurface(options, options.width, options.height);
+	}
+
+	/**
+	 * Gets the current state in the initialization process.
+	 */
+	public State getState() {
+		return state;
 	}
 
 	/**
@@ -648,17 +672,17 @@ public class Rdp {
 
 			case (Rdp.RDP_PDU_DEMAND_ACTIVE):
 				LOGGER.debug("Rdp.RDP_PDU_DEMAND_ACTIVE");
-			// get this after licence negotiation, just before the 1st
-			// order...
-			ThreadContext.push("processDemandActive");
-			this.processDemandActive(data);
-			// can use this to trigger things that have to be done before
-			// 1st order
-			LOGGER.debug("ready to send (got past licence negotiation)");
-			Rdesktop.readytosend = true;
-			callback.triggerReadyToSend();
-			ThreadContext.pop();
-			cleanDisconnect = false;
+				// get this after licence negotiation, just before the 1st
+				// order...
+				ThreadContext.push("processDemandActive");
+				this.processDemandActive(data);
+				// can use this to trigger things that have to be done before
+				// 1st order
+				LOGGER.debug("ready to send (got past licence negotiation)");
+				state = State.READY_TO_SEND;
+				callback.triggerReadyToSend();
+				ThreadContext.pop();
+				cleanDisconnect = false;
 			break;
 
 			case (Rdp.RDP_PDU_DEACTIVATE):
@@ -965,7 +989,7 @@ public class Rdp {
 
 		case (Rdp.RDP_DATA_PDU_UPDATE):
 			LOGGER.debug("Rdp.RDP_DATA_PDU_UPDATE");
-		this.processUpdate(data);
+			this.processUpdate(data);
 		break;
 
 		case RDP_DATA_PDU_CONTROL:
@@ -978,16 +1002,18 @@ public class Rdp {
 
 		case (Rdp.RDP_DATA_PDU_POINTER):
 			LOGGER.debug("Received pointer PDU");
-		this.processPointer(data);
+			this.processPointer(data);
 		break;
 		case (Rdp.RDP_DATA_PDU_BELL):
 			LOGGER.debug("Received bell PDU");
-		Toolkit tx = Toolkit.getDefaultToolkit();
-		tx.beep();
+			Toolkit tx = Toolkit.getDefaultToolkit();
+			tx.beep();
 		break;
 		case (Rdp.RDP_DATA_PDU_LOGON):
 			LOGGER.debug("User logged on");
-		Rdesktop.loggedon = true;
+			if (state != State.READY_TO_SEND) {
+				state = State.LOGGED_ON;
+			}
 		break;
 		case RDP_DATA_PDU_DISCONNECT:
 			/*

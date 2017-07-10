@@ -39,7 +39,6 @@ import net.propero.rdp.keymapping.KeyCode_FileBased;
 import net.propero.rdp.rdp5.Rdp5;
 import net.propero.rdp.rdp5.VChannels;
 import net.propero.rdp.rdp5.cliprdr.ClipChannel;
-import net.propero.rdp.tools.SendEvent;
 import net.propero.rdp.ui.RdesktopFrame;
 
 import org.apache.logging.log4j.LogManager;
@@ -52,28 +51,7 @@ public class Rdesktop {
 
 	private static final Logger LOGGER = LogManager.getLogger();
 
-	@Deprecated
-	public static boolean keep_running;
-
-	@Deprecated
-	public static boolean loggedon;
-
-	@Deprecated
-	public static boolean readytosend;
-
-	@Deprecated
-	public static boolean showTools;
-
 	public static final String keyMapPath = "keymaps/";
-
-	@Deprecated
-	public static String mapFile = "en-us";
-
-	@Deprecated
-	public static String keyMapLocation = "";
-
-	@Deprecated
-	public static SendEvent toolFrame = null;
 
 	/**
 	 * Outputs version and usage information via System.err
@@ -119,15 +97,7 @@ public class Rdesktop {
 	 * @throws RdesktopException
 	 */
 	public static void main(String[] args) throws RdesktopException {
-
-		// Ensure that static variables are properly initialised
-		keep_running = true;
-		loggedon = false;
-		readytosend = false;
-		showTools = false;
-		mapFile = "en-gb";
-		keyMapLocation = "";
-		toolFrame = null;
+		String mapFile = "en-us";
 
 		Options options = new Options();
 
@@ -144,17 +114,16 @@ public class Rdesktop {
 		alo[1] = new LongOpt("debug_hex", LongOpt.NO_ARGUMENT, null, 0);
 		alo[2] = new LongOpt("no_paste_hack", LongOpt.NO_ARGUMENT, null, 0);
 		alo[3] = new LongOpt("log4j_config", LongOpt.REQUIRED_ARGUMENT, sb, 0);
-		alo[4] = new LongOpt("packet_tools", LongOpt.NO_ARGUMENT, null, 0);
-		alo[5] = new LongOpt("quiet_alt", LongOpt.NO_ARGUMENT, sb, 0);
-		alo[6] = new LongOpt("no_remap_hash", LongOpt.NO_ARGUMENT, null, 0);
-		alo[7] = new LongOpt("no_encryption", LongOpt.NO_ARGUMENT, null, 0);
-		alo[8] = new LongOpt("use_rdp4", LongOpt.NO_ARGUMENT, null, 0);
-		alo[9] = new LongOpt("use_ssl", LongOpt.NO_ARGUMENT, null, 0);
-		alo[10] = new LongOpt("enable_menu", LongOpt.NO_ARGUMENT, null, 0);
-		alo[11] = new LongOpt("console", LongOpt.NO_ARGUMENT, null, 0);
-		alo[12] = new LongOpt("load_licence", LongOpt.NO_ARGUMENT, null, 0);
-		alo[13] = new LongOpt("save_licence", LongOpt.NO_ARGUMENT, null, 0);
-		alo[14] = new LongOpt("persistent_caching", LongOpt.NO_ARGUMENT, null,
+		alo[4] = new LongOpt("quiet_alt", LongOpt.NO_ARGUMENT, sb, 0);
+		alo[5] = new LongOpt("no_remap_hash", LongOpt.NO_ARGUMENT, null, 0);
+		alo[6] = new LongOpt("no_encryption", LongOpt.NO_ARGUMENT, null, 0);
+		alo[7] = new LongOpt("use_rdp4", LongOpt.NO_ARGUMENT, null, 0);
+		alo[8] = new LongOpt("use_ssl", LongOpt.NO_ARGUMENT, null, 0);
+		alo[9] = new LongOpt("enable_menu", LongOpt.NO_ARGUMENT, null, 0);
+		alo[10] = new LongOpt("console", LongOpt.NO_ARGUMENT, null, 0);
+		alo[11] = new LongOpt("load_licence", LongOpt.NO_ARGUMENT, null, 0);
+		alo[12] = new LongOpt("save_licence", LongOpt.NO_ARGUMENT, null, 0);
+		alo[13] = new LongOpt("persistent_caching", LongOpt.NO_ARGUMENT, null,
 				0);
 
 		String progname = "properJavaRDP";
@@ -178,38 +147,35 @@ public class Rdesktop {
 				case 3:
 					throw new UnsupportedOperationException("Use -Dlog4j.configurationFile instead of setting log config");
 				case 4:
-					showTools = true;
-					break;
-				case 5:
 					options.altkey_quiet = true;
 					break;
-				case 6:
+				case 5:
 					options.remap_hash = false;
 					break;
-				case 7:
+				case 6:
 					options.packet_encryption = false;
 					break;
-				case 8:
+				case 7:
 					options.use_rdp5 = false;
 					// options.server_bpp = 8;
 					options.set_bpp(8);
 					break;
-				case 9:
+				case 8:
 					options.use_ssl = true;
 					break;
-				case 10:
+				case 9:
 					options.enable_menu = true;
 					break;
-				case 11:
+				case 10:
 					options.console_session = true;
 					break;
-				case 12:
+				case 11:
 					options.load_licence = true;
 					break;
-				case 13:
+				case 12:
 					options.save_licence = true;
 					break;
-				case 14:
+				case 13:
 					options.persistent_bitmap_caching = true;
 					break;
 				default:
@@ -313,7 +279,7 @@ public class Rdesktop {
 			options.height -= 46;
 		}
 
-		String server = null;
+		String server;
 
 		if (g.getOptind() < args.length) {
 			int colonat = args[args.length - 1].indexOf(":", 0);
@@ -327,6 +293,7 @@ public class Rdesktop {
 		} else {
 			LOGGER.fatal(progname + ": A server name is required!");
 			usage();
+			return;
 		}
 
 		VChannels channels = new VChannels(options);
@@ -407,151 +374,115 @@ public class Rdesktop {
 			window.registerKeyboard(keyMap);
 		}
 
-		LOGGER.debug("keep_running = " + keep_running);
-		while (keep_running) {
-			LOGGER.debug("Initialising RDP layer...");
-			RdpLayer = new Rdp5(options, channels);
-			clipChannel.setSecure(RdpLayer.SecureLayer);  // XXX this shouldn't be needed
-			LOGGER.debug("Registering drawing surface...");
-			RdpLayer.registerDrawingSurface(window);
-			LOGGER.debug("Registering comms layer...");
-			window.registerCommLayer(RdpLayer);
-			loggedon = false;
-			readytosend = false;
-			LOGGER
-			.info("Connecting to " + server + ":" + options.port
-					+ " ...");
+		LOGGER.debug("Initialising RDP layer...");
+		RdpLayer = new Rdp5(options, channels);
+		clipChannel.setSecure(RdpLayer.SecureLayer);  // XXX this shouldn't be needed
+		LOGGER.debug("Registering drawing surface...");
+		RdpLayer.registerDrawingSurface(window);
+		LOGGER.debug("Registering comms layer...");
+		window.registerCommLayer(RdpLayer);
+		LOGGER.info("Connecting to " + server + ":" + options.port
+				+ " ...");
 
-			if (server.equalsIgnoreCase("localhost")) {
-				server = "127.0.0.1";
+		if (server.equalsIgnoreCase("localhost")) {
+			server = "127.0.0.1";
+		}
+
+		// Attempt to connect to server on port options.port
+		try {
+			RdpLayer.connect(options.username, InetAddress
+					.getByName(server), logonflags, options.domain,
+					options.password, options.command,
+					options.directory);
+
+			/*
+			 * By setting encryption to False here, we have an
+			 * encrypted login packet but unencrypted transfer of
+			 * other packets
+			 */
+			if (!options.packet_encryption) {
+				options.encryption = false;
 			}
 
-			// Attempt to connect to server on port options.port
-			try {
-				RdpLayer.connect(options.username, InetAddress
-						.getByName(server), logonflags, options.domain,
-						options.password, options.command,
-						options.directory);
+			LOGGER.info("Connection successful");
+			// now show window after licence negotiation
+			DisconnectInfo info = RdpLayer.mainLoop();
 
-				// Remove to get rid of sendEvent tool
-				if (showTools) {
-					toolFrame = new SendEvent(RdpLayer);
-					toolFrame.show();
-				}
-				// End
+			LOGGER.info("Disconnect: " + info);
 
-				if (keep_running) {
-
+			if (info.wasCleanDisconnect()) {
+				/* clean disconnect */
+				Rdesktop.exit(0, RdpLayer, window, true);
+				// return 0;
+			} else {
+				if (info.getReason() == Reason.RPC_INITIATED_DISCONNECT
+						|| info.getReason() == Reason.RPC_INITIATED_DISCONNECT) {
 					/*
-					 * By setting encryption to False here, we have an
-					 * encrypted login packet but unencrypted transfer of
-					 * other packets
+					 * not so clean disconnect, but nothing to worry
+					 * about
 					 */
-					if (!options.packet_encryption) {
-						options.encryption = false;
-					}
-
-					LOGGER.info("Connection successful");
-					// now show window after licence negotiation
-					DisconnectInfo info = RdpLayer.mainLoop();
-
-					LOGGER.info("Disconnect: " + info);
-
-					if (info.wasCleanDisconnect()) {
-						/* clean disconnect */
-						Rdesktop.exit(0, RdpLayer, window, true);
-						// return 0;
-					} else {
-						if (info.getReason() == Reason.RPC_INITIATED_DISCONNECT
-								|| info.getReason() == Reason.RPC_INITIATED_DISCONNECT) {
-							/*
-							 * not so clean disconnect, but nothing to worry
-							 * about
-							 */
-							Rdesktop.exit(0, RdpLayer, window, true);
-							// return 0;
-						} else {
-							String reason = info.toString();
-							String msg[] = { "Connection terminated",
-									reason };
-							window.showErrorDialog(msg);
-							LOGGER.warn("Connection terminated: " + reason);
-							Rdesktop.exit(0, RdpLayer, window, true);
-						}
-
-					}
-
-					keep_running = false; // exited main loop
-					if (!readytosend) {
-						// maybe the licence server was having a comms
-						// problem, retry?
-						String msg1 = "The terminal server disconnected before licence negotiation completed.";
-						String msg2 = "Possible cause: terminal server could not issue a licence.";
-						String[] msg = { msg1, msg2 };
-						LOGGER.warn(msg1);
-						LOGGER.warn(msg2);
-						window.showErrorDialog(msg);
-					}
-				} // closing bracket to if(running)
-
-				// Remove to get rid of tool window
-				if (showTools)
-				{
-					toolFrame.dispose();
-					// End
+					Rdesktop.exit(0, RdpLayer, window, true);
+					// return 0;
+				} else {
+					String reason = info.toString();
+					String msg[] = { "Connection terminated",
+							reason };
+					window.showErrorDialog(msg);
+					LOGGER.warn("Connection terminated: " + reason);
+					Rdesktop.exit(0, RdpLayer, window, true);
 				}
 
-			} catch (ConnectionException e) {
-				LOGGER.warn("Connection exception", e);
-				String msg[] = { "Connection Exception", e.getMessage() };
+			}
+
+			if (RdpLayer.getState() != Rdp.State.READY_TO_SEND) {
+				// maybe the licence server was having a comms
+				// problem, retry?
+				String msg1 = "The terminal server disconnected before licence negotiation completed.";
+				String msg2 = "Possible cause: terminal server could not issue a licence.";
+				String[] msg = { msg1, msg2 };
+				LOGGER.warn(msg1);
+				LOGGER.warn(msg2);
+				window.showErrorDialog(msg);
+			}
+		} catch (ConnectionException e) {
+			LOGGER.warn("Connection exception", e);
+			String msg[] = { "Connection Exception", e.getMessage() };
+			window.showErrorDialog(msg);
+			Rdesktop.exit(0, RdpLayer, window, true);
+		} catch (UnknownHostException e) {
+			LOGGER.warn("Unknown host exception", e);
+			error(e, RdpLayer, window, true);
+		} catch (SocketException s) {
+			LOGGER.warn("Socket exception", s);
+			if (RdpLayer.isConnected()) {
+				LOGGER.fatal(s.getClass().getName() + " "
+						+ s.getMessage());
+				error(s, RdpLayer, window, true);
+				Rdesktop.exit(0, RdpLayer, window, true);
+			}
+		} catch (RdesktopException e) {
+			String msg1 = e.getClass().getName();
+			String msg2 = e.getMessage();
+			LOGGER.fatal(msg1 + ": " + msg2, e);
+
+			if (RdpLayer.getState() != Rdp.State.READY_TO_SEND) {
+				// maybe the licence server was having a comms
+				// problem, retry?
+				String msg[] = {
+						"The terminal server reset connection before licence negotiation completed.",
+						"Possible cause: terminal server could not connect to licence server." };
+				LOGGER.warn(msg1);
+				LOGGER.warn(msg2);
 				window.showErrorDialog(msg);
 				Rdesktop.exit(0, RdpLayer, window, true);
-			} catch (UnknownHostException e) {
-				LOGGER.warn("Unknown host exception", e);
-				error(e, RdpLayer, window, true);
-			} catch (SocketException s) {
-				LOGGER.warn("Socket exception", s);
-				if (RdpLayer.isConnected()) {
-					LOGGER.fatal(s.getClass().getName() + " "
-							+ s.getMessage());
-					error(s, RdpLayer, window, true);
-					Rdesktop.exit(0, RdpLayer, window, true);
-				}
-			} catch (RdesktopException e) {
-				String msg1 = e.getClass().getName();
-				String msg2 = e.getMessage();
-				LOGGER.fatal(msg1 + ": " + msg2, e);
-
-				if (!readytosend) {
-					// maybe the licence server was having a comms
-					// problem, retry?
-					String msg[] = {
-							"The terminal server reset connection before licence negotiation completed.",
-							"Possible cause: terminal server could not connect to licence server.",
-					"Retry?" };
-					boolean retry = window.showYesNoErrorDialog(msg);
-					if (!retry) {
-						LOGGER.info("Selected not to retry.");
-						Rdesktop.exit(0, RdpLayer, window, true);
-					} else {
-						if (RdpLayer != null && RdpLayer.isConnected()) {
-							LOGGER.info("Disconnecting ...");
-							RdpLayer.disconnect();
-							LOGGER.info("Disconnected");
-						}
-						LOGGER.info("Retrying connection...");
-						keep_running = true; // retry
-						continue;
-					}
-				} else {
-					String msg[] = { e.getMessage() };
-					window.showErrorDialog(msg);
-					Rdesktop.exit(0, RdpLayer, window, true);
-				}
-			} catch (Exception e) {
-				LOGGER.warn("Other unhandled exception: " + e.getClass().getName() + " " + e.getMessage(), e);
-				error(e, RdpLayer, window, true);
+			} else {
+				String msg[] = { e.getMessage() };
+				window.showErrorDialog(msg);
+				Rdesktop.exit(0, RdpLayer, window, true);
 			}
+		} catch (Exception e) {
+			LOGGER.warn("Other unhandled exception: " + e.getClass().getName() + " " + e.getMessage(), e);
+			error(e, RdpLayer, window, true);
 		}
 		Rdesktop.exit(0, RdpLayer, window, true);
 	}
@@ -571,14 +502,6 @@ public class Rdesktop {
 	@Deprecated
 	public static void exit(int n, Rdp rdp, RdesktopFrame window,
 			boolean sysexit) {
-		keep_running = false;
-
-		// Remove to get rid of tool window
-		if ((showTools) && (toolFrame != null))
-		{
-			toolFrame.dispose();
-			// End
-		}
 
 		if (rdp != null && rdp.isConnected()) {
 			LOGGER.info("Disconnecting ...");
