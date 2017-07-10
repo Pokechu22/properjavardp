@@ -58,6 +58,7 @@ import net.propero.rdp.Rdp;
 import net.propero.rdp.api.InitState;
 import net.propero.rdp.api.RdesktopCallback;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
+import net.propero.rdp.rdp5.VChannels;
 import net.propero.rdp.rdp5.cliprdr.ClipChannel;
 
 import org.apache.logging.log4j.LogManager;
@@ -626,5 +627,15 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 	@Override
 	public void markDirty(int x, int y, int width, int height) {
 		canvas.repaint(x, y, width, height);
+	}
+
+	@Override
+	public void registerChannels(VChannels vchannels) {
+		ClipChannel clipChannel = new ClipChannel(options);
+
+		// TODO: implement all relevant channels
+		if (options.map_clipboard) {
+			vchannels.register(clipChannel);
+		}
 	}
 }

@@ -32,6 +32,7 @@ import net.propero.rdp.OrderException;
 import net.propero.rdp.RdesktopException;
 import net.propero.rdp.Rdp;
 import net.propero.rdp.RdpPacket;
+import net.propero.rdp.api.RdesktopCallback;
 
 /**
  * Handle RDP5 orders
@@ -47,10 +48,9 @@ public class Rdp5 extends Rdp {
 	 * @param channels
 	 *            Virtual channels for RDP layer
 	 */
-	public Rdp5(Options options, VChannels channels) {
-		super(options, channels);
-		this.channels = channels;
-		this.channels.setSecure(this.SecureLayer);
+	public Rdp5(Options options) {
+		super(options, null);
+		this.channels = new VChannels(this.SecureLayer);
 	}
 
 	/**
@@ -154,6 +154,12 @@ public class Rdp5 extends Rdp {
 				LOGGER.warn("Failed to process channel #" + channelno, e);
 			}
 		}
+	}
+
+	@Override
+	public void registerDrawingSurface(RdesktopCallback callback) {
+		super.registerDrawingSurface(callback);
+		callback.registerChannels(this.channels);
 	}
 
 }

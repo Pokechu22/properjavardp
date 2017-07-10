@@ -38,8 +38,6 @@ import net.propero.rdp.DisconnectInfo.Reason;
 import net.propero.rdp.api.InitState;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
 import net.propero.rdp.rdp5.Rdp5;
-import net.propero.rdp.rdp5.VChannels;
-import net.propero.rdp.rdp5.cliprdr.ClipChannel;
 import net.propero.rdp.ui.RdesktopFrame;
 
 import org.apache.logging.log4j.LogManager;
@@ -290,18 +288,6 @@ public class Rdesktop {
 			return;
 		}
 
-		VChannels channels = new VChannels(options);
-
-		ClipChannel clipChannel = new ClipChannel(options);
-
-		// Initialise all RDP5 channels
-		if (options.use_rdp5) {
-			// TODO: implement all relevant channels
-			if (options.map_clipboard) {
-				channels.register(clipChannel);
-			}
-		}
-
 		// Now do the startup...
 
 		LOGGER.info("properJavaRDP version " + Version.version);
@@ -335,12 +321,11 @@ public class Rdesktop {
 			options.caps_sends_up_and_down = false;
 		}
 
-		Rdp5 RdpLayer = null;
+		Rdp5 RdpLayer;
 		RdesktopFrame window = new RdesktopFrame(options);
-		window.setClip(clipChannel);
 
 		// Configure a keyboard layout
-		KeyCode_FileBased keyMap = null;
+		KeyCode_FileBased keyMap;
 		try {
 			// logger.info("looking for: " + "/" + keyMapPath + mapFile);
 			InputStream istr = Rdesktop.class.getResourceAsStream("/"
@@ -362,15 +347,14 @@ public class Rdesktop {
 			String[] msg = { (kmEx.getClass() + ": " + kmEx.getMessage()) };
 			window.showErrorDialog(msg);
 			Rdesktop.exit(0, null, null, true);
+			return;
 		}
 
 		LOGGER.debug("Registering keyboard...");
-		if (keyMap != null) {
-			window.registerKeyboard(keyMap);
-		}
+		window.registerKeyboard(keyMap);
 
 		LOGGER.debug("Initialising RDP layer...");
-		RdpLayer = new Rdp5(options, channels);
+		RdpLayer = new Rdp5(options);
 		LOGGER.debug("Registering drawing surface...");
 		RdpLayer.registerDrawingSurface(window);
 		LOGGER.debug("Registering comms layer...");

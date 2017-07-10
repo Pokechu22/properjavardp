@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 
 import net.propero.rdp.MCS;
-import net.propero.rdp.Options;
 import net.propero.rdp.RdesktopException;
 import net.propero.rdp.RdpPacket;
 import net.propero.rdp.Secure;
@@ -100,13 +99,16 @@ public class VChannels {
 		return MCS.MCS_GLOBAL_CHANNEL + 1 + c;
 	}
 
-	private final Options options;
+	private final Secure secure;
+
 	/**
-	 * Initialise the maximum number of Virtual Channels
+	 * Initalize a new instance of VChannels
+	 *
+	 * @param secure The secure instance to give to each channel.
 	 */
-	public VChannels(Options options) {
+	public VChannels(Secure secure) {
 		channels = new VChannel[MAX_CHANNELS];
-		this.options = options;
+		this.secure = secure;
 	}
 
 	/**
@@ -156,18 +158,15 @@ public class VChannels {
 	 * @param v
 	 *            Virtual channel to be registered
 	 * @return True if successful
-	 * @throws RdesktopException if the channel table is full
+	 * @throws IllegalStateException if the channel table is full
 	 */
-	public boolean register(VChannel v) throws RdesktopException {
-		if (!options.use_rdp5) {
-			return false;
-		}
-
+	public boolean register(VChannel v) {
 		if (num_channels >= MAX_CHANNELS) {
-			throw new RdesktopException(
+			throw new IllegalStateException(
 					"Channel table full. Could not register channel.");
 		}
 
+		v.setSecure(this.secure);
 		channels[num_channels] = v;
 		v.set_mcs_id(MCS.MCS_GLOBAL_CHANNEL + 1 + num_channels);
 		num_channels++;

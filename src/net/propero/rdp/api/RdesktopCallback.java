@@ -4,6 +4,8 @@ import java.awt.Cursor;
 
 import net.propero.rdp.OrderSurface;
 import net.propero.rdp.Rdp;
+import net.propero.rdp.rdp5.VChannel;
+import net.propero.rdp.rdp5.VChannels;
 
 public interface RdesktopCallback {
 	/**
@@ -47,4 +49,11 @@ public interface RdesktopCallback {
 	 * @param newHeight The new height of the image
 	 */
 	public abstract void sizeChanged(int newWidth, int newHeight);
+
+	/**
+	 * Callback where {@link VChannel}s may be registered.
+	 *
+	 * @param vchannels Channel controller to register to
+	 */
+	public abstract void registerChannels(VChannels vchannels);
 }
