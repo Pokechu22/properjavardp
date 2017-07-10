@@ -371,7 +371,6 @@ public class Rdesktop {
 
 		LOGGER.debug("Initialising RDP layer...");
 		RdpLayer = new Rdp5(options, channels);
-		clipChannel.setSecure(RdpLayer.SecureLayer);  // XXX this shouldn't be needed
 		LOGGER.debug("Registering drawing surface...");
 		RdpLayer.registerDrawingSurface(window);
 		LOGGER.debug("Registering comms layer...");

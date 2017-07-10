@@ -50,6 +50,7 @@ public class Rdp5 extends Rdp {
 	public Rdp5(Options options, VChannels channels) {
 		super(options, channels);
 		this.channels = channels;
+		this.channels.setSecure(this.SecureLayer);
 	}
 
 	/**

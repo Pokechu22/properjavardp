@@ -34,6 +34,8 @@ import java.net.InetAddress;
 import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
 
+import javax.annotation.Nullable;
+
 import net.propero.rdp.Input.InputCapsetFlag;
 import net.propero.rdp.Input.InputType;
 import net.propero.rdp.Orders.PrimaryOrder;
@@ -263,7 +265,8 @@ public class Rdp {
 	private static final byte[] RDP_SOURCE = { (byte) 0x4D, (byte) 0x53,
 		(byte) 0x54, (byte) 0x53, (byte) 0x43, (byte) 0x00 }; // string
 
-	public Secure SecureLayer = null;
+	@Nullable
+	protected final Secure SecureLayer;
 
 	private final OrderSurface surface;
 	private RdesktopCallback callback = null;
@@ -287,6 +290,7 @@ public class Rdp {
 	public Rdp(Options options) {
 		this.options = options;
 		this.surface = new OrderSurface(options, options.width, options.height);
+		this.SecureLayer = null;
 	}
 
 	/**

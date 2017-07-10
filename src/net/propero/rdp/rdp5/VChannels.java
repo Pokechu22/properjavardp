@@ -30,6 +30,7 @@ import net.propero.rdp.MCS;
 import net.propero.rdp.Options;
 import net.propero.rdp.RdesktopException;
 import net.propero.rdp.RdpPacket;
+import net.propero.rdp.Secure;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -155,7 +156,7 @@ public class VChannels {
 	 * @param v
 	 *            Virtual channel to be registered
 	 * @return True if successful
-	 * @throws RdesktopException
+	 * @throws RdesktopException if the channel table is full
 	 */
 	public boolean register(VChannel v) throws RdesktopException {
 		if (!options.use_rdp5) {
@@ -172,6 +173,16 @@ public class VChannels {
 		num_channels++;
 
 		return true;
+	}
+
+	/**
+	 * Sets the Secure instance for all registered channels.
+	 * @param secure The secure instance
+	 */
+	public void setSecure(Secure secure) {
+		for (int i = 0; i < num_channels; i++) {
+			channels[i].setSecure(secure);
+		}
 	}
 
 	/**
