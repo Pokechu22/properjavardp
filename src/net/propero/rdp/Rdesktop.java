@@ -171,6 +171,7 @@ public class Rdesktop {
 					break;
 				default:
 					usage();
+					return;
 				}
 				break;
 
@@ -203,6 +204,7 @@ public class Rdesktop {
 					} else {
 						LOGGER.fatal("properJavaRDP: Invalid fullscreen option '" + arg + "'");
 						usage();
+						return;
 					}
 				}
 				break;
@@ -212,6 +214,7 @@ public class Rdesktop {
 				if (cut == -1) {
 					LOGGER.fatal("properJavaRDP: Invalid geometry: " + arg);
 					usage();
+					return;
 				}
 				options.width = Integer.parseInt(arg.substring(0, cut)) & ~3;
 				options.height = Integer.parseInt(arg.substring(cut + 1));
@@ -223,6 +226,7 @@ public class Rdesktop {
 					LOGGER.fatal("properJavaRDP: Invalid key layout: "
 							+ arg);
 					usage();
+					return;
 				}
 				break;
 			case 'l':
@@ -247,6 +251,7 @@ public class Rdesktop {
 				} catch (NumberFormatException nex) {
 					LOGGER.fatal("properJavaRDP: Invalid port number: " + arg);
 					usage();
+					return;
 				}
 				break;
 			case 'T':
@@ -259,7 +264,7 @@ public class Rdesktop {
 			case '?':
 			default:
 				usage();
-				break;
+				return;
 
 			}
 		}
@@ -303,6 +308,7 @@ public class Rdesktop {
 
 		if (args.length == 0) {
 			usage();
+			return;
 		}
 
 		String java = System.getProperty("java.specification.version");
