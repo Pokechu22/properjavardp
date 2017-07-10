@@ -125,8 +125,6 @@ public class Rdesktop {
 		alo[11] = new LongOpt("persistent_caching", LongOpt.NO_ARGUMENT, null,
 				0);
 
-		String progname = "properJavaRDP";
-
 		Getopt g = new Getopt("properJavaRDP", args,
 				"bc:d:f::g:k:l:m:n:p:s:t:T:u:o:r:", alo);
 
@@ -203,8 +201,7 @@ public class Rdesktop {
 					if (arg.charAt(0) == 'l') {
 						fKdeHack = true;
 					} else {
-						LOGGER.fatal(progname
-								+ ": Invalid fullscreen option '" + arg + "'");
+						LOGGER.fatal("properJavaRDP: Invalid fullscreen option '" + arg + "'");
 						usage();
 					}
 				}
@@ -213,7 +210,7 @@ public class Rdesktop {
 				arg = g.getOptarg();
 				int cut = arg.indexOf("x", 0);
 				if (cut == -1) {
-					LOGGER.fatal(progname + ": Invalid geometry: " + arg);
+					LOGGER.fatal("properJavaRDP: Invalid geometry: " + arg);
 					usage();
 				}
 				options.width = Integer.parseInt(arg.substring(0, cut)) & ~3;
@@ -223,7 +220,7 @@ public class Rdesktop {
 				arg = g.getOptarg();
 				// options.keylayout = KeyLayout.strToCode(arg);
 				if (options.keylayout == -1) {
-					LOGGER.fatal(progname + ": Invalid key layout: "
+					LOGGER.fatal("properJavaRDP: Invalid key layout: "
 							+ arg);
 					usage();
 				}
@@ -248,8 +245,7 @@ public class Rdesktop {
 				try {
 					options.port = Integer.parseInt(arg);
 				} catch (NumberFormatException nex) {
-					LOGGER.fatal(progname + ": Invalid port number: "
-							+ arg);
+					LOGGER.fatal("properJavaRDP: Invalid port number: " + arg);
 					usage();
 				}
 				break;
@@ -284,7 +280,7 @@ public class Rdesktop {
 						.substring(colonat + 1));
 			}
 		} else {
-			LOGGER.fatal(progname + ": A server name is required!");
+			LOGGER.fatal("properJavaRDP: A server name is required!");
 			usage();
 			return;
 		}
