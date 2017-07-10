@@ -96,8 +96,7 @@ public abstract class VChannel {
 	public RdpPacket init(int length) throws RdesktopException {
 		RdpPacket s;
 
-		s = secure.init(options.encryption ? Secure.SEC_ENCRYPT : 0,
-				length + 8);
+		s = secure.init(Secure.SEC_ENCRYPT, length + 8);
 		s.setHeader(RdpPacket.CHANNEL_HEADER);
 		s.incrementPosition(8);
 
@@ -128,9 +127,7 @@ public abstract class VChannel {
 				int thisLength = Math.min(VChannels.CHANNEL_CHUNK_LENGTH, length
 						- data_offset);
 
-				RdpPacket s = secure.init(
-						options.encryption ? Secure.SEC_ENCRYPT : 0,
-								8 + thisLength);
+				RdpPacket s = secure.init(Secure.SEC_ENCRYPT, 8 + thisLength);
 				s.setLittleEndian32(length);
 
 				int flags = ((data_offset == 0) ? VChannels.CHANNEL_FLAG_FIRST : 0);
@@ -150,9 +147,7 @@ public abstract class VChannel {
 				data_offset += thisLength;
 
 				if (secure != null) {
-					secure.send_to_channel(s,
-							options.encryption ? Secure.SEC_ENCRYPT : 0, this
-									.mcs_id());
+					secure.send_to_channel(s, Secure.SEC_ENCRYPT, this.mcs_id());
 				}
 			}
 		}

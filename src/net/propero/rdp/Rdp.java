@@ -471,8 +471,7 @@ public class Rdp {
 	private RdpPacket initData(int size) throws RdesktopException {
 		RdpPacket buffer = null;
 
-		buffer = SecureLayer.init(
-				options.encryption ? Secure.SEC_ENCRYPT : 0, size + 18);
+		buffer = SecureLayer.init(Secure.SEC_ENCRYPT, size + 18);
 		buffer.pushLayer(RdpPacket.RDP_HEADER, 18);
 		// buffer.setHeader(RdpPacket_Localised.RDP_HEADER);
 		// buffer.incrementPosition(18);
@@ -511,7 +510,7 @@ public class Rdp {
 			data.set8(0); // compression type
 			data.setLittleEndian16(0); // compression length
 
-			SecureLayer.send(data, options.encryption ? Secure.SEC_ENCRYPT : 0);
+			SecureLayer.send(data, Secure.SEC_ENCRYPT);
 		}
 	}
 
@@ -726,8 +725,7 @@ public class Rdp {
 		int len_dll = 2 * "C:\\WINNT\\System32\\mstscax.dll".length();
 		int packetlen = 0;
 
-		int sec_flags = options.encryption ? (Secure.SEC_LOGON_INFO | Secure.SEC_ENCRYPT)
-				: Secure.SEC_LOGON_INFO;
+		int sec_flags = (Secure.SEC_LOGON_INFO | Secure.SEC_ENCRYPT);
 		int domainlen = 2 * domain.length();
 		int userlen = 2 * username.length();
 		int passlen = 2 * password.length();
@@ -1053,8 +1051,7 @@ public class Rdp {
 				+ Capset.FONT.getLength() + Capset.GLYPHCACHE.getLength()
 				+ 4; // this is a fix for W2k: sessionid
 
-		int sec_flags = options.encryption ? (RDP5_FLAG | Secure.SEC_ENCRYPT)
-				: RDP5_FLAG;
+		int sec_flags = (RDP5_FLAG | Secure.SEC_ENCRYPT);
 
 		RdpPacket data = SecureLayer.init(sec_flags, 6 + 14 + caplen
 				+ RDP_SOURCE.length);

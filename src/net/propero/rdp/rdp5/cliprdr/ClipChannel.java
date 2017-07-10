@@ -255,8 +255,7 @@ ClipboardOwner, FocusListener {
 
 	void request_clipboard_data(int formatcode) throws RdesktopException, IOException {
 
-		RdpPacket s = this.secure.init(
-				options.encryption ? Secure.SEC_ENCRYPT : 0, 24);
+		RdpPacket s = this.secure.init(Secure.SEC_ENCRYPT, 24);
 		s.setLittleEndian32(16); // length
 
 		int flags = VChannels.CHANNEL_FLAG_FIRST | VChannels.CHANNEL_FLAG_LAST;
@@ -272,8 +271,7 @@ ClipboardOwner, FocusListener {
 		s.setLittleEndian32(0); // Unknown. Garbage pad?
 		s.markEnd();
 
-		this.secure.send_to_channel(s,
-				options.encryption ? Secure.SEC_ENCRYPT : 0, this.mcs_id());
+		this.secure.send_to_channel(s, Secure.SEC_ENCRYPT, this.mcs_id());
 	}
 
 	@Override

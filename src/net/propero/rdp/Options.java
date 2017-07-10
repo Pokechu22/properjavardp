@@ -146,10 +146,6 @@ public class Options {
 
 	public boolean orders = true;
 
-	public boolean encryption = true;
-
-	public boolean packet_encryption = true;
-
 	public boolean grab_keyboard = true;
 
 	public boolean hide_decorations = false;
@@ -157,8 +153,6 @@ public class Options {
 	public boolean console_session = false;
 
 	public boolean owncolmap;
-
-	public boolean use_ssl = false;
 
 	public boolean map_clipboard = true;
 

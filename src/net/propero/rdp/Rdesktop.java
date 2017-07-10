@@ -110,21 +110,19 @@ public class Rdesktop {
 		int c;
 		String arg;
 		StringBuffer sb = new StringBuffer();
-		LongOpt[] alo = new LongOpt[15];
+		LongOpt[] alo = new LongOpt[12];
 		alo[0] = new LongOpt("debug_key", LongOpt.NO_ARGUMENT, null, 0);
 		alo[1] = new LongOpt("debug_hex", LongOpt.NO_ARGUMENT, null, 0);
 		alo[2] = new LongOpt("no_paste_hack", LongOpt.NO_ARGUMENT, null, 0);
 		alo[3] = new LongOpt("log4j_config", LongOpt.REQUIRED_ARGUMENT, sb, 0);
 		alo[4] = new LongOpt("quiet_alt", LongOpt.NO_ARGUMENT, sb, 0);
 		alo[5] = new LongOpt("no_remap_hash", LongOpt.NO_ARGUMENT, null, 0);
-		alo[6] = new LongOpt("no_encryption", LongOpt.NO_ARGUMENT, null, 0);
-		alo[7] = new LongOpt("use_rdp4", LongOpt.NO_ARGUMENT, null, 0);
-		alo[8] = new LongOpt("use_ssl", LongOpt.NO_ARGUMENT, null, 0);
-		alo[9] = new LongOpt("enable_menu", LongOpt.NO_ARGUMENT, null, 0);
-		alo[10] = new LongOpt("console", LongOpt.NO_ARGUMENT, null, 0);
-		alo[11] = new LongOpt("load_licence", LongOpt.NO_ARGUMENT, null, 0);
-		alo[12] = new LongOpt("save_licence", LongOpt.NO_ARGUMENT, null, 0);
-		alo[13] = new LongOpt("persistent_caching", LongOpt.NO_ARGUMENT, null,
+		alo[6] = new LongOpt("use_rdp4", LongOpt.NO_ARGUMENT, null, 0);
+		alo[7] = new LongOpt("enable_menu", LongOpt.NO_ARGUMENT, null, 0);
+		alo[8] = new LongOpt("console", LongOpt.NO_ARGUMENT, null, 0);
+		alo[9] = new LongOpt("load_licence", LongOpt.NO_ARGUMENT, null, 0);
+		alo[10] = new LongOpt("save_licence", LongOpt.NO_ARGUMENT, null, 0);
+		alo[11] = new LongOpt("persistent_caching", LongOpt.NO_ARGUMENT, null,
 				0);
 
 		String progname = "properJavaRDP";
@@ -154,29 +152,23 @@ public class Rdesktop {
 					options.remap_hash = false;
 					break;
 				case 6:
-					options.packet_encryption = false;
-					break;
-				case 7:
 					options.use_rdp5 = false;
 					// options.server_bpp = 8;
 					options.set_bpp(8);
 					break;
-				case 8:
-					options.use_ssl = true;
-					break;
-				case 9:
+				case 7:
 					options.enable_menu = true;
 					break;
-				case 10:
+				case 8:
 					options.console_session = true;
 					break;
-				case 11:
+				case 9:
 					options.load_licence = true;
 					break;
-				case 12:
+				case 10:
 					options.save_licence = true;
 					break;
-				case 13:
+				case 11:
 					options.persistent_bitmap_caching = true;
 					break;
 				default:
@@ -395,15 +387,6 @@ public class Rdesktop {
 					.getByName(server), logonflags, options.domain,
 					options.password, options.command,
 					options.directory);
-
-			/*
-			 * By setting encryption to False here, we have an
-			 * encrypted login packet but unencrypted transfer of
-			 * other packets
-			 */
-			if (!options.packet_encryption) {
-				options.encryption = false;
-			}
 
 			LOGGER.info("Connection successful");
 			// now show window after licence negotiation

@@ -207,9 +207,7 @@ public class Secure {
 
 		this.processMcsData(mcs_data);
 
-		if (options.encryption) {
-			this.establishKey();
-		}
+		this.establishKey();
 	}
 
 	/**
@@ -332,10 +330,7 @@ public class Secure {
 		// if(options.use_rdp5) buffer.setLittleEndian32(options.encryption ?
 		// 0x1b : 0); // 128-bit encryption supported
 		// else
-		buffer
-		.setLittleEndian32(options.encryption ? (options.console_session ? 0xb
-				: 0x3)
-				: 0);
+		buffer.setLittleEndian32(options.console_session ? 0xb : 0x3);
 
 		if (options.use_rdp5)
 		{
@@ -1120,27 +1115,24 @@ public class Secure {
 				return null;
 			}
 			buffer.setHeader(RdpPacket.SECURE_HEADER);
-			if (options.encryption || (!this.licenceIssued)) {
+			sec_flags = buffer.getLittleEndian32();
 
-				sec_flags = buffer.getLittleEndian32();
+			if ((sec_flags & SEC_LICENCE_NEG) != 0) {
+				licence.process(buffer);
+				continue;
+			}
+			if ((sec_flags & SEC_ENCRYPT) != 0) {
+				buffer.incrementPosition(8); // signature
+				byte[] data = new byte[buffer.size() - buffer.getPosition()];
+				buffer.copyToByteArray(data, 0, buffer.getPosition(),
+						data.length);
+				byte[] packet = this.decrypt(data);
 
-				if ((sec_flags & SEC_LICENCE_NEG) != 0) {
-					licence.process(buffer);
-					continue;
-				}
-				if ((sec_flags & SEC_ENCRYPT) != 0) {
-					buffer.incrementPosition(8); // signature
-					byte[] data = new byte[buffer.size() - buffer.getPosition()];
-					buffer.copyToByteArray(data, 0, buffer.getPosition(),
-							data.length);
-					byte[] packet = this.decrypt(data);
+				buffer.copyFromByteArray(packet, 0, buffer.getPosition(),
+						packet.length);
 
-					buffer.copyFromByteArray(packet, 0, buffer.getPosition(),
-							packet.length);
-
-					// buffer.setStart(buffer.getPosition());
-					// return buffer;
-				}
+				// buffer.setStart(buffer.getPosition());
+				// return buffer;
 			}
 
 			if (channel[0] != MCS.MCS_GLOBAL_CHANNEL) {
