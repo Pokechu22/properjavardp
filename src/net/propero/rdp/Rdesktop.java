@@ -35,6 +35,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import net.propero.rdp.DisconnectInfo.Reason;
+import net.propero.rdp.api.InitState;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
 import net.propero.rdp.rdp5.Rdp5;
 import net.propero.rdp.rdp5.VChannels;
@@ -434,7 +435,7 @@ public class Rdesktop {
 
 			}
 
-			if (RdpLayer.getState() != Rdp.State.READY_TO_SEND) {
+			if (RdpLayer.getState() != InitState.READY_TO_SEND) {
 				// maybe the licence server was having a comms
 				// problem, retry?
 				String msg1 = "The terminal server disconnected before licence negotiation completed.";
@@ -465,7 +466,7 @@ public class Rdesktop {
 			String msg2 = e.getMessage();
 			LOGGER.fatal(msg1 + ": " + msg2, e);
 
-			if (RdpLayer.getState() != Rdp.State.READY_TO_SEND) {
+			if (RdpLayer.getState() != InitState.READY_TO_SEND) {
 				// maybe the licence server was having a comms
 				// problem, retry?
 				String msg[] = {

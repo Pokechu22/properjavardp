@@ -7,9 +7,11 @@ import net.propero.rdp.Rdp;
 
 public interface RdesktopCallback {
 	/**
-	 * Notify the canvas that the connection is ready for sending messages
+	 * Notification that the current state has changed and some actions are now possible.
+	 *
+	 * @param state The new state
 	 */
-	public abstract void triggerReadyToSend();
+	public abstract void stateChanged(InitState state);
 
 	public abstract void markDirty(int x, int y, int width, int height);
 	public abstract void registerSurface(OrderSurface surface);

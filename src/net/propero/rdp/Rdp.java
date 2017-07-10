@@ -38,6 +38,7 @@ import net.propero.rdp.Input.InputCapsetFlag;
 import net.propero.rdp.Input.InputType;
 import net.propero.rdp.Orders.PrimaryOrder;
 import net.propero.rdp.api.RdesktopCallback;
+import net.propero.rdp.api.InitState;
 import net.propero.rdp.rdp5.Rdp5;
 import net.propero.rdp.rdp5.VChannels;
 
@@ -262,21 +263,6 @@ public class Rdp {
 	private static final byte[] RDP_SOURCE = { (byte) 0x4D, (byte) 0x53,
 		(byte) 0x54, (byte) 0x53, (byte) 0x43, (byte) 0x00 }; // string
 
-	public static enum State {
-		/**
-		 * RDP has just started.
-		 */
-		INIT,
-		/**
-		 * Log-in has completed.
-		 */
-		LOGGED_ON,
-		/**
-		 * Everything is fully connected.
-		 */
-		READY_TO_SEND
-	}
-
 	public Secure SecureLayer = null;
 
 	private final OrderSurface surface;
@@ -296,7 +282,7 @@ public class Rdp {
 
 	protected final Options options;
 
-	private State state;
+	private InitState state;
 
 	public Rdp(Options options) {
 		this.options = options;
@@ -306,7 +292,7 @@ public class Rdp {
 	/**
 	 * Gets the current state in the initialization process.
 	 */
-	public State getState() {
+	public InitState getState() {
 		return state;
 	}
 
@@ -679,8 +665,8 @@ public class Rdp {
 				// can use this to trigger things that have to be done before
 				// 1st order
 				LOGGER.debug("ready to send (got past licence negotiation)");
-				state = State.READY_TO_SEND;
-				callback.triggerReadyToSend();
+				state = InitState.READY_TO_SEND;
+				callback.stateChanged(state);
 				ThreadContext.pop();
 				cleanDisconnect = false;
 			break;
@@ -1011,8 +997,9 @@ public class Rdp {
 		break;
 		case (Rdp.RDP_DATA_PDU_LOGON):
 			LOGGER.debug("User logged on");
-			if (state != State.READY_TO_SEND) {
-				state = State.LOGGED_ON;
+			if (state != InitState.READY_TO_SEND) {
+				state = InitState.LOGGED_ON;
+				callback.stateChanged(state);
 			}
 		break;
 		case RDP_DATA_PDU_DISCONNECT:

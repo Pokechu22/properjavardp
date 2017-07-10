@@ -55,6 +55,7 @@ import net.propero.rdp.Options;
 import net.propero.rdp.OrderSurface;
 import net.propero.rdp.Rdesktop;
 import net.propero.rdp.Rdp;
+import net.propero.rdp.api.InitState;
 import net.propero.rdp.api.RdesktopCallback;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
 import net.propero.rdp.rdp5.cliprdr.ClipChannel;
@@ -467,13 +468,12 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 		d.show();
 	}
 
-	/**
-	 * Notify the canvas that the connection is ready for sending messages
-	 */
 	@Override
-	public void triggerReadyToSend() {
-		this.show();
-		canvas.triggerReadyToSend();
+	public void stateChanged(InitState state) {
+		if (state == InitState.READY_TO_SEND) {
+			this.show();
+			canvas.triggerReadyToSend();
+		}
 	}
 
 	/**
