@@ -32,8 +32,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-import net.propero.rdp.rdp5.Rdp5;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -67,12 +65,12 @@ public class ISO {
 	private static final int EOT = 0x80;
 
 	private final Options options;
-	private final Rdp5 rdp;
+	private final Rdp rdp;
 
 	/**
 	 * Construct ISO object, initialises hex dump
 	 */
-	public ISO(Options options, Rdp5 rdp) {
+	public ISO(Options options, Rdp rdp) {
 		dump = new HexDump();
 		this.options = options;
 		this.rdp = rdp;

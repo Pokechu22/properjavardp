@@ -39,9 +39,8 @@ import javax.annotation.Nullable;
 import net.propero.rdp.Input.InputCapsetFlag;
 import net.propero.rdp.Input.InputType;
 import net.propero.rdp.Orders.PrimaryOrder;
-import net.propero.rdp.api.RdesktopCallback;
 import net.propero.rdp.api.InitState;
-import net.propero.rdp.rdp5.Rdp5;
+import net.propero.rdp.api.RdesktopCallback;
 import net.propero.rdp.rdp5.VChannels;
 
 import org.apache.logging.log4j.LogManager;
@@ -284,14 +283,9 @@ public class Rdp {
 	private RdpPacket stream = null;
 
 	protected final Options options;
+	private final VChannels channels;
 
 	private InitState state;
-
-	public Rdp(Options options) {
-		this.options = options;
-		this.surface = new OrderSurface(options, options.width, options.height);
-		this.SecureLayer = null;
-	}
 
 	/**
 	 * Gets the current state in the initialization process.
@@ -470,9 +464,11 @@ public class Rdp {
 	 * @param channels
 	 *            Virtual channels to be used in connection
 	 */
-	public Rdp(Options options, VChannels channels) {
+	public Rdp(Options options) {
 		this.options = options;
-		this.SecureLayer = new Secure(channels, options, (Rdp5) this); // XXX Uuh, cast to self in constructor.  Not good.
+		this.channels = new VChannels();
+		this.SecureLayer = new Secure(this.channels, options, this);
+		this.channels.setSecure(this.SecureLayer);
 		this.surface = new OrderSurface(options, options.width, options.height);
 		this.orders = new Orders(options);
 		this.cache = new Cache(options);
@@ -1638,6 +1634,7 @@ public class Rdp {
 		this.callback = callback;
 		this.surface.registerCallback(callback);
 		callback.registerSurface(this.surface);
+		callback.registerChannels(this.channels);
 		orders.registerDrawingSurface(this.surface);
 	}
 
@@ -1682,5 +1679,91 @@ public class Rdp {
 		int cache_idx = data.getLittleEndian16();
 		// logger.info("Setting cursor "+cache_idx);
 		callback.setCursor(cache.getCursor(cache_idx));
+	}
+
+
+
+	/**
+	 * Process an RDP5 packet
+	 *
+	 * @param s
+	 *            Packet to be processed
+	 * @param e
+	 *            True if packet is encrypted
+	 * @throws RdesktopException
+	 * @throws OrderException
+	 */
+	public void rdp5_process(RdpPacket s, boolean e)
+			throws RdesktopException, OrderException {
+		rdp5_process(s, e, false);
+	}
+
+	/**
+	 * Process an RDP5 packet
+	 *
+	 * @param s
+	 *            Packet to be processed
+	 * @param encryption
+	 *            True if packet is encrypted
+	 * @param shortform
+	 *            True if packet is of the "short" form
+	 * @throws RdesktopException
+	 * @throws OrderException
+	 */
+	public void rdp5_process(RdpPacket s, boolean encryption,
+			boolean shortform) throws RdesktopException, OrderException {
+		LOGGER.debug("Processing RDP 5 order");
+
+		int length, count;
+		int type;
+		int next;
+
+		if (encryption) {
+			s.incrementPosition(shortform ? 6 : 7 /* XXX HACK */); /* signature */
+			byte[] data = new byte[s.size() - s.getPosition()];
+			s.copyToByteArray(data, 0, s.getPosition(), data.length);
+			byte[] packet = SecureLayer.decrypt(data); // XXX unused???
+		}
+
+		// printf("RDP5 data:\n");
+		// hexdump(s->p, s->end - s->p);
+
+		while (s.getPosition() < s.getEnd()) {
+			type = s.get8();
+			length = s.getLittleEndian16();
+			/* next_packet = */next = s.getPosition() + length;
+			LOGGER.debug("RDP5: type = " + type);
+			switch (type) {
+			case 0: /* orders */
+				count = s.getLittleEndian16();
+				orders.processOrders(s, next, count);
+				break;
+			case 1: /* bitmap update (???) */
+				s.incrementPosition(2); /* part length */
+				processBitmapUpdates(s);
+				break;
+			case 2: /* palette */
+				s.incrementPosition(2);
+				processPalette(s);
+				break;
+			case 3: /* probably an palette with offset 3. Weird */
+				break;
+			case 5:
+				process_null_system_pointer_pdu(s);
+				break;
+			case 6: // default pointer
+				break;
+			case 9:
+				process_colour_pointer_pdu(s);
+				break;
+			case 10:
+				process_cached_pointer_pdu(s);
+				break;
+			default:
+				LOGGER.warn("Unimplemented RDP5 opcode " + type);
+			}
+
+			s.setPosition(next);
+		}
 	}
 }

@@ -37,7 +37,6 @@ import java.net.UnknownHostException;
 import net.propero.rdp.DisconnectInfo.Reason;
 import net.propero.rdp.api.InitState;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
-import net.propero.rdp.rdp5.Rdp5;
 import net.propero.rdp.ui.RdesktopFrame;
 
 import org.apache.logging.log4j.LogManager;
@@ -82,7 +81,6 @@ public class Rdesktop {
 		LOGGER.info("	--no_remap_hash 			disable hash remapping");
 		LOGGER.info("	--quiet_alt 				enable quiet alt fix");
 		LOGGER.info("	--no_encryption				disable encryption from client to server");
-		LOGGER.info("	--use_rdp4					use RDP version 4");
 		// logger.info("	--enable_menu				enable menu bar");
 		LOGGER.info("	--log4j_config=FILE			use FILE for log4j configuration");
 		LOGGER.info("Example: java net.propero.rdp.Rdesktop -g 800x600 -l WARN m52.propero.int");
@@ -108,19 +106,18 @@ public class Rdesktop {
 		int c;
 		String arg;
 		StringBuffer sb = new StringBuffer();
-		LongOpt[] alo = new LongOpt[12];
+		LongOpt[] alo = new LongOpt[11];
 		alo[0] = new LongOpt("debug_key", LongOpt.NO_ARGUMENT, null, 0);
 		alo[1] = new LongOpt("debug_hex", LongOpt.NO_ARGUMENT, null, 0);
 		alo[2] = new LongOpt("no_paste_hack", LongOpt.NO_ARGUMENT, null, 0);
 		alo[3] = new LongOpt("log4j_config", LongOpt.REQUIRED_ARGUMENT, sb, 0);
 		alo[4] = new LongOpt("quiet_alt", LongOpt.NO_ARGUMENT, sb, 0);
 		alo[5] = new LongOpt("no_remap_hash", LongOpt.NO_ARGUMENT, null, 0);
-		alo[6] = new LongOpt("use_rdp4", LongOpt.NO_ARGUMENT, null, 0);
-		alo[7] = new LongOpt("enable_menu", LongOpt.NO_ARGUMENT, null, 0);
-		alo[8] = new LongOpt("console", LongOpt.NO_ARGUMENT, null, 0);
-		alo[9] = new LongOpt("load_licence", LongOpt.NO_ARGUMENT, null, 0);
-		alo[10] = new LongOpt("save_licence", LongOpt.NO_ARGUMENT, null, 0);
-		alo[11] = new LongOpt("persistent_caching", LongOpt.NO_ARGUMENT, null,
+		alo[6] = new LongOpt("enable_menu", LongOpt.NO_ARGUMENT, null, 0);
+		alo[7] = new LongOpt("console", LongOpt.NO_ARGUMENT, null, 0);
+		alo[8] = new LongOpt("load_licence", LongOpt.NO_ARGUMENT, null, 0);
+		alo[9] = new LongOpt("save_licence", LongOpt.NO_ARGUMENT, null, 0);
+		alo[10] = new LongOpt("persistent_caching", LongOpt.NO_ARGUMENT, null,
 				0);
 
 		Getopt g = new Getopt("properJavaRDP", args,
@@ -148,23 +145,18 @@ public class Rdesktop {
 					options.remap_hash = false;
 					break;
 				case 6:
-					options.use_rdp5 = false;
-					// options.server_bpp = 8;
-					options.set_bpp(8);
-					break;
-				case 7:
 					options.enable_menu = true;
 					break;
-				case 8:
+				case 7:
 					options.console_session = true;
 					break;
-				case 9:
+				case 8:
 					options.load_licence = true;
 					break;
-				case 10:
+				case 9:
 					options.save_licence = true;
 					break;
-				case 11:
+				case 10:
 					options.persistent_bitmap_caching = true;
 					break;
 				default:
@@ -321,7 +313,7 @@ public class Rdesktop {
 			options.caps_sends_up_and_down = false;
 		}
 
-		Rdp5 RdpLayer;
+		Rdp RdpLayer;
 		RdesktopFrame window = new RdesktopFrame(options);
 
 		// Configure a keyboard layout
@@ -354,7 +346,7 @@ public class Rdesktop {
 		window.registerKeyboard(keyMap);
 
 		LOGGER.debug("Initialising RDP layer...");
-		RdpLayer = new Rdp5(options);
+		RdpLayer = new Rdp(options);
 		LOGGER.debug("Registering drawing surface...");
 		RdpLayer.registerDrawingSurface(window);
 		LOGGER.debug("Registering comms layer...");

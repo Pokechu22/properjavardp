@@ -99,16 +99,15 @@ public class VChannels {
 		return MCS.MCS_GLOBAL_CHANNEL + 1 + c;
 	}
 
-	private final Secure secure;
+	private Secure secure;
 
 	/**
 	 * Initalize a new instance of VChannels
 	 *
 	 * @param secure The secure instance to give to each channel.
 	 */
-	public VChannels(Secure secure) {
+	public VChannels() {
 		channels = new VChannel[MAX_CHANNELS];
-		this.secure = secure;
 	}
 
 	/**

@@ -31,7 +31,6 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.StringTokenizer;
 
-import net.propero.rdp.rdp5.Rdp5;
 import net.propero.rdp.rdp5.VChannels;
 
 import org.apache.logging.log4j.LogManager;
@@ -157,7 +156,7 @@ public class Secure {
 	 * @param options
 	 *            The options instance
 	 */
-	public Secure(VChannels channels, Options options, Rdp5 rdp) {
+	public Secure(VChannels channels, Options options, Rdp rdp) {
 		this.channels = channels;
 		this.options = options;
 		this.licence = new Licence(options, this);

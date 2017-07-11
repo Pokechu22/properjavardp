@@ -27,7 +27,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetAddress;
 
-import net.propero.rdp.rdp5.Rdp5;
 import net.propero.rdp.rdp5.VChannels;
 
 import org.apache.logging.log4j.LogManager;
@@ -87,7 +86,7 @@ public class MCS {
 	 * @param channels
 	 *            Set of available MCS channels
 	 */
-	public MCS(Options options, VChannels channels, Secure secure, Rdp5 rdp) {
+	public MCS(Options options, VChannels channels, Secure secure, Rdp rdp) {
 		this.channels = channels;
 		this.secure = secure;
 		IsoLayer = new ISO(options, rdp);
