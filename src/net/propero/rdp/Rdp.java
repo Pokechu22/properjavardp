@@ -307,14 +307,23 @@ public class Rdp {
 	 *            Packet containing capability set data at current read position
 	 */
 	private void processGeneralCaps(RdpPacket data) throws RdesktopException {
-		int pad2octetsB; /* rdp5 flags? */
+		data.getLittleEndian16();  // OS type major
+		data.getLittleEndian16();  // OS type minor
+		data.getLittleEndian16();  // Protocol version
+		data.getLittleEndian16();  // pad
+		data.getLittleEndian16();  // Compression type; must be 0
+		int extraFlags = data.getLittleEndian16();
 
-		data.incrementPosition(10); // in_uint8s(s, 10);
-		pad2octetsB = data.getLittleEndian16(); // in_uint16_le(s, pad2octetsB);
+		// TODO: actually handle these flags
+		//if (extraFlags != 0) {
+		//	options.use_rdp5 = false;
+		//}
 
-		if (pad2octetsB != 0) {
-			options.use_rdp5 = false;
-		}
+		data.getLittleEndian16();  // Update capability; must be 0
+		data.getLittleEndian16();  // Unshare support; must be 0
+		data.getLittleEndian16();  // Compression level; must be 0
+		data.get8();  // Boolean; indicates if the refresh rect PDU is supported
+		data.get8();  // Boolean; indicates if the suppress output PDU is supported
 	}
 
 	/**
@@ -324,13 +333,19 @@ public class Rdp {
 	 *            Packet containing capability set data at current read position
 	 */
 	private void processBitmapCaps(RdpPacket data) throws RdesktopException {
-		int width, height, bpp;
-
-		bpp = data.getLittleEndian16(); // in_uint16_le(s, bpp);
-		data.incrementPosition(6); // in_uint8s(s, 6);
-
-		width = data.getLittleEndian16(); // in_uint16_le(s, width);
-		height = data.getLittleEndian16(); // in_uint16_le(s, height);
+		int bpp = data.getLittleEndian16();  // Prefered bits per pixel
+		data.getLittleEndian16();  // Supports 1 bit per pixel; should always be true
+		data.getLittleEndian16();  // Supports 4 bits per pixel; should always be true
+		data.getLittleEndian16();  // Supports 8 bits per pixel; should always be true
+		int width = data.getLittleEndian16();  // Width (px)
+		int height = data.getLittleEndian16();  // Height (px)
+		data.getLittleEndian16();  // Pad
+		data.getLittleEndian16();  // Boolean; true if using a Deactivation-Reactivation Sequence is supported
+		data.getLittleEndian16();  // Boolean; true if bitmap compression is supported, which is required
+		data.get8();  // 16bpp color flags; should be 0
+		data.get8();  // 32bpp color flags
+		data.getLittleEndian16();  // Multiple rect support; should always be true
+		data.getLittleEndian16();  // Pad
 
 		LOGGER.debug("setting desktop size and bpp to: " + width + "x" + height
 				+ "x" + bpp);
