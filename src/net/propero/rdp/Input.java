@@ -866,7 +866,7 @@ public class Input {
 	 * @throws UnsupportedOperationException
 	 *             if the server does not support horizontal scrolls
 	 */
-	public void scrollHorizontally(boolean down, int by) {
+	public void scrollHorizontally(int by) {
 		if (!options.supportedInputFlags.contains(InputCapsetFlag.MOUSE_HWHEEL)) {
 			throw new UnsupportedOperationException(
 					"Cannot scroll horizontally; server doesn't support it");
