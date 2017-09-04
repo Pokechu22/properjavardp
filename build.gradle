@@ -56,7 +56,14 @@ task mcdepJar(type: Jar) {
     exclude '**/log4j2.xml'
 }
 
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+
 artifacts {
     archives jar
     archives mcdepJar
+    archives sourcesJar
 }
