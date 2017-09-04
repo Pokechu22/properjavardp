@@ -54,6 +54,9 @@ task mcdepJar(type: Jar) {
     from { configurations.mcdep.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
     exclude '**/log4j2.xml'
+    exclude "META-INF/*.SF"
+    exclude "META-INF/*.DSA"
+    exclude "META-INF/*.RSA"
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
