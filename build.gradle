@@ -28,8 +28,13 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    mcdep
+    compile.extendsFrom(mcdep)
+}
+
 dependencies {
-    compile files('lib/java-getopt-1.0.13.jar') // woo, old java
+    mcdep files('lib/java-getopt-1.0.13.jar') // woo, old java
     compile "org.apache.logging.log4j:log4j-api:2.8.1"
     compile "org.apache.logging.log4j:log4j-core:2.8.1"
 
@@ -41,4 +46,17 @@ dependencies {
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
+}
+
+// Contains dependencies not present in MC
+task mcdepJar(type: Jar) {
+    classifier = 'mcdep'
+    from { configurations.mcdep.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+    exclude '**/log4j2.xml'
+}
+
+artifacts {
+    archives jar
+    archives mcdepJar
 }
