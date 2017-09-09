@@ -26,8 +26,6 @@ package net.propero.rdp;
 
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -140,8 +138,6 @@ public class Input {
 	}
 
 	public KeyCode_FileBased newKeyMapper = null;
-
-	public Set<Integer> pressedKeys;
 
 	@Deprecated
 	protected static boolean capsLockOn = false;
@@ -293,7 +289,6 @@ public class Input {
 	public Input(Options options, Rdp r, KeyCode_FileBased k) {
 		this.newKeyMapper = k;
 		this.rdp = r;
-		this.pressedKeys = new HashSet<>();
 		this.options = options;
 	}
 
@@ -318,7 +313,6 @@ public class Input {
 		}
 
 		this.rdp = r;
-		this.pressedKeys = new HashSet<>();
 		this.options = options;
 	}
 

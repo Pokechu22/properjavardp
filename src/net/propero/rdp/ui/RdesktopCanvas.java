@@ -33,6 +33,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -173,6 +175,8 @@ public class RdesktopCanvas extends Canvas {
 
 	private class RdesktopKeyAdapter extends KeyAdapter {
 
+		private final Set<Integer> pressedKeys = new HashSet<>();
+
 		/**
 		 * Handle a keyPressed event, sending any relevant keypresses to the
 		 * server
@@ -185,7 +189,7 @@ public class RdesktopCanvas extends Canvas {
 
 			// Some java versions have keys that don't generate keyPresses -
 			// here we add the key so we can later check if it happened
-			input.pressedKeys.add(new Integer(e.getKeyCode()));
+			pressedKeys.add(e.getKeyCode());
 
 			LOGGER.debug("PRESSED keychar='" + e.getKeyChar() + "' keycode=0x"
 					+ Integer.toHexString(e.getKeyCode()) + " char='"
@@ -211,7 +215,7 @@ public class RdesktopCanvas extends Canvas {
 
 			// Some java versions have keys that don't generate keyPresses -
 			// here we add the key so we can later check if it happened
-			input.pressedKeys.add(new Integer(e.getKeyCode()));
+			pressedKeys.add(e.getKeyCode());
 
 			LOGGER.debug("TYPED keychar='" + e.getKeyChar() + "' keycode=0x"
 					+ Integer.toHexString(e.getKeyCode()) + " char='"
@@ -235,12 +239,11 @@ public class RdesktopCanvas extends Canvas {
 			// Some java versions have keys that don't generate keyPresses -
 			// we added the key to the vector in keyPressed so here we check for
 			// it
-			Integer keycode = new Integer(e.getKeyCode());
-			if (!input.pressedKeys.contains(keycode)) {
+			if (!pressedKeys.contains(e.getKeyCode())) {
 				this.keyPressed(e);
 			}
 
-			input.pressedKeys.remove(keycode);
+			pressedKeys.remove(e.getKeyCode());
 
 			input.lastKeyEvent = e;
 			input.modifiersValid = true;
