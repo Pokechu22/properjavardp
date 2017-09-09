@@ -107,13 +107,13 @@ public class KeyCode_FileBased {
 	public KeyCode_FileBased(Options options, String keyMapFile) throws KeyMapException {
 		// logger.info("String called keycode reader");
 
-		FileInputStream fstream;
 		this.options = options;
-		try {
-			fstream = new FileInputStream(keyMapFile);
+		try (FileInputStream fstream = new FileInputStream(keyMapFile)) {
 			readMapFile(fstream);
 		} catch (FileNotFoundException e) {
 			throw new KeyMapException("KeyMap file not found: " + keyMapFile, e);
+		} catch (IOException e) {
+			throw new KeyMapException("Failed to read KeyMap: " + keyMapFile, e);
 		}
 	}
 
