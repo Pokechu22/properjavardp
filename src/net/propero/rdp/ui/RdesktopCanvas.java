@@ -84,6 +84,7 @@ public class RdesktopCanvas extends Canvas {
 		this.options = options;
 		setSize(width, height);
 
+		this.setFocusTraversalKeysEnabled(false);
 		// now do input listeners in registerCommLayer() / registerKeyboard()
 	}
 

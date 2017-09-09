@@ -24,19 +24,17 @@
 
 package net.propero.rdp;
 
-import java.awt.KeyboardFocusManager;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.propero.rdp.keymapping.KeyCode;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
 import net.propero.rdp.keymapping.KeyMapException;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Handles input events and sends relevant input data to server
@@ -297,8 +295,6 @@ public class Input {
 		this.rdp = r;
 		this.pressedKeys = new HashSet<>();
 		this.options = options;
-
-		this.configureDefaultFocusTraversalKeys();
 	}
 
 	/**
@@ -324,23 +320,6 @@ public class Input {
 		this.rdp = r;
 		this.pressedKeys = new HashSet<>();
 		this.options = options;
-
-		this.configureDefaultFocusTraversalKeys();
-	}
-
-	/**
-	 * Configures focus traversal keys, so that tab and shift-tab have no
-	 * special meaning.
-	 */
-	private void configureDefaultFocusTraversalKeys() {
-		KeyboardFocusManager.getCurrentKeyboardFocusManager()
-		.setDefaultFocusTraversalKeys(
-				KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
-				Collections.emptySet());
-		KeyboardFocusManager.getCurrentKeyboardFocusManager()
-		.setDefaultFocusTraversalKeys(
-				KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
-				Collections.emptySet());
 	}
 
 	/**

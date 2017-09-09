@@ -259,6 +259,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 		}
 
 		canvas.requestFocus();
+		this.setFocusTraversalKeysEnabled(false);
 	}
 
 	/**
