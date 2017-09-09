@@ -50,11 +50,10 @@ public class Version {
 				String filename = argv[0];
 				LOGGER.info("Writing version information to: "
 						+ filename);
-				PrintWriter file = new PrintWriter(new FileOutputStream(
-						filename), true);
-
-				file.println("product.version=" + version);
-				file.close();
+				try (PrintWriter file = new PrintWriter(new FileOutputStream(
+						filename), true)) {
+					file.println("product.version=" + version);
+				}
 			}
 		} catch (Exception e) {
 			LOGGER.fatal("Problem writing version information", e);

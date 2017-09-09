@@ -354,25 +354,39 @@ public class ISO {
 		}
 		try {
 			sendMessage(DISCONNECT_REQUEST);
-			if (in != null) {
-				in.close();
-			}
-			if (out != null) {
-				out.close();
-			}
 			if (rdpsock != null) {
 				rdpsock.close();
 			}
 		} catch (IOException e) {
-			LOGGER.warn("ISO: Failed to disconnect", e);
-			in = null;
-			out = null;
-			rdpsock = null;
-			return;
+			LOGGER.warn("ISO: Failed to send disconnect", e);
 		}
-		in = null;
-		out = null;
-		rdpsock = null;
+		try {
+			if (in != null) {
+				in.close();
+			}
+		} catch (IOException e) {
+			LOGGER.warn("ISO: Failed to close input stream", e);
+		} finally {
+			in = null;
+		}
+		try {
+			if (out != null) {
+				out.close();
+			}
+		} catch (IOException e) {
+			LOGGER.warn("ISO: Failed to close output stream", e);
+		} finally {
+			out = null;
+		}
+		try {
+			if (rdpsock != null) {
+				rdpsock.close();
+			}
+		} catch (IOException e) {
+			LOGGER.warn("ISO: Failed to close rdp socket", e);
+		} finally {
+			rdpsock = null;
+		}
 	}
 
 	/**

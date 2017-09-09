@@ -26,6 +26,9 @@ package net.propero.rdp.rdp5.cliprdr;
 import java.awt.Image;
 import java.io.ByteArrayInputStream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.propero.rdp.RdpPacket;
 
 public class BMPToImageThread extends Thread {
@@ -35,6 +38,8 @@ public class BMPToImageThread extends Thread {
 	int length;
 
 	ClipInterface c;
+
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	public BMPToImageThread(RdpPacket data, int length, ClipInterface c) {
 		super();
@@ -57,9 +62,13 @@ public class BMPToImageThread extends Thread {
 			content[i] = (byte) (data.get8() & 0xFF);
 		}
 
-		Image img = ClipBMP.loadbitmap(new ByteArrayInputStream(content));
-		ImageSelection imageSelection = new ImageSelection(img);
-		c.copyToClipboard(imageSelection);
+		try {
+			Image img = ClipBMP.loadbitmap(new ByteArrayInputStream(content));
+			ImageSelection imageSelection = new ImageSelection(img);
+			c.copyToClipboard(imageSelection);
+		} catch (Exception ex) {
+			LOGGER.warn("Failed to load bitmap", ex);
+		}
 	}
 
 }

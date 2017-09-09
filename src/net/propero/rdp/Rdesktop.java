@@ -319,19 +319,15 @@ public class Rdesktop {
 		// Configure a keyboard layout
 		KeyCode_FileBased keyMap;
 		try {
-			// logger.info("looking for: " + "/" + keyMapPath + mapFile);
-			InputStream istr = Rdesktop.class.getResourceAsStream("/"
-					+ keyMapPath + mapFile);
-			// logger.info("istr = " + istr);
-			if (istr == null) {
-				LOGGER.debug("Loading keymap from filename");
-				keyMap = new KeyCode_FileBased(options, keyMapPath + mapFile);
-			} else {
-				LOGGER.debug("Loading keymap from InputStream");
-				keyMap = new KeyCode_FileBased(options, istr);
-			}
-			if (istr != null) {
-				istr.close();
+			String filename = keyMapPath + mapFile;
+			try (InputStream istr = Rdesktop.class.getResourceAsStream("/" + filename)) {
+				if (istr == null) {
+					LOGGER.debug("Loading keymap from filename: " + filename);
+					keyMap = new KeyCode_FileBased(options, filename);
+				} else {
+					LOGGER.debug("Loading keymap from InputStream: " + "/" + filename);
+					keyMap = new KeyCode_FileBased(options, istr);
+				}
 			}
 			options.keylayout = keyMap.getMapCode();
 		} catch (Exception kmEx) {

@@ -181,8 +181,6 @@ public class KeyCode_FileBased {
 			}
 			// Commit added mapping definitions
 			keyMap.addAll(newMap);
-
-			in.close();
 		} catch (IOException e) {
 			throw new KeyMapException("File input error: " + e.getMessage(), e);
 		} catch (NumberFormatException nfEx) {
@@ -351,16 +349,12 @@ public class KeyCode_FileBased {
 	 *            File in which to store definitions
 	 */
 	public void writeToFile(String filename) {
-		try {
-			FileOutputStream out = new FileOutputStream(filename);
-			PrintStream p = new PrintStream(out);
-
-			for (MapDef def : this.keyMap) {
-				def.writeToStream(p);
+		try (FileOutputStream out = new FileOutputStream(filename)) {
+			try (PrintStream p = new PrintStream(out)) {
+				for (MapDef def : this.keyMap) {
+					def.writeToStream(p);
+				}
 			}
-
-			p.close();
-
 		} catch (Exception e) {
 			LOGGER.warn("Error writing keymap to file: " + e.getMessage(), e);
 		}

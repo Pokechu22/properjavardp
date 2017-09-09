@@ -23,16 +23,16 @@
  */
 package net.propero.rdp.loader;
 
-import java.io.DataInputStream;
-import java.io.FileInputStream;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
-import net.propero.rdp.Rdesktop;
-import net.propero.rdp.RdesktopException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import net.propero.rdp.Rdesktop;
+import net.propero.rdp.RdesktopException;
 
 /**
  * Launch ProperJavaRDP with settings from a config file
@@ -65,29 +65,29 @@ public class JRdpLoader {
 			String outArgs = "";
 
 			// Open the file specified at the command-line
-			FileInputStream fstream = new FileInputStream(launchFile);
-			DataInputStream in = new DataInputStream(fstream);
-			while (in.available() != 0) {
-				String line = in.readLine();
-				StringTokenizer stok = new StringTokenizer(line);
-				if (stok.hasMoreTokens()) {
-					String identifier = stok.nextToken();
-					String value = "";
-					while (stok.hasMoreTokens()) {
-						value += stok.nextToken();
-						if (stok.hasMoreTokens()) {
-							value += " ";
+			try (BufferedReader reader = new BufferedReader(new FileReader(launchFile))) {
+				String line;
+				while ((line = reader.readLine()) != null) {
+					StringTokenizer stok = new StringTokenizer(line);
+					if (stok.hasMoreTokens()) {
+						String identifier = stok.nextToken();
+						String value = "";
+						while (stok.hasMoreTokens()) {
+							value += stok.nextToken();
+							if (stok.hasMoreTokens()) {
+								value += " ";
+							}
 						}
-					}
 
-					if (identifier.equals("--server")) {
-						server = value;
-					} else if (identifier.equals("--port")) {
-						port = value;
-					} else {
-						String p = getParam(identifier);
-						if (p != null) {
-							outArgs += p + " " + value + " ";
+						if (identifier.equals("--server")) {
+							server = value;
+						} else if (identifier.equals("--port")) {
+							port = value;
+						} else {
+							String p = getParam(identifier);
+							if (p != null) {
+								outArgs += p + " " + value + " ";
+							}
 						}
 					}
 				}
@@ -102,7 +102,6 @@ public class JRdpLoader {
 				String[] finArgs = outArgs.split(" ");
 
 				Rdesktop.main(finArgs);
-				in.close();
 			} else {
 				LOGGER.fatal("No server name provided");
 				System.exit(-1);
