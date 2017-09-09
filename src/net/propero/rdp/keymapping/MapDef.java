@@ -235,8 +235,8 @@ public class MapDef {
 	protected boolean appliesToTyped(KeyEvent e, boolean capslock) {
 
 		if (options.os == Options.OS.MAC) {
-			// Remap the hash key to �
-			if (options.remap_hash && (e.getKeyChar() == '�')) {
+			// Remap the hash key to the section sign
+			if (options.remap_hash && (e.getKeyChar() == '\u00a7')) {
 				return ((characterDef) && (this.keyChar == '#'));
 			}
 
