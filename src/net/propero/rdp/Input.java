@@ -430,6 +430,24 @@ public class Input {
 	}
 
 	/**
+	 * Sends a unicode character to the server.
+	 *
+	 * @param c
+	 *            The character to send
+	 * @param release
+	 *            True if the key is being released; false if it's being pressed
+	 * @throws UnsupportedOperationException
+	 *             if the server does not support the unicode keyboard event
+	 */
+	public void sendUnicode(char c, boolean release) {
+		if (!options.supportedInputFlags.contains(InputCapsetFlag.UNICODE)) {
+			throw new UnsupportedOperationException("Unicode keyboard event is not supported by the server");
+		}
+
+		rdp.sendInput(getTime(), InputType.UNICODE, release ? KBD_FLAG_UP : 0, c, 0);
+	}
+
+	/**
 	 * Release any modifier keys that may be depressed.
 	 */
 	public void clearKeys() {
