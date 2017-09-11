@@ -356,6 +356,8 @@ public class Rdp {
 			options.height = height;
 			this.callback.sizeChanged(width, height);
 			this.surface.sizeChanged();
+			// XXX Not sure if we need this, but it makes the cursor better
+			this.callback.setCursor(SystemCursorType.INVISIBLE_CURSOR);
 		}
 	}
 

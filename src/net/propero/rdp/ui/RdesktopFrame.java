@@ -599,8 +599,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 				setCursor(invisibleCursor);
 				break;
 			}
-			case DEFAULT_CURSOR:
-			{
+			case DEFAULT_CURSOR: {
 				super.setCursor((Cursor) null);
 				break;
 			}
