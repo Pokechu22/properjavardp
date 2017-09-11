@@ -64,10 +64,10 @@ public interface RdesktopCallback {
 	
 	/**
 	 * Sets the displayed cursor. This method will only be called with objects
-	 * that are returned by {@link #createCursor}.
+	 * that are returned by {@link #createCursor} or an instance of {@link SystemCursorType}.
 	 * 
 	 * @param cursor
-	 *            The cursor to display.
+	 *            The cursor to display
 	 */
 	public abstract void setCursor(@Nonnull Object cursor);
 

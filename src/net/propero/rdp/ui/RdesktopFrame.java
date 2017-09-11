@@ -49,9 +49,11 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.awt.image.MemoryImageSource;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -62,6 +64,7 @@ import net.propero.rdp.Rdesktop;
 import net.propero.rdp.Rdp;
 import net.propero.rdp.api.InitState;
 import net.propero.rdp.api.RdesktopCallback;
+import net.propero.rdp.api.SystemCursorType;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
 import net.propero.rdp.rdp5.VChannels;
 import net.propero.rdp.rdp5.cliprdr.ClipChannel;
@@ -82,6 +85,10 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 	public RdpMenu menu = null;
 
 	private Robot robot = null;
+
+	/** An invisible cursor.  Null until initialized. */
+	@Nullable
+	private Cursor invisibleCursor = null;
 
 	/**
 	 * Register the clipboard channel
@@ -579,8 +586,31 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 
 	@Override
 	public void setCursor(@Nonnull Object cursor) {
-		assert cursor instanceof Cursor : "Unexpected object " + cursor + " (" + (cursor != null ? cursor.getClass() : null) + ")";
-		setCursor((Cursor) cursor);
+		if (cursor instanceof Cursor) {
+			setCursor((Cursor) cursor);
+		} else if (cursor instanceof SystemCursorType) {
+			switch ((SystemCursorType)cursor) {
+			case INVISIBLE_CURSOR: {
+				if (invisibleCursor == null) {
+					invisibleCursor = createCustomCursor(
+							new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB),
+							new Point(1, 1), "");
+				}
+				setCursor(invisibleCursor);
+				break;
+			}
+			case DEFAULT_CURSOR:
+			{
+				super.setCursor((Cursor) null);
+				break;
+			}
+			default: {
+				throw new IllegalArgumentException("Unknown SystemCursorType " + cursor);
+			}
+			}
+		} else {
+			throw new IllegalArgumentException("Unexpected object " + cursor + " (" + (cursor != null ? cursor.getClass() : null) + ")");
+		}
 	}
 
 	/**

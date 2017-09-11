@@ -40,6 +40,7 @@ import net.propero.rdp.Input.InputType;
 import net.propero.rdp.Orders.PrimaryOrder;
 import net.propero.rdp.api.InitState;
 import net.propero.rdp.api.RdesktopCallback;
+import net.propero.rdp.api.SystemCursorType;
 import net.propero.rdp.rdp5.VChannels;
 
 import org.apache.logging.log4j.LogManager;
@@ -131,11 +132,6 @@ public class Rdp {
 	private static final int RDP_POINTER_COLOR = 6;
 
 	private static final int RDP_POINTER_CACHED = 7;
-
-	// System Pointer Types
-	private static final int RDP_NULL_POINTER = 0;
-
-	private static final int RDP_DEFAULT_POINTER = 0x7F00;
 
 	/* RDP capabilities */
 
@@ -1624,19 +1620,6 @@ public class Rdp {
 	}
 
 	/**
-	 * Processes an RDP5 fast-path hidden pointer update
-	 *
-	 * @see [MS-RDPBCGR] 2.2.9.1.2.1.5
-	 */
-	private void process_null_system_pointer_pdu(RdpPacket s)
-			throws RdesktopException {
-		LOGGER.debug("RDP5_NULL_POINTER");
-		// FIXME: We should probably set another cursor here,
-		// like the X window system base cursor or something.
-		callback.setCursor(cache.getCursor(0));
-	}
-
-	/**
 	 * The TS_SYSTEMPOINTERATTRIBUTE structure is used to hide the pointer or to
 	 * set its shape to the operating system default ([T128] section 8.14.1).
 	 *
@@ -1645,17 +1628,8 @@ public class Rdp {
 	 */
 	private void process_system_pointer_pdu(RdpPacket data) {
 		int system_pointer_type = data.getLittleEndian16();
-		switch (system_pointer_type) {
-		case RDP_NULL_POINTER:
-			LOGGER.debug("RDP_NULL_POINTER");
-			callback.setCursor(null);
-			break;
-	
-		default:
-			LOGGER.warn("Unimplemented system pointer message 0x"
-					+ Integer.toHexString(system_pointer_type));
-			// unimpl("System pointer message 0x%x\n", system_pointer_type);
-		}
+		SystemCursorType type = SystemCursorType.byId(system_pointer_type);
+		callback.setCursor(type);
 	}
 
 	/**
@@ -1774,9 +1748,16 @@ public class Rdp {
 			case 3: /* probably an palette with offset 3. Weird */
 				break;
 			case 5:
-				process_null_system_pointer_pdu(s);
+				// Hide the pointer
+				// [MS-RDPBCGR] 2.2.9.1.2.1.5
+				LOGGER.debug("RDP5_HIDE_POINTER");
+				callback.setCursor(SystemCursorType.DEFAULT_CURSOR);
 				break;
-			case 6: // default pointer
+			case 6:
+				// Set the shape of the pointer to the operating system default
+				// [MS-RDPBCGR] 2.2.9.1.2.1.6
+				LOGGER.debug("RDP5_DEFAULT_POINTER");
+				callback.setCursor(SystemCursorType.DEFAULT_CURSOR);
 				break;
 			case 9:
 				process_colour_pointer_pdu(s);
