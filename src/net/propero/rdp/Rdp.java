@@ -23,7 +23,6 @@
  */
 package net.propero.rdp;
 
-import java.awt.Cursor;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.image.IndexColorModel;
@@ -1470,24 +1469,6 @@ public class Rdp {
 		}
 	}
 
-	private void process_system_pointer_pdu(RdpPacket data) {
-		int system_pointer_type = 0;
-
-		data.getLittleEndian16(system_pointer_type); // in_uint16(s,
-		// system_pointer_type);
-		switch (system_pointer_type) {
-		case RDP_NULL_POINTER:
-			LOGGER.debug("RDP_NULL_POINTER");
-			callback.setCursor(null);
-			break;
-
-		default:
-			LOGGER.warn("Unimplemented system pointer message 0x"
-					+ Integer.toHexString(system_pointer_type));
-			// unimpl("System pointer message 0x%x\n", system_pointer_type);
-		}
-	}
-
 	protected void processBitmapUpdates(RdpPacket data)
 			throws RdesktopException {
 		LOGGER.debug("processBitmapUpdates");
@@ -1638,46 +1619,84 @@ public class Rdp {
 		orders.registerDrawingSurface(this.surface);
 	}
 
-	/* Process a null system pointer PDU */
-	protected void process_null_system_pointer_pdu(RdpPacket s)
+	/**
+	 * Process a null system pointer PDU
+	 *
+	 * I am not entirely sure what that means, given that I can't find a matching packet in the spec.
+	 */
+	private void process_null_system_pointer_pdu(RdpPacket s)
 			throws RdesktopException {
 		// FIXME: We should probably set another cursor here,
 		// like the X window system base cursor or something.
 		callback.setCursor(cache.getCursor(0));
 	}
 
-	protected void process_colour_pointer_pdu(RdpPacket data)
+	/**
+	 * The TS_SYSTEMPOINTERATTRIBUTE structure is used to hide the pointer or to
+	 * set its shape to the operating system default ([T128] section 8.14.1).
+	 *
+	 * @see [MS-RDPBCGR] 2.2.9.1.1.4.3
+	 * @param data The packet to read from
+	 */
+	private void process_system_pointer_pdu(RdpPacket data) {
+		int system_pointer_type = data.getLittleEndian16();
+		switch (system_pointer_type) {
+		case RDP_NULL_POINTER:
+			LOGGER.debug("RDP_NULL_POINTER");
+			callback.setCursor(null);
+			break;
+	
+		default:
+			LOGGER.warn("Unimplemented system pointer message 0x"
+					+ Integer.toHexString(system_pointer_type));
+			// unimpl("System pointer message 0x%x\n", system_pointer_type);
+		}
+	}
+
+	/**
+	 * The TS_COLORPOINTERATTRIBUTE structure represents a regular T.128 24 bpp color pointer, as specified in [T128] section 8.14.3. This pointer update is used for both monochrome and color pointers in RDP.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.9.1.1.4.4
+	 * @param data The data to read from
+	 * @throws RdesktopException
+	 */
+	private void process_colour_pointer_pdu(RdpPacket data)
 			throws RdesktopException {
 		LOGGER.debug("Rdp.RDP_POINTER_COLOR");
-		int x = 0, y = 0, width = 0, height = 0, cache_idx = 0, masklen = 0, datalen = 0;
-		byte[] mask = null, pixel = null;
-		Cursor cursor = null;
 
-		cache_idx = data.getLittleEndian16();
-		x = data.getLittleEndian16();
-		y = data.getLittleEndian16();
-		width = data.getLittleEndian16();
-		height = data.getLittleEndian16();
-		masklen = data.getLittleEndian16();
-		datalen = data.getLittleEndian16();
-		mask = new byte[masklen];
-		pixel = new byte[datalen];
-		data.copyToByteArray(pixel, 0, data.getPosition(), datalen);
-		data.incrementPosition(datalen);
-		data.copyToByteArray(mask, 0, data.getPosition(), masklen);
-		data.incrementPosition(masklen);
-		cursor = callback.createCursor(x, y, width, height, mask, pixel,
-				cache_idx);
+		int cache_idx = data.getLittleEndian16();
+		int x = data.getLittleEndian16();
+		int y = data.getLittleEndian16();
+		int width = data.getLittleEndian16();
+		int height = data.getLittleEndian16();
+		// Yes, the field order is andLength, xorLength, xor, and; it's not backwards.
+		int andLength = data.getLittleEndian16();
+		int xorLength = data.getLittleEndian16();
+		byte[] xorMask = new byte[xorLength];
+		byte[] andMask = new byte[andLength];
+		data.copyToByteArray(xorMask, 0, data.getPosition(), xorLength);
+		data.incrementPosition(xorLength);
+		data.copyToByteArray(andMask, 0, data.getPosition(), andLength);
+		data.incrementPosition(andLength);
+		Object cursor = callback.createCursor(x, y, width, height, andMask, xorMask);
 		// logger.info("Creating and setting cursor " + cache_idx);
 		callback.setCursor(cursor);
 		cache.putCursor(cache_idx, cursor);
 	}
 
-	protected void process_cached_pointer_pdu(RdpPacket data)
+	/**
+	 * The TS_CACHEDPOINTERATTRIBUTE structure is used to instruct the client to
+	 * change the current pointer shape to one already present in the pointer
+	 * cache.
+	 *
+	 * @see [MS-RDPBCGR] 2.2.9.1.1.4.6
+	 * @param data The packet to read from
+	 * @throws RdesktopException
+	 */
+	private void process_cached_pointer_pdu(RdpPacket data)
 			throws RdesktopException {
 		LOGGER.debug("Rdp.RDP_POINTER_CACHED");
 		int cache_idx = data.getLittleEndian16();
-		// logger.info("Setting cursor "+cache_idx);
 		callback.setCursor(cache.getCursor(cache_idx));
 	}
 

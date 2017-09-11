@@ -51,6 +51,11 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.MemoryImageSource;
 
+import javax.annotation.Nonnull;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.propero.rdp.Options;
 import net.propero.rdp.OrderSurface;
 import net.propero.rdp.Rdesktop;
@@ -60,9 +65,6 @@ import net.propero.rdp.api.RdesktopCallback;
 import net.propero.rdp.keymapping.KeyCode_FileBased;
 import net.propero.rdp.rdp5.VChannels;
 import net.propero.rdp.rdp5.cliprdr.ClipChannel;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Window for RDP session
@@ -516,6 +518,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 	 * @param y
 	 *            y coordinate for mouse move
 	 */
+	@Override
 	public void movePointer(int x, int y) {
 		Point p = this.getLocationOnScreen();
 		x = x + p.x;
@@ -523,73 +526,61 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 		robot.mouseMove(x, y);
 	}
 
-	public Cursor createCursor(int x, int y, int w, int h, byte[] andmask,
-			byte[] xormask, int cache_idx) {
-		int pxormask = 0;
-		int pandmask = 0;
-		Point p = new Point(x, y);
-		int size = w * h;
-		int scanline = w / 8;
-		int offset = 0;
-		byte[] mask = new byte[size];
+	@Override
+	public Cursor createCursor(int hotspotX, int hotspotY, int width, int height, byte[] andmask,
+			byte[] xormask) {
+		Point p = new Point(hotspotX, hotspotY);
+		final int size = width * height;
+		final int scanline = width / 8;
+		boolean[] mask = new boolean[size];
 		int[] cursor = new int[size];
-		int pcursor = 0, pmask = 0;
 
-		offset = size;
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < scanline; x++) {
+				int andIndex = (height - y - 1) * scanline + x;
 
-		for (int i = 0; i < h; i++) {
-			offset -= w;
-			pmask = offset;
-			for (int j = 0; j < scanline; j++) {
-				for (int bit = 0x80; bit > 0; bit >>= 1) {
-					if ((andmask[pandmask] & bit) != 0) {
-						mask[pmask] = 0;
+				for (int bit = 0; bit < 8; bit++) {
+					int maskIndex = ((y * scanline) + x) * 8 + bit;
+					int bitmask = 0x80 >> bit;
+
+					if ((andmask[andIndex] & bitmask) != 0) {
+						mask[maskIndex] = true;
 					} else {
-						mask[pmask] = 1;
+						mask[maskIndex] = false;
 					}
-					pmask++;
 				}
-				pandmask++;
 			}
 		}
 
-		offset = size;
-		pcursor = 0;
-
-		for (int i = 0; i < h; i++) {
-			offset -= w;
-			pcursor = offset;
-			for (int j = 0; j < w; j++) {
-				cursor[pcursor] = ((xormask[pxormask + 2] << 16) & 0x00ff0000)
-						| ((xormask[pxormask + 1] << 8) & 0x0000ff00)
-						| (xormask[pxormask] & 0x000000ff);
-				pxormask += 3;
-				pcursor++;
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int xorIndex = ((height - y - 1) * width + x) * 3;
+				int cursorIndex = y * width + x;
+				cursor[cursorIndex] = ((xormask[xorIndex + 2] << 16) & 0x00ff0000)
+						| ((xormask[xorIndex + 1] << 8) & 0x0000ff00)
+						| (xormask[xorIndex] & 0x000000ff);
 			}
 
 		}
 
-		offset = size;
-		pmask = 0;
-		pcursor = 0;
-		pxormask = 0;
-
-		for (int i = 0; i < h; i++) {
-			for (int j = 0; j < w; j++) {
-				if ((mask[pmask] == 0) && (cursor[pcursor] != 0)) {
-					cursor[pcursor] = ~(cursor[pcursor]);
-					cursor[pcursor] |= 0xff000000;
-				} else if ((mask[pmask] == 1) || (cursor[pcursor] != 0)) {
-					cursor[pcursor] |= 0xff000000;
-				}
-				pcursor++;
-				pmask++;
+		for (int i = 0; i < size; i++) {
+			if ((mask[i] == true) && (cursor[i] != 0)) {
+				cursor[i] = ~(cursor[i]);
+				cursor[i] |= 0xff000000;
+			} else if ((mask[i] == false) || (cursor[i] != 0)) {
+				cursor[i] |= 0xff000000;
 			}
 		}
 
-		Image wincursor = this.createImage(new MemoryImageSource(w, h, cursor,
-				0, w));
-		return createCustomCursor(wincursor, p, "", cache_idx);
+		Image wincursor = this.createImage(new MemoryImageSource(width, height, cursor,
+				0, width));
+		return createCustomCursor(wincursor, p, "");
+	}
+
+	@Override
+	public void setCursor(@Nonnull Object cursor) {
+		assert cursor instanceof Cursor : "Unexpected object " + cursor + " (" + (cursor != null ? cursor.getClass() : null) + ")";
+		setCursor((Cursor) cursor);
 	}
 
 	/**
@@ -601,8 +592,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 	 * @param cache_idx
 	 * @return Generated Cursor object
 	 */
-	protected Cursor createCustomCursor(Image wincursor, Point p, String s,
-			int cache_idx) {
+	protected Cursor createCustomCursor(Image wincursor, Point p, String s) {
 		// TODO: This doesn't do anything with the cache - is that right?
 		/*if (cache_idx == 1)
 			return Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
