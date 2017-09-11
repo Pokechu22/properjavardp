@@ -1435,37 +1435,41 @@ public class Rdp {
 
 	private void processPointer(RdpPacket data)
 			throws RdesktopException {
-		int message_type = 0;
-		int x = 0, y = 0;
 
-		message_type = data.getLittleEndian16();
+		int message_type = data.getLittleEndian16();
 		data.incrementPosition(2);
 		switch (message_type) {
 
-		case (Rdp.RDP_POINTER_MOVE):
+		case RDP_POINTER_MOVE: {
 			LOGGER.debug("Rdp.RDP_POINTER_MOVE");
-		x = data.getLittleEndian16();
-		y = data.getLittleEndian16();
+			int x = data.getLittleEndian16();
+			int y = data.getLittleEndian16();
 
-		if (data.getPosition() <= data.getEnd()) {
-			callback.movePointer(x, y);
+			if (data.getPosition() <= data.getEnd()) {
+				callback.movePointer(x, y);
+			}
+			break;
 		}
-		break;
 
-		case (Rdp.RDP_POINTER_COLOR):
+		case RDP_POINTER_COLOR: {
 			process_colour_pointer_pdu(data);
-		break;
+			break;
+		}
 
-		case (Rdp.RDP_POINTER_CACHED):
+		case RDP_POINTER_CACHED: {
 			process_cached_pointer_pdu(data);
-		break;
+			break;
+		}
 
-		case RDP_POINTER_SYSTEM:
+		case RDP_POINTER_SYSTEM: {
 			process_system_pointer_pdu(data);
 			break;
+		}
 
-		default:
+		default: {
+			LOGGER.warn("Unimplemented pointer PDU type {}", message_type);
 			break;
+		}
 		}
 	}
 
