@@ -1620,12 +1620,13 @@ public class Rdp {
 	}
 
 	/**
-	 * Process a null system pointer PDU
+	 * Processes an RDP5 fast-path hidden pointer update
 	 *
-	 * I am not entirely sure what that means, given that I can't find a matching packet in the spec.
+	 * @see [MS-RDPBCGR] 2.2.9.1.2.1.5
 	 */
 	private void process_null_system_pointer_pdu(RdpPacket s)
 			throws RdesktopException {
+		LOGGER.debug("RDP5_NULL_POINTER");
 		// FIXME: We should probably set another cursor here,
 		// like the X window system base cursor or something.
 		callback.setCursor(cache.getCursor(0));
@@ -1718,8 +1719,9 @@ public class Rdp {
 	}
 
 	/**
-	 * Process an RDP5 packet
+	 * Process an RDP5 fast-path packet
 	 *
+	 * @see [MS-RDPBCGR] 2.2.9.1.2.1
 	 * @param s
 	 *            Packet to be processed
 	 * @param encryption
