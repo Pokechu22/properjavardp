@@ -227,6 +227,7 @@ public class RdesktopFrame extends Frame implements RdesktopCallback {
 		this.canvas = new RdesktopCanvas(options, options.width,
 				options.height);
 		add(this.canvas);
+		this.setSize(options.width, options.height);
 		setTitle(options.windowTitle);
 
 		if (options.os == Options.OS.WINDOWS)
