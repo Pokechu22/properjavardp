@@ -137,7 +137,7 @@ public class Input {
 		}
 	}
 
-	public KeyCode_FileBased newKeyMapper = null;
+	public final KeyCode_FileBased newKeyMapper;
 
 	@Deprecated
 	protected static boolean capsLockOn = false;
@@ -307,9 +307,7 @@ public class Input {
 			newKeyMapper = new KeyCode_FileBased(options, keymapFile);
 		} catch (KeyMapException kmEx) {
 			LOGGER.fatal("Failed to load keymaps!", kmEx);
-			if (!options.noSystemExit) {
-				System.exit(-1);
-			}
+			throw new RuntimeException(kmEx);
 		}
 
 		this.rdp = r;
